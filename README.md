@@ -3,7 +3,6 @@
 ![Scanners](https://img.shields.io/badge/scanners-5-blue)
 ![Java](https://img.shields.io/badge/Java-17%2B-orange)
 ![Build](https://img.shields.io/badge/build-Maven-red)
-![Platform](https://img.shields.io/badge/platform-any%20JRE-brightgreen)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 ![Exit Codes](https://img.shields.io/badge/exit%20codes-CI%20ready-informational)
 
