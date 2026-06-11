@@ -14,7 +14,7 @@ A new scanner is a single `.java` file in `src/leakr/scanners/`. Implement the `
 
 ---
 
-## Scanner additions (now and forever)
+## Scanner additions 
 
 Scanners to add over time, roughly by priority:
 
