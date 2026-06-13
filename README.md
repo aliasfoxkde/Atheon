@@ -263,3 +263,4 @@ Exit code `0` on full pass, `1` on any failure.
 ## License
 
 Copyright (c) 2026 Dominick McEvoy. All rights reserved. See [LICENSE](LICENSE) for terms.
+Quick Disclaimer I dont really like and condone ai to produce functioning code, but i did use it for my readme
