@@ -45,7 +45,12 @@ public class ScannerTest {
 
         new Case("twilio-account-sid",
             "ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "AC12345")
+            "AC12345"),
+
+        new Case("OpenAI-Api-Key",
+                "sk-4u8d9f8g7h6j5k4l3m2n1o0p",
+                "sk-313123"
+                )
     );
 
     public static void main(String[] args) {
