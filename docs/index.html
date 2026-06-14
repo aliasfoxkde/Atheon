@@ -3,215 +3,132 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Atheon — Secret Detection for Java</title>
+  <title>Atheon — Secret Detection</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --bg:      #0b0b0d;
-      --surface: #111115;
-      --border:  #1e1e26;
-      --text:    #d8d8e0;
-      --muted:   #64647a;
-      --accent:  #8b7cf8;
-      --green:   #4ec994;
-      --red:     #e05c5c;
-      --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+    body {
+      background: #ffffff;
+      color: #111111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
     }
 
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      font-size: 15px;
-      line-height: 1.75;
-      max-width: 680px;
+    .wrap {
+      max-width: 620px;
       margin: 0 auto;
       padding: 0 1.5rem;
     }
 
-    /* ── nav ── */
     nav {
+      padding: 1.75rem 0;
+      border-bottom: 1px solid #ebebeb;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1.5rem 0;
-      border-bottom: 1px solid var(--border);
     }
 
     .brand {
-      font-family: var(--mono);
       font-size: 0.9rem;
       font-weight: 700;
-      color: var(--text);
+      color: #111;
       text-decoration: none;
+      font-family: ui-monospace, monospace;
       letter-spacing: -0.3px;
     }
 
-    .brand span { color: var(--accent); }
+    nav a { color: #888; font-size: 0.85rem; text-decoration: none; }
+    nav a:hover { color: #111; }
 
-    .nav-links {
-      list-style: none;
-      display: flex;
-      gap: 1.5rem;
-      font-size: 0.8rem;
-    }
-
-    nav a { color: var(--muted); text-decoration: none; }
-    nav a:hover { color: var(--text); }
-
-    /* ── hero ── */
     .hero {
-      padding: 4rem 0 3rem;
+      padding: 5rem 0 4rem;
       text-align: center;
     }
 
-    .vex {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      line-height: 1.35;
-      color: var(--accent);
+    .logo {
+      font-family: ui-monospace, monospace;
+      font-size: 0.65rem;
+      line-height: 1.3;
+      color: #bbb;
       white-space: pre;
       display: inline-block;
-      margin-bottom: 2rem;
-      opacity: 0.85;
+      margin-bottom: 2.5rem;
     }
 
-    .hero h1 {
-      font-family: var(--mono);
-      font-size: 2.4rem;
+    h1 {
+      font-size: 2.5rem;
       font-weight: 800;
       letter-spacing: -1.5px;
-      color: var(--text);
-      margin-bottom: 0.6rem;
+      margin-bottom: 1rem;
+      color: #111;
     }
 
     .hero p {
-      font-size: 0.95rem;
-      color: var(--muted);
-      margin-bottom: 1.5rem;
+      font-size: 1.05rem;
+      color: #555;
+      max-width: 460px;
+      margin: 0 auto 2.5rem;
     }
 
-    .badges {
-      display: flex;
-      justify-content: center;
-      gap: 0.4rem;
-      flex-wrap: wrap;
+    .download {
+      display: inline-block;
+      background: #111;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.75rem 2rem;
+      border-radius: 6px;
+      text-decoration: none;
+      letter-spacing: -0.2px;
     }
 
-    /* ── content ── */
-    .content { padding-bottom: 5rem; }
+    .download:hover { background: #333; }
+
+    .sub {
+      display: block;
+      margin-top: 0.75rem;
+      font-size: 0.78rem;
+      color: #bbb;
+    }
+
+    hr { border: none; border-top: 1px solid #ebebeb; margin: 3.5rem 0; }
+
+    section { padding: 0 0 3rem; }
 
     h2 {
-      font-family: var(--mono);
-      font-size: 0.7rem;
+      font-size: 1rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--muted);
-      margin-top: 3.5rem;
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border);
+      color: #111;
+      margin-bottom: 0.65rem;
     }
 
-    p { color: var(--muted); margin-bottom: 0.85rem; }
+    p { color: #555; margin-bottom: 0.85rem; }
     p:last-child { margin-bottom: 0; }
-    p strong { color: var(--text); font-weight: 600; }
 
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
-
-    /* ── code ── */
-    pre {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1.1rem 1.25rem;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 0.77rem;
-      line-height: 1.7;
-      margin: 0.9rem 0;
-      color: #b8b8cc;
-    }
-
-    code {
-      font-family: var(--mono);
-      font-size: 0.82em;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 0.1em 0.4em;
-      border-radius: 3px;
-      color: #b8b8cc;
-    }
-
-    pre code { background: none; padding: 0; border: none; font-size: 1em; }
-
-    /* ── terminal ── */
-    .term {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-      margin: 0.9rem 0;
-    }
-
-    .term-bar {
-      background: #0f0f13;
-      border-bottom: 1px solid var(--border);
-      padding: 0.55rem 1rem;
-      display: flex;
-      gap: 5px;
-      align-items: center;
-    }
-
-    .dot { width: 9px; height: 9px; border-radius: 50%; }
-    .dr { background: #3a3a3a; }
-    .dy { background: #3a3a3a; }
-    .dg { background: #3a3a3a; }
-
-    .term pre {
-      background: none;
-      border: none;
-      border-radius: 0;
-      margin: 0;
-    }
-
-    .ok   { color: var(--green); }
-    .crit { color: var(--red); }
-    .dim  { color: #3a3a4a; }
-
-    /* ── footer ── */
     footer {
-      font-size: 0.75rem;
-      color: var(--muted);
+      border-top: 1px solid #ebebeb;
       padding: 2rem 0;
-      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: #bbb;
       text-align: center;
     }
 
-    footer a { color: var(--muted); }
-    footer a:hover { color: var(--text); text-decoration: none; }
+    footer a { color: #bbb; text-decoration: none; }
+    footer a:hover { color: #111; }
   </style>
 </head>
 <body>
 
-<nav>
-  <a class="brand" href="/">athe<span>on</span></a>
-  <ul class="nav-links">
-    <li><a href="https://github.com/HoraDomu/Atheon" target="_blank">github</a></li>
-    <li><a href="#install">install</a></li>
-    <li><a href="#mission">mission</a></li>
-  </ul>
-</nav>
+<div class="wrap">
 
-<div class="hero">
-  <div class="vex">        /\     /\
+  <nav>
+    <a class="brand" href="/">atheon</a>
+    <a href="https://github.com/HoraDomu/Atheon" target="_blank">GitHub</a>
+  </nav>
+
+  <div class="hero">
+    <div class="logo">        /\     /\
        /  \___/  \
       / .-------. \
      / /         \ \
@@ -226,114 +143,42 @@
             |
            |||</div>
 
-  <h1>atheon</h1>
-  <p>Secret detection for Java. A library you embed. A CLI you run anywhere.</p>
-  <div class="badges">
-    <img src="https://img.shields.io/badge/Java-17%2B-orange" alt="Java 17+" />
-    <img src="https://img.shields.io/maven-central/v/io.github.horadomu/atheon" alt="Maven" />
-    <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" />
-  </div>
-</div>
-
-<div class="content">
-
-  <p>Atheon scans for leaked API keys, tokens, and credentials in code, config files, and environment variables. One dependency. No subprocess. No native binary. Runs wherever a JRE exists.</p>
-
-  <div class="term">
-    <div class="term-bar">
-      <div class="dot dr"></div>
-      <div class="dot dy"></div>
-      <div class="dot dg"></div>
-    </div>
-    <pre><span class="dim">$</span> java -jar atheon-1.0.1-cli.jar scan .
-
-<span class="crit">[CRITICAL]</span> aws-access-key
-  file:  src/config/dev.properties:14
-  match: AKIA**********************MPLE
-
-─────────────────────────────
-found 1 potential secret(s)
-
-files: 42  size: 318.7 KB  time: 84ms</pre>
+    <h1>Atheon</h1>
+    <p>A secret detection GUI that runs anywhere Java runs. No install. No configuration. Just download and go.</p>
+    <a class="download" href="https://github.com/HoraDomu/Atheon/releases/latest" target="_blank">Download atheon.jar</a>
+    <span class="sub">java -jar atheon.jar &nbsp;·&nbsp; requires Java 17+</span>
   </div>
 
-  <h2 id="install">install</h2>
+  <hr />
 
-  <p>Add the JitPack repository and declare the dependency:</p>
-
-  <pre>&lt;repositories&gt;
-  &lt;repository&gt;
-    &lt;id&gt;jitpack.io&lt;/id&gt;
-    &lt;url&gt;https://jitpack.io&lt;/url&gt;
-  &lt;/repository&gt;
-&lt;/repositories&gt;
-
-&lt;dependency&gt;
-  &lt;groupId&gt;com.github.HoraDomu&lt;/groupId&gt;
-  &lt;artifactId&gt;Atheon&lt;/artifactId&gt;
-  &lt;version&gt;v1.0.1&lt;/version&gt;
-&lt;/dependency&gt;</pre>
-
-  <p>Or download the CLI JAR from <a href="https://github.com/HoraDomu/Atheon/releases/latest" target="_blank">GitHub Releases</a> and run it anywhere a JRE is installed.</p>
-
-  <h2>use it</h2>
-
-  <pre>Runner runner = new Runner(new Registry());
-
-runner.scanString("AKIAIOSFODNN7EXAMPLE");
-runner.scanFile(Path.of("config.yaml"));
-runner.scanDir(Path.of("/path/to/project"));
-runner.scanEnv();</pre>
-
-  <p>Each <code>Finding</code> exposes <code>scanner</code>, <code>severity</code>, <code>file</code>, <code>line</code>, and <code>match</code>. That is the entire API.</p>
+  <section>
+    <h2>What it does</h2>
+    <p>Atheon scans code, config files, and environment variables for leaked API keys, tokens, and credentials. It catches things like AWS access keys, GitHub personal access tokens, Stripe secret keys, OpenAI keys, Slack tokens, and Twilio SIDs before they end up somewhere they shouldn't.</p>
+    <p>Open the app, type <code>scan</code>, pick a folder. That's the whole workflow.</p>
+  </section>
 
   <hr />
 
-  <h2>cli</h2>
-
-  <pre><span class="dim"># scan a directory</span>
-java -jar atheon-1.0.1-cli.jar scan .
-
-<span class="dim"># scan env vars</span>
-java -jar atheon-1.0.1-cli.jar scan --env
-
-<span class="dim"># pipe git diff</span>
-git diff | java -jar atheon-1.0.1-cli.jar scan --stdin
-
-<span class="dim"># json output</span>
-java -jar atheon-1.0.1-cli.jar scan . --json</pre>
-
-  <p>Exit code <code>0</code> is clean. Exit code <code>1</code> means findings. Runs on any OS, any architecture, any CI — if a JRE is there, Atheon works.</p>
+  <section>
+    <h2>Mission</h2>
+    <p>Secret detection should be simple enough that anyone can use it — not just developers comfortable with a terminal. Atheon is a self-contained JAR with a clean GUI that runs on Windows, macOS, Linux, and anywhere else a JRE exists. No platform-specific binary. No setup. One file.</p>
+    <p>It is also built to grow. Adding a new scanner is one Java file. The rest is automatic.</p>
+  </section>
 
   <hr />
 
-  <h2>vs gitleaks</h2>
-
-  <p><a href="https://gitleaks.io" target="_blank">gitleaks</a> is excellent. Atheon does not compete with it.</p>
-
-  <p>Use gitleaks to audit git history. Use Atheon when you need secret detection <strong>inside a Java application</strong> — scanning a string just read from a config, checking environment variables before they reach your code, or embedding checks into a build step without shelling out to a native binary.</p>
-
-  <hr />
-
-  <h2 id="mission">mission</h2>
-
-  <p>Secret detection should be native to Java development — not a binary you wrap in a shell script, not a CI step that requires a separate install. A library you call like any other, embedded in your code, running wherever Java runs.</p>
-
-  <p>Atheon is feature complete. The API, CLI, output formats, and exit codes are stable and will not change. Future releases add scanners and security patches only.</p>
+  <section>
+    <h2>Contact</h2>
+    <p>Questions, ideas, or want to contribute a scanner? Reach out at <a href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a>.</p>
+  </section>
 
   <hr />
 
-  <h2>contact</h2>
-
-  <p>Open an issue on <a href="https://github.com/HoraDomu/Atheon" target="_blank">GitHub</a> or email <a href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a>.</p>
-
-  <p><a href="https://github.com/sponsors/HoraDomu" target="_blank">Sponsor on GitHub →</a></p>
+  <footer>
+    <p>© 2026 Dominick Yanez &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Atheon/blob/main/LICENSE" target="_blank">MIT License</a> &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Atheon" target="_blank">GitHub</a></p>
+  </footer>
 
 </div>
-
-<footer>
-  <p>© 2026 Dominick Yanez &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Atheon/blob/main/LICENSE" target="_blank">MIT</a> &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Atheon" target="_blank">GitHub</a></p>
-</footer>
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-﻿package atheon.core;
+package atheon.core;
 
 public enum Severity {
     CRITICAL("critical"),

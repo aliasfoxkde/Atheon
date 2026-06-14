@@ -1,4 +1,4 @@
-﻿package atheon.scanners;
+package atheon.scanners;
 
 import atheon.core.*;
 import java.util.ArrayList;
