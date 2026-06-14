@@ -2,13 +2,14 @@
 
 # Leakr
 
+<!-- SCANNER COUNT: update the number in the badge URL and in the "Registered Scanners" section below -->
 ![Scanners](https://img.shields.io/badge/scanners-5-blue)
 ![Java](https://img.shields.io/badge/Java-17%2B-orange)
 ![Build](https://img.shields.io/badge/build-Maven-red)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 
 
-**A secret and credential scanner — a Java library you embed in your code and a CLI tool you run anywhere.**
+**A secret and credential scanner. A Java library you embed in your code and a CLI tool you run anywhere.**
 
 > [!WARNING]
 > Leakr is feature complete. I'm not merging new features into Leakr. Future releases will be security patches and new scanners only.
@@ -17,7 +18,7 @@
 
 ## Mission
 
-Secret detection should be a native part of Java development — not a binary you wrap in a shell script, not a CI step that requires a separate tool. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.
+Secret detection should be a native part of Java development. Not a binary you wrap in a shell script, not a CI step that requires a separate tool. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.
 
 ---
 
@@ -27,10 +28,10 @@ Leakr scans files, directories, environment variables, and stdin for leaked secr
 
 It works two ways:
 
-- **As a library** — call `runner.scanString(...)` from your Java application, CI pipeline, or review tooling. No subprocess. No native binary. Just a dependency.
-- **As a CLI tool** — run `leakr scan <path>` from any terminal on any platform with a JRE.
+- **As a library**: call `runner.scanString(...)` from your Java application, CI pipeline, or review tooling. No subprocess. No native binary. Just a dependency.
+- **As a CLI tool**: run `leakr scan <path>` from any terminal on any platform with a JRE.
 
-The scanner engine is the only thing that grows over time. The CLI, the library API, the output formats, the exit codes — all of it is done.
+The scanner engine is the only thing that grows over time. The CLI, the library API, the output formats, the exit codes: all of it is done.
 
 ---
 
@@ -38,10 +39,10 @@ The scanner engine is the only thing that grows over time. The CLI, the library 
 
 Leakr is Java because Java is everywhere.
 
-- **Embeddable** — drop it into any Maven or Gradle project. Call it from application code, not a shell.
-- **One JAR, any platform** — runs on Windows, Linux, and macOS without architecture-specific binaries or package managers. If you have a JRE, you have Leakr.
-- **Enterprise-native** — Java lives in CI pipelines, build servers, and backend services. Leakr lives there with it, no wrapper script required.
-- **Parallel by default** — directory scans use a thread pool sized to the host CPU automatically.
+- **Embeddable**: drop it into any Maven or Gradle project. Call it from application code, not a shell.
+- **One JAR, any platform**: runs on Windows, Linux, and macOS without architecture-specific binaries or package managers. If you have a JRE, you have Leakr.
+- **Enterprise-native**: Java lives in CI pipelines, build servers, and backend services. Leakr lives there with it, no wrapper script required.
+- **Parallel by default**: directory scans use a thread pool sized to the host CPU automatically.
 
 ---
 
@@ -59,7 +60,7 @@ Leakr is Java because Java is everywhere.
 | Zero native dependencies     | ✓ (JRE only)   | ✗ (Go binary)  |
 | Add a scanner = one class    | ✓              | config + rules |
 
-If you want git history scanning, use gitleaks. If you want to embed secret detection in a Java application, scan environment variables at startup, integrate it into a CI step without a binary dependency, or pipe arbitrary content through a scanner — use Leakr.
+If you want git history scanning, use gitleaks. If you want to embed secret detection in a Java application, scan environment variables at startup, integrate it into a CI step without a binary dependency, or pipe arbitrary content through a scanner, use Leakr.
 
 ---
 
@@ -73,7 +74,7 @@ cd Leakr
 mvn package -q
 ```
 
-This produces `target/leakr.jar` — a single self-contained JAR with all dependencies bundled.
+This produces `target/leakr.jar`, a single self-contained JAR with all dependencies bundled.
 
 ### Run the CLI
 
@@ -103,7 +104,7 @@ java -jar target/leakr.jar scan . --ext .env,.yaml,.json,.tf
 java -jar target/leakr.jar list
 ```
 
-Exit code `0` means clean. Exit code `1` means findings were detected. Pipe-friendly and CI-ready out of the box — no configuration required.
+Exit code `0` means clean. Exit code `1` means findings were detected. Pipe-friendly and CI-ready out of the box, no configuration required.
 
 ### Sample output
 
@@ -168,6 +169,7 @@ Each `Finding` exposes: `scanner`, `severity`, `file`, `line`, `description`, `m
 
 ## Registered Scanners
 
+<!-- SCANNER COUNT: add new rows here and update the badge count at the top of this file -->
 | Scanner | Detects | Severity |
 |---|---|---|
 | `aws-access-key` | AWS access key IDs (`AKIA...`) | CRITICAL |
@@ -273,7 +275,7 @@ Exit code `0` on full pass, `1` on any failure.
 
 ## License
 
-Copyright (c) 2026 Dominick McEvoy. All rights reserved. See [LICENSE](LICENSE) for terms.
+Copyright (c) 2026 Dominick Yanez. All rights reserved. See [LICENSE](LICENSE) for terms.
 
 ---
 Quick Disclaimer I dont really like and condone ai to produce functioning code, but i did use it for my readme

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Leakr — Secret Scanner</title>
+  <title>Leakr: Secret Scanner</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -143,9 +143,9 @@
 <h1>leakr</h1>
 <p class="subtitle">open-source secret scanner for Java</p>
 
-<p>Leakr is an open-source secret and credential scanner for Java. One JAR, any platform. Scan files, directories, environment variables, and stdin for leaked API keys, tokens, and credentials — or embed it directly in your Java application with no subprocess and no native binary required.</p>
+<p>Leakr is an open-source secret and credential scanner for Java. One JAR, any platform. Scan files, directories, environment variables, and stdin for leaked API keys, tokens, and credentials, or embed it directly in your Java application with no subprocess and no native binary required.</p>
 
-<p>Five built-in scanners cover AWS access keys, Stripe secret keys, GitHub personal access tokens, Slack bot tokens, and Twilio account SIDs. Add your own by dropping a single class into <code>leakr.scanners</code> — auto-discovered at runtime, no config file needed.</p>
+<p><span class="scanner-count"></span> built-in scanners covering AWS access keys, Stripe secret keys, GitHub personal access tokens, Slack bot tokens, and Twilio account SIDs. Add your own by dropping a single class into <code>leakr.scanners</code>. Auto-discovered at runtime, no config file needed.</p>
 
 <p><a href="https://github.com/HoraDomu/Leakr" target="_blank">View on GitHub →</a></p>
 
@@ -162,7 +162,7 @@ java -jar leakr.jar scan .</pre>
 
 <h2 id="mission">Mission</h2>
 
-<p>Secret detection should be a native part of Java development — not a binary you wrap in a shell script, not a CI step that requires a separate tool. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.</p>
+<p>Secret detection should be a native part of Java development. Not a binary you wrap in a shell script, not a CI step that requires a separate tool. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.</p>
 
 <p>Leakr is feature complete. New features are not being merged. Future releases will be security patches and new scanners only.</p>
 
@@ -181,8 +181,18 @@ java -jar leakr.jar scan .</pre>
      █</div>
 
 <footer>
-  <p>Copyright &copy; 2026 Dominick McEvoy &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Leakr/blob/main/LICENSE" target="_blank">License</a></p>
+  <p>Copyright &copy; 2026 Dominick Yanez &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Leakr/blob/main/LICENSE" target="_blank">License</a></p>
 </footer>
+
+
+<script>
+  // ── UPDATE THIS NUMBER WHEN YOU ADD SCANNERS ──
+  const SCANNER_COUNT = 5;
+  // ─────────────────────────────────────────────
+  document.querySelectorAll('.scanner-count').forEach(function(el) {
+    el.textContent = SCANNER_COUNT;
+  });
+</script>
 
 </body>
 </html>
