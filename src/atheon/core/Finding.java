@@ -1,8 +1,5 @@
-﻿package atheon.core;
+package atheon.core;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Finding {
     public final String scanner;
     public final String severity;

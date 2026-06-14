@@ -17,196 +17,65 @@
 
 # Atheon
 
-![Scanners](https://img.shields.io/badge/scanners-6-blue)
 ![Java](https://img.shields.io/badge/Java-17%2B-orange)
-![Maven Central](https://img.shields.io/maven-central/v/io.github.horadomu/atheon)
+![Scanners](https://img.shields.io/badge/scanners-6-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**Secret detection for Java applications. A library you embed in your code, and a CLI you run anywhere.**
+**A secret detection GUI for Java. Download one JAR. Run it anywhere a JRE exists.**
 
 ---
 
 ## What is Atheon?
 
-Atheon detects leaked secrets — API keys, tokens, and credentials — in your code, config files, and environment variables. It does one thing and does it well.
-
-- **As a library**: call `runner.scanString(...)`, `runner.scanFile(...)`, or `runner.scanDir(...)` directly from your Java application. No subprocess. No native binary. Just a dependency.
-- **As a CLI tool**: run `atheon scan <path>` from any terminal on any platform with a JRE.
+Atheon scans your code, config files, and environment variables for leaked API keys, tokens, and credentials. It runs as a self-contained desktop GUI — no install, no configuration, no native binary. Double-click the JAR or run it from a terminal.
 
 ---
 
-## Why Atheon?
+## Why it matters
 
-Secrets end up in source code all the time. A developer hardcodes an API key to test something locally, forgets to remove it, and commits it. A `.env` file gets checked in by accident. A config template ships with a real credential still in it. Once a secret is in git history, it is effectively public — even if you delete the file, the commit remains.
+Secrets end up in code all the time — an API key hardcoded for a quick test, a `.env` file committed by accident, a config template that shipped with real credentials still in it. Once a secret is in git history it is effectively public. Atheon catches them before that happens.
 
-Most existing secret scanners are built around git hooks or CI pipelines and are tightly coupled to those workflows. They also tend to be external native tools (`trufflehog`, `gitleaks`, etc.) that you invoke as a subprocess — meaning you cannot embed them inside a Java application, and you cannot scan strings or in-memory content programmatically.
+---
 
-Atheon is designed differently:
+## Why a GUI?
 
-**It is a Java library first.** You add it as a Maven or Gradle dependency and call it directly from your code. This makes it useful in scenarios no CLI tool can cover: scanning user-uploaded content before storing it, validating config values at application startup, running secret checks inside a CI step written in Java, or integrating into an internal security tool.
-
-**It ships a CLI too.** For the common case — auditing a directory, scanning a diff, checking env vars — you do not need to write any code. Build once, run `java -jar` anywhere a JRE exists.
-
-**It is zero-config.** There is no YAML config, no rule file, no plugin directory to manage. Drop it in, call it, get results. Scanners are auto-discovered at runtime by package scanning — adding a new one is as simple as writing a class that implements `Scanner`.
-
-**It is honest about its scope.** Atheon uses high-confidence regex patterns targeting well-known secret formats (AWS access keys, GitHub PATs, OpenAI keys, Stripe secret keys, Slack bot tokens, Twilio account SIDs). It does not attempt heuristic or entropy-based detection. That keeps false positives low and results trustworthy.
-
-**It runs everywhere Java runs.** A single JAR. No architecture-specific binaries. No native dependencies. If a JRE is installed, Atheon works — Windows, macOS, Linux, ARM, Docker, CI, wherever.
+Every other secret scanner is CLI-only. Atheon's terminal-style GUI runs on any platform with a JRE — Windows, macOS, Linux, ARM, Docker, CI — without downloading a platform-specific binary. Open it, scan, done.
 
 ---
 
 ## Install
 
-**Maven**
+Download `atheon.jar` from [GitHub Releases](https://github.com/HoraDomu/Atheon/releases/latest).
 
-```xml
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-
-<dependency>
-    <groupId>com.github.HoraDomu</groupId>
-    <artifactId>Atheon</artifactId>
-    <version>v1.0.1</version>
-</dependency>
-```
-
-**Gradle**
-
-```gradle
-repositories {
-    maven { url 'https://jitpack.io' }
-}
-
-dependencies {
-    implementation 'com.github.HoraDomu:Atheon:v1.0.1'
-}
-```
-
-**CLI** — download the self-contained JAR from [GitHub Releases](https://github.com/HoraDomu/Atheon/releases/latest) and run it anywhere with a JRE.
-
----
-
-## Library Usage
-
-```java
-import atheon.core.*;
-import java.nio.file.*;
-import java.util.List;
-
-Runner runner = new Runner(new Registry());
-
-List<Finding> findings = runner.scanString("AKIAIOSFODNN7EXAMPLE");
-List<Finding> findings = runner.scanFile(Path.of("config.yaml"));
-List<Finding> findings = runner.scanDir(Path.of("/path/to/project"));
-List<Finding> findings = runner.scanEnv();
-```
-
-Each `Finding` exposes: `scanner`, `severity`, `file`, `line`, `description`, `match`. No configuration required.
-
----
-
-## CLI Quickstart
-
-Clone the repo, then build with whichever tool you have available.
-
-**Maven**
-
+**Run:**
 ```bash
-git clone https://github.com/HoraDomu/Atheon.git
-cd Atheon
-mvn package -q
-java -jar target/atheon-1.0.1-cli.jar scan /path/to/project
+java -jar atheon.jar
 ```
 
-**Gradle**
-
-```bash
-git clone https://github.com/HoraDomu/Atheon.git
-cd Atheon
-./gradlew shadowJar
-java -jar build/libs/atheon-1.0.1-cli.jar scan /path/to/project
-```
-
-**Plain Java (no build tool)**
-
-```bash
-git clone https://github.com/HoraDomu/Atheon.git
-cd Atheon
-# Pull dependencies into lib/
-mvn dependency:copy-dependencies -DoutputDirectory=lib -q
-
-# Compile
-javac -cp "lib/*" -d out src/atheon/cli/Main.java src/atheon/core/*.java src/atheon/output/*.java src/atheon/scanners/*.java
-
-# Run
-java -cp "out:lib/*" atheon.cli.Main scan /path/to/project
-# Windows: use semicolons
-java -cp "out;lib/*" atheon.cli.Main scan /path/to/project
-```
-
-The Maven `package` goal produces two JARs in `target/`:
-- `atheon-1.0.1-cli.jar` — self-contained JAR for CLI use
-- `atheon-1.0.1.jar` — thin library JAR for embedding as a dependency
+That's it. The window opens.
 
 ---
 
-## Run the CLI
+## Commands
 
-```bash
-# Scan a directory
-java -jar target/atheon-1.0.1-cli.jar scan /path/to/project
+Type any of these at the `atheon>` prompt:
 
-# Scan a single file
-java -jar target/atheon-1.0.1-cli.jar scan config.env
-
-# Scan environment variables
-java -jar target/atheon-1.0.1-cli.jar scan --env
-
-# Pipe content from stdin
-git diff | java -jar target/atheon-1.0.1-cli.jar scan --stdin
-
-# JSON output
-java -jar target/atheon-1.0.1-cli.jar scan /path/to/project --json
-
-# Exclude directories
-java -jar target/atheon-1.0.1-cli.jar scan . --exclude target,dist,node_modules
-
-# Filter by file extension
-java -jar target/atheon-1.0.1-cli.jar scan . --ext .env,.yaml,.json,.tf
-
-# List registered scanners
-java -jar target/atheon-1.0.1-cli.jar list
-```
-
-Exit code `0` means clean. Exit code `1` means findings were detected.
+| Command | What it does |
+|---|---|
+| `scan` | Open a folder picker and scan the directory |
+| `scan file` | Open a file picker and scan one file |
+| `scan env` | Scan all environment variables |
+| `list` | Show every registered scanner |
+| `help` | Show all commands |
+| `clear` | Clear the terminal |
+| `//new` | Open a second session tab |
+| `//exit` | Close Atheon |
 
 ---
 
-## Sample Output
+## Adding a scanner
 
-```
-[CRITICAL] aws-access-key
-  file:  src/config/dev.properties:14
-  desc:  Detects AWS access key IDs (AKIA...)
-  match: AKIA**********************MPLE
-
-─────────────────────────────
-found 1 potential secret(s)
-
-files: 42  size: 318.7 KB  time: 84ms
-```
-
----
-
-## Adding a Scanner
-
-Atheon auto-discovers every class in the `atheon.scanners` package that implements `Scanner`. No registration, no config file — drop a class in, rebuild, and it is live.
-
-### 1. Create the scanner
+Drop a single `.java` file into `src/atheon/scanners/`. Implement `Scanner`, rebuild, and it appears automatically — no registration, no config.
 
 ```java
 package atheon.scanners;
@@ -231,53 +100,29 @@ public class MyServiceScanner implements Scanner {
 }
 ```
 
-Place it in `src/atheon/scanners/MyServiceScanner.java`.
+---
 
-### 2. Rebuild and verify
-
-```bash
-mvn package -q
-java -jar target/atheon-1.0.1-cli.jar list
-```
-
-### 3. Add a test case
+## Testing a scanner
 
 Open `src/atheon/test/ScannerTest.java` and add one entry to `CASES`:
 
 ```java
 new Case("myservice-api-key",
     "myservice_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",  // must match
-    "myservice_tooshort")                            // must not match
+    "myservice_short")                               // must not match
 ```
 
----
-
-## Testing
+Build and run:
 
 ```bash
-java -cp target/atheon-1.0.1-cli.jar atheon.test.ScannerTest
+mvn package -q
+java -cp target/atheon.jar atheon.test.ScannerTest
 ```
-
-```
-PASS     aws-access-key
-PASS     github-pat
-PASS     openai-api-key
-PASS     stripe-secret-key
-PASS     slack-bot-token
-PASS     twilio-account-sid
-
-6 passed, 0 failed
-```
-
-Exit code `0` on full pass, `1` on any failure.
-
----
-
-> [!WARNING]
-> Atheon is feature complete. Future releases will be security patches and new scanners only. The library API, CLI, output formats, and exit codes are stable and will not change.
 
 ---
 
 ## License
 
-MIT — free to use, modify, and distribute. The copyright notice must be preserved in all copies. See [LICENSE](LICENSE).
+MIT License — Copyright © 2026 Dominick Yanez
+
+Free to use, modify, and distribute. The copyright notice must be preserved in all copies.

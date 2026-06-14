@@ -1,4 +1,4 @@
-﻿package atheon.test;
+package atheon.test;
 
 import atheon.core.Registry;
 import atheon.core.Scanner;

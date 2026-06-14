@@ -1,4 +1,4 @@
-﻿package atheon.core;
+package atheon.core;
 
 import java.util.List;
 

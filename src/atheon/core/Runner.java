@@ -1,4 +1,4 @@
-﻿package atheon.core;
+package atheon.core;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
