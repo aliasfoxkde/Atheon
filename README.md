@@ -1,4 +1,19 @@
-<img src="docs/logo.svg" alt="Atheon" width="72" /><br>
+<pre>
+        /\     /\
+       /  \___/  \
+      / .-------. \
+     / /         \ \
+    / /   .---.   \ \
+   | |   /     \   | |
+   | |  |  [*]  |  | |
+   | |   \     /   | |
+    \ \   '---'   / /
+     \ \         / /
+      \ '-------' /
+       \_________/
+            |
+           |||
+</pre>
 
 # Atheon
 
@@ -45,18 +60,33 @@ Atheon is designed differently:
 **Maven**
 
 ```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
 <dependency>
-    <groupId>io.github.horadomu</groupId>
-    <artifactId>atheon</artifactId>
-    <version>1.0.1</version>
+    <groupId>com.github.HoraDomu</groupId>
+    <artifactId>Atheon</artifactId>
+    <version>v1.0.1</version>
 </dependency>
 ```
 
 **Gradle**
 
 ```gradle
-implementation 'io.github.horadomu:atheon:1.0.1'
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation 'com.github.HoraDomu:Atheon:v1.0.1'
+}
 ```
+
+**CLI** — download the self-contained JAR from [GitHub Releases](https://github.com/HoraDomu/Atheon/releases/latest) and run it anywhere with a JRE.
 
 ---
 
