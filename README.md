@@ -2,71 +2,119 @@
 
 # Leakr
 
-<!-- SCANNER COUNT: update the number in the badge URL and in the "Registered Scanners" section below -->
-![Scanners](https://img.shields.io/badge/scanners-5-blue)
+![Scanners](https://img.shields.io/badge/scanners-6-blue)
 ![Java](https://img.shields.io/badge/Java-17%2B-orange)
-![Build](https://img.shields.io/badge/build-Maven-red)
-![License](https://img.shields.io/badge/license-proprietary-lightgrey)
+![Maven Central](https://img.shields.io/maven-central/v/io.github.horadomu/leakr)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-
-**A secret and credential scanner. A Java library you embed in your code and a CLI tool you run anywhere.**
-
-> [!WARNING]
-> Leakr is feature complete. I'm not merging new features into Leakr. Future releases will be security patches and new scanners only.
-
----
-
-## Mission
-
-Secret detection should be a native part of Java development. Not a binary you wrap in a shell script, not a CI step that requires a separate tool. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.
+**Secret detection for Java applications. A library you embed in your code, and a CLI you run anywhere.**
 
 ---
 
 ## What is Leakr?
 
-Leakr scans files, directories, environment variables, and stdin for leaked secrets: API keys, tokens, and credentials. It does one thing and does it well.
+Leakr detects leaked secrets — API keys, tokens, and credentials — in your code, config files, and environment variables. It does one thing and does it well.
 
 It works two ways:
 
-- **As a library**: call `runner.scanString(...)` from your Java application, CI pipeline, or review tooling. No subprocess. No native binary. Just a dependency.
+- **As a library**: call `runner.scanString(...)`, `runner.scanFile(...)`, or `runner.scanDir(...)` directly from your Java application. No subprocess. No native binary. Just a dependency.
 - **As a CLI tool**: run `leakr scan <path>` from any terminal on any platform with a JRE.
-
-The scanner engine is the only thing that grows over time. The CLI, the library API, the output formats, the exit codes: all of it is done.
 
 ---
 
-## Why Java?
+## Install
 
-Leakr is Java because Java is everywhere.
+Add to your Maven project:
 
-- **Embeddable**: drop it into any Maven or Gradle project. Call it from application code, not a shell.
-- **One JAR, any platform**: runs on Windows, Linux, and macOS without architecture-specific binaries or package managers. If you have a JRE, you have Leakr.
-- **Enterprise-native**: Java lives in CI pipelines, build servers, and backend services. Leakr lives there with it, no wrapper script required.
-- **Parallel by default**: directory scans use a thread pool sized to the host CPU automatically.
+```xml
+<dependency>
+    <groupId>io.github.horadomu</groupId>
+    <artifactId>leakr</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+Or with Gradle:
+
+```gradle
+implementation 'io.github.horadomu:leakr:1.0.0'
+```
+
+---
+
+## Library Usage
+
+```java
+import leakr.core.*;
+import java.nio.file.*;
+import java.util.List;
+
+Runner runner = new Runner(new Registry());
+
+// Scan a string
+List<Finding> findings = runner.scanString("AKIAIOSFODNN7EXAMPLE");
+
+// Scan a single file
+List<Finding> findings = runner.scanFile(Path.of("config.yaml"));
+
+// Scan a directory (parallel, skips binaries and noise dirs automatically)
+List<Finding> findings = runner.scanDir(Path.of("/path/to/project"));
+
+// Scan live environment variables
+List<Finding> findings = runner.scanEnv();
+```
+
+Each `Finding` exposes: `scanner`, `severity`, `file`, `line`, `description`, `match`.
+
+That's the entire API. No configuration, no setup, no builder pattern.
 
 ---
 
 ## Why Leakr when gitleaks exists?
 
-[gitleaks](https://github.com/gitleaks/gitleaks) is excellent at what it does: scanning git history for secrets that were committed. That is not what Leakr does.
+[gitleaks](https://github.com/gitleaks/gitleaks) is excellent at what it does: scanning git history for committed secrets. That is not what Leakr does.
 
 |                              | Leakr          | gitleaks       |
 |------------------------------|:--------------:|:--------------:|
-| Scan git history             |                | ✓              |
-| Scan files and directories   | ✓              | ✓              |
+| **Embeddable Java library**  | **✓**          | **✗**          |
 | Scan environment variables   | ✓              |                |
 | Scan stdin / arbitrary text  | ✓              | partial        |
-| **Embeddable Java library**  | **✓**          | **✗**          |
 | Zero native dependencies     | ✓ (JRE only)   | ✗ (Go binary)  |
 | Add a scanner = one class    | ✓              | config + rules |
+| Scan files and directories   | ✓              | ✓              |
+| Scan git history             |                | ✓              |
 
-If you want git history scanning, use gitleaks. If you want to embed secret detection in a Java application, scan environment variables at startup, integrate it into a CI step without a binary dependency, or pipe arbitrary content through a scanner, use Leakr.
+If you want git history scanning, use gitleaks. If you want to embed secret detection in a Java application, scan environment variables at startup, or integrate into a pipeline without a binary dependency, use Leakr.
 
 ---
 
-## Quickstart
+## Why Java?
 
-### Clone and build
+- **Embeddable**: drop it into any Maven or Gradle project and call it from application code, not a shell.
+- **One JAR, any platform**: runs on Windows, Linux, and macOS without architecture-specific binaries. If you have a JRE, you have Leakr.
+- **Enterprise-native**: Java lives in CI pipelines, build servers, and backend services. Leakr lives there with it.
+- **Parallel by default**: directory scans use a thread pool sized to the host CPU automatically.
+
+---
+
+## Built-in Scanners
+
+6 scanners ship out of the box. All fully tested.
+
+| Scanner | Detects | Severity |
+|---|---|---|
+| `aws-access-key` | AWS access key IDs (AKIA/ASIA…) | Critical |
+| `github-pat` | GitHub personal access tokens (ghp_…) | Critical |
+| `openai-api-key` | OpenAI API keys (sk-…) | Critical |
+| `stripe-secret-key` | Stripe secret keys (sk_live_…) | Critical |
+| `slack-bot-token` | Slack bot tokens (xoxb-…) | High |
+| `twilio-account-sid` | Twilio account SIDs (AC…) | High |
+
+---
+
+## CLI Quickstart
+
+### Build from source
 
 ```bash
 git clone https://github.com/HoraDomu/Leakr.git
@@ -106,7 +154,7 @@ java -jar target/leakr-1.0.0-cli.jar scan . --ext .env,.yaml,.json,.tf
 java -jar target/leakr-1.0.0-cli.jar list
 ```
 
-Exit code `0` means clean. Exit code `1` means findings were detected. Pipe-friendly and CI-ready out of the box, no configuration required.
+Exit code `0` means clean. Exit code `1` means findings were detected.
 
 ### Sample output
 
@@ -121,52 +169,6 @@ found 1 potential secret(s)
 
 files: 42  size: 318.7 KB  time: 84ms
 ```
-
----
-
-## Use as a Library
-
-Add the dependency from Maven Central:
-
-```xml
-<dependency>
-    <groupId>io.github.horadomu</groupId>
-    <artifactId>leakr</artifactId>
-    <version>1.0.0</version>
-</dependency>
-```
-
-Or install locally from source:
-
-```bash
-mvn install -q
-```
-
-Then call it directly from your code:
-
-```java
-import leakr.core.*;
-import java.nio.file.*;
-import java.util.List;
-
-Registry registry = new Registry();
-Runner runner = new Runner(registry);
-
-// Scan a string
-List<Finding> findings = runner.scanString("AKIAIOSFODNN7EXAMPLE");
-
-// Scan a file
-List<Finding> findings = runner.scanFile(Path.of("config.yaml"));
-
-// Scan a directory (parallel, skips binaries and common noise dirs automatically)
-List<Finding> findings = runner.scanDir(Path.of("/path/to/repo"));
-
-// Scan environment variables
-List<Finding> findings = runner.scanEnv();
-```
-
-Each `Finding` exposes: `scanner`, `severity`, `file`, `line`, `description`, `match`.
-
 
 ---
 
@@ -201,21 +203,16 @@ public class MyServiceScanner implements Scanner {
 
 Place it in `src/leakr/scanners/MyServiceScanner.java`.
 
-### 2. Rebuild
+### 2. Rebuild and confirm
 
 ```bash
 mvn package -q
+java -jar target/leakr-1.0.0-cli.jar list
 ```
 
-### 3. Confirm it registered
+Your scanner appears automatically.
 
-```bash
-java -jar target/leakr.jar list
-```
-
-Your scanner appears automatically. No other changes needed.
-
-### 4. Add a test case
+### 3. Add a test case
 
 Open `src/leakr/test/ScannerTest.java` and add one entry to `CASES`:
 
@@ -225,47 +222,34 @@ new Case("myservice-api-key",
     "myservice_tooshort")                            // must NOT produce a match
 ```
 
-### 5. Run the test
-
-```bash
-java -cp target/leakr.jar leakr.test.ScannerTest
-```
-
 ---
 
 ## Testing
 
-`ScannerTest` is a universal, plug-and-play test runner. Each `Case` has three fields:
-
-| Field | Purpose |
-|---|---|
-| `scanner` | The exact name returned by `scanner.name()` |
-| `hit` | A string that **must** produce at least one match |
-| `miss` | A string that **must not** produce any match |
-
-Run all cases at once to confirm every scanner works and nothing regressed:
-
 ```bash
-java -cp target/leakr.jar leakr.test.ScannerTest
+java -cp target/leakr-1.0.0-cli.jar leakr.test.ScannerTest
 ```
 
 ```
 PASS     aws-access-key
 PASS     github-pat
+PASS     openai-api-key
 PASS     stripe-secret-key
 PASS     slack-bot-token
 PASS     twilio-account-sid
 
-5 passed, 0 failed
+6 passed, 0 failed
 ```
 
 Exit code `0` on full pass, `1` on any failure.
 
 ---
 
-## License
-
-Copyright (c) 2026 Dominick Yanez. All rights reserved. See [LICENSE](LICENSE) for terms.
+> [!WARNING]
+> Leakr is feature complete. Future releases will be security patches and new scanners only. The library API, CLI, output formats, and exit codes are stable and will not change.
 
 ---
-Quick Disclaimer I dont really like and condone ai to produce functioning code, but i did use it for my readme
+
+## License
+
+MIT — free to use, modify, and distribute. Copyright notice must be preserved. See [LICENSE](LICENSE).
