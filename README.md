@@ -74,34 +74,36 @@ cd Leakr
 mvn package -q
 ```
 
-This produces `target/leakr.jar`, a single self-contained JAR with all dependencies bundled.
+This produces two JARs in `target/`:
+- `leakr-1.0.0-cli.jar` — self-contained fat JAR for CLI use
+- `leakr-1.0.0.jar` — thin library JAR for embedding as a dependency
 
 ### Run the CLI
 
 ```bash
 # Scan a directory
-java -jar target/leakr.jar scan /path/to/project
+java -jar target/leakr-1.0.0-cli.jar scan /path/to/project
 
 # Scan a single file
-java -jar target/leakr.jar scan config.env
+java -jar target/leakr-1.0.0-cli.jar scan config.env
 
 # Scan environment variables
-java -jar target/leakr.jar scan --env
+java -jar target/leakr-1.0.0-cli.jar scan --env
 
 # Pipe content from another command
-git diff | java -jar target/leakr.jar scan --stdin
+git diff | java -jar target/leakr-1.0.0-cli.jar scan --stdin
 
 # JSON output (for CI parsing or downstream tooling)
-java -jar target/leakr.jar scan /path/to/project --json
+java -jar target/leakr-1.0.0-cli.jar scan /path/to/project --json
 
 # Exclude directories
-java -jar target/leakr.jar scan . --exclude target,dist,node_modules
+java -jar target/leakr-1.0.0-cli.jar scan . --exclude target,dist,node_modules
 
 # Limit to specific file extensions
-java -jar target/leakr.jar scan . --ext .env,.yaml,.json,.tf
+java -jar target/leakr-1.0.0-cli.jar scan . --ext .env,.yaml,.json,.tf
 
 # List all registered scanners
-java -jar target/leakr.jar list
+java -jar target/leakr-1.0.0-cli.jar list
 ```
 
 Exit code `0` means clean. Exit code `1` means findings were detected. Pipe-friendly and CI-ready out of the box, no configuration required.
@@ -124,20 +126,20 @@ files: 42  size: 318.7 KB  time: 84ms
 
 ## Use as a Library
 
-Install to your local Maven repository:
-
-```bash
-mvn install -q
-```
-
-Add the dependency to your project:
+Add the dependency from Maven Central:
 
 ```xml
 <dependency>
-    <groupId>leakr</groupId>
+    <groupId>io.github.horadomu</groupId>
     <artifactId>leakr</artifactId>
-    <version>1.0</version>
+    <version>1.0.0</version>
 </dependency>
+```
+
+Or install locally from source:
+
+```bash
+mvn install -q
 ```
 
 Then call it directly from your code:
