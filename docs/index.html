@@ -8,16 +8,15 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0d0d0f;
-      --bg2: #141417;
-      --border: #222228;
-      --text: #e8e8ec;
-      --text-muted: #888899;
-      --accent: #7c6af7;
-      --accent-glow: rgba(124, 106, 247, 0.15);
-      --red: #f05a5a;
-      --green: #4ade80;
-      --code-bg: #17171b;
+      --bg:      #0b0b0d;
+      --surface: #111115;
+      --border:  #1e1e26;
+      --text:    #d8d8e0;
+      --muted:   #64647a;
+      --accent:  #8b7cf8;
+      --green:   #4ec994;
+      --red:     #e05c5c;
+      --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
     }
 
     html { scroll-behavior: smooth; }
@@ -26,321 +25,230 @@
       background: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      font-size: 16px;
-      line-height: 1.7;
+      font-size: 15px;
+      line-height: 1.75;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
     }
 
+    /* ── nav ── */
     nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1.4rem 2rem;
-      max-width: 760px;
-      margin: 0 auto;
+      padding: 1.5rem 0;
       border-bottom: 1px solid var(--border);
     }
 
-    .nav-brand {
-      font-weight: 800;
-      font-size: 1.05rem;
+    .brand {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      font-weight: 700;
       color: var(--text);
       text-decoration: none;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
     }
 
-    .nav-brand span { color: var(--accent); }
+    .brand span { color: var(--accent); }
 
-    .nav-links { list-style: none; display: flex; gap: 1.75rem; font-size: 0.85rem; }
-    nav a { color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.8rem;
+    }
+
+    nav a { color: var(--muted); text-decoration: none; }
     nav a:hover { color: var(--text); }
 
+    /* ── hero ── */
     .hero {
+      padding: 4rem 0 3rem;
       text-align: center;
-      padding: 5rem 2rem 4rem;
-      max-width: 760px;
-      margin: 0 auto;
-      position: relative;
     }
 
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 300px;
-      background: radial-gradient(ellipse at center top, var(--accent-glow), transparent 70%);
-      pointer-events: none;
+    .vex {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      line-height: 1.35;
+      color: var(--accent);
+      white-space: pre;
+      display: inline-block;
+      margin-bottom: 2rem;
+      opacity: 0.85;
     }
-
-    .hero img { margin-bottom: 2rem; filter: drop-shadow(0 0 24px rgba(124,106,247,0.4)); }
 
     .hero h1 {
-      font-size: 3.75rem;
-      font-weight: 900;
-      letter-spacing: -2.5px;
-      margin-bottom: 0.75rem;
-      line-height: 1;
-      background: linear-gradient(135deg, #ffffff 0%, #c4bcff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-family: var(--mono);
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      color: var(--text);
+      margin-bottom: 0.6rem;
     }
 
-    .hero .tagline {
-      font-size: 1.15rem;
-      color: var(--text-muted);
-      font-weight: 400;
-      margin-bottom: 2rem;
-      max-width: 480px;
-      margin-left: auto;
-      margin-right: auto;
+    .hero p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
     }
-
-    .hero .tagline strong { color: var(--text); font-weight: 600; }
 
     .badges {
       display: flex;
       justify-content: center;
-      gap: 0.45rem;
+      gap: 0.4rem;
       flex-wrap: wrap;
     }
 
-    .content {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 3rem 2rem 6rem;
-    }
-
-    p { margin-bottom: 1rem; color: var(--text-muted); }
-    p:last-child { margin-bottom: 0; }
-    p strong { color: var(--text); font-weight: 600; }
+    /* ── content ── */
+    .content { padding-bottom: 5rem; }
 
     h2 {
-      font-size: 0.75rem;
+      font-family: var(--mono);
+      font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--accent);
+      letter-spacing: 2px;
+      color: var(--muted);
       margin-top: 3.5rem;
       margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
     }
+
+    p { color: var(--muted); margin-bottom: 0.85rem; }
+    p:last-child { margin-bottom: 0; }
+    p strong { color: var(--text); font-weight: 600; }
 
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
 
+    /* ── code ── */
     pre {
-      background: var(--code-bg);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.25rem 1.4rem;
+      border-radius: 6px;
+      padding: 1.1rem 1.25rem;
       overflow-x: auto;
-      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
-      font-size: 0.8rem;
+      font-family: var(--mono);
+      font-size: 0.77rem;
       line-height: 1.7;
-      margin: 1rem 0;
-      color: #c9c9d9;
+      margin: 0.9rem 0;
+      color: #b8b8cc;
     }
 
     code {
-      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
-      font-size: 0.875em;
-      background: var(--code-bg);
+      font-family: var(--mono);
+      font-size: 0.82em;
+      background: var(--surface);
       border: 1px solid var(--border);
       padding: 0.1em 0.4em;
-      border-radius: 4px;
-      color: #c9c9d9;
+      border-radius: 3px;
+      color: #b8b8cc;
     }
 
-    pre code { background: none; padding: 0; font-size: 1em; border: none; }
+    pre code { background: none; padding: 0; border: none; font-size: 1em; }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin: 1.25rem 0;
-    }
-
-    @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
-
-    .card {
-      background: var(--bg2);
+    /* ── terminal ── */
+    .term {
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem 1.4rem;
-    }
-
-    .card-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 0.4rem;
-      letter-spacing: -0.2px;
-    }
-
-    .card p { font-size: 0.85rem; margin-bottom: 0; }
-
-    .pill {
-      display: inline-block;
-      background: var(--accent-glow);
-      border: 1px solid rgba(124,106,247,0.3);
-      color: #b4acff;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      padding: 0.2em 0.7em;
-      border-radius: 99px;
-      margin-bottom: 1.75rem;
-    }
-
-    .terminal {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 6px;
       overflow: hidden;
-      margin: 1rem 0;
+      margin: 0.9rem 0;
     }
 
-    .terminal-bar {
-      background: #1e1e22;
+    .term-bar {
+      background: #0f0f13;
       border-bottom: 1px solid var(--border);
-      padding: 0.6rem 1rem;
+      padding: 0.55rem 1rem;
       display: flex;
+      gap: 5px;
       align-items: center;
-      gap: 6px;
     }
 
-    .dot { width: 10px; height: 10px; border-radius: 50%; }
-    .dot-r { background: #ff5f57; }
-    .dot-y { background: #febc2e; }
-    .dot-g { background: #28c840; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; }
+    .dr { background: #3a3a3a; }
+    .dy { background: #3a3a3a; }
+    .dg { background: #3a3a3a; }
 
-    .terminal pre {
+    .term pre {
       background: none;
       border: none;
       border-radius: 0;
       margin: 0;
-      padding: 1.25rem 1.4rem;
     }
 
-    .ok { color: var(--green); }
+    .ok   { color: var(--green); }
     .crit { color: var(--red); }
-    .muted { color: #555566; }
+    .dim  { color: #3a3a4a; }
 
-    .platform-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin: 1rem 0;
-    }
-
-    .platform-tag {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.3rem 0.75rem;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      font-family: ui-monospace, monospace;
-    }
-
+    /* ── footer ── */
     footer {
-      font-size: 0.78rem;
-      color: #444455;
-      text-align: center;
-      padding: 3rem 0 2rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 2rem 0;
       border-top: 1px solid var(--border);
-      max-width: 760px;
-      margin: 0 auto;
+      text-align: center;
     }
 
-    footer a { color: #555566; }
-    footer a:hover { color: var(--text-muted); text-decoration: none; }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); text-decoration: none; }
   </style>
 </head>
 <body>
 
 <nav>
-  <a class="nav-brand" href="/">athe<span>on</span></a>
+  <a class="brand" href="/">athe<span>on</span></a>
   <ul class="nav-links">
-    <li><a href="https://github.com/HoraDomu/Atheon" target="_blank">GitHub</a></li>
-    <li><a href="#mission">Mission</a></li>
-    <li><a href="#contact">Contact</a></li>
+    <li><a href="https://github.com/HoraDomu/Atheon" target="_blank">github</a></li>
+    <li><a href="#install">install</a></li>
+    <li><a href="#mission">mission</a></li>
   </ul>
 </nav>
 
 <div class="hero">
-  <img src="logo.svg" alt="Atheon" width="76" />
-  <div class="pill">Open source · MIT</div>
-  <h1>Atheon</h1>
-  <p class="tagline"><strong>Secret detection, natively Java.</strong> One dependency. No subprocess. No binary. Runs wherever a JRE exists.</p>
+  <div class="vex">        /\     /\
+       /  \___/  \
+      / .-------. \
+     / /         \ \
+    / /   .---.   \ \
+   | |   /     \   | |
+   | |  |  [*]  |  | |
+   | |   \     /   | |
+    \ \   '---'   / /
+     \ \         / /
+      \ '-------' /
+       \_________/
+            |
+           |||</div>
+
+  <h1>atheon</h1>
+  <p>Secret detection for Java. A library you embed. A CLI you run anywhere.</p>
   <div class="badges">
     <img src="https://img.shields.io/badge/Java-17%2B-orange" alt="Java 17+" />
-    <img src="https://img.shields.io/maven-central/v/io.github.horadomu/atheon" alt="Maven Central" />
+    <img src="https://img.shields.io/maven-central/v/io.github.horadomu/atheon" alt="Maven" />
     <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" />
   </div>
 </div>
 
 <div class="content">
 
-  <p>Atheon detects leaked API keys, tokens, and credentials in your code, config files, and environment variables. Add one dependency, call one method. No config files, no plugin system, no architecture-specific binary to bundle.</p>
+  <p>Atheon scans for leaked API keys, tokens, and credentials in code, config files, and environment variables. One dependency. No subprocess. No native binary. Runs wherever a JRE exists.</p>
 
-  <div class="grid">
-    <div class="card">
-      <div class="card-title">Embedded library</div>
-      <p>Call it directly from Java. Scan strings, files, directories, or live environment variables — all in-process.</p>
+  <div class="term">
+    <div class="term-bar">
+      <div class="dot dr"></div>
+      <div class="dot dy"></div>
+      <div class="dot dg"></div>
     </div>
-    <div class="card">
-      <div class="card-title">CLI tool</div>
-      <p>Self-contained JAR. <code>java -jar atheon.jar scan .</code> — no install, no PATH entry, no native binary.</p>
-    </div>
-    <div class="card">
-      <div class="card-title">Zero config</div>
-      <p>No YAML. No rule files. Drop it in, call it, get results. Scanners auto-register at runtime.</p>
-    </div>
-    <div class="card">
-      <div class="card-title">Parallel scanning</div>
-      <p>Directory scans use a thread pool sized to the host CPU. Fast on any hardware.</p>
-    </div>
-  </div>
-
-  <h2>Install</h2>
-
-  <pre>&lt;dependency&gt;
-  &lt;groupId&gt;io.github.horadomu&lt;/groupId&gt;
-  &lt;artifactId&gt;atheon&lt;/artifactId&gt;
-  &lt;version&gt;1.0.1&lt;/version&gt;
-&lt;/dependency&gt;</pre>
-
-  <h2>Use it</h2>
-
-  <pre>Runner runner = new Runner(new Registry());
-
-runner.scanString("AKIAIOSFODNN7EXAMPLE");
-runner.scanFile(Path.of("config.yaml"));
-runner.scanDir(Path.of("/path/to/project"));
-runner.scanEnv();</pre>
-
-  <p>Each <code>Finding</code> exposes <code>scanner</code>, <code>severity</code>, <code>file</code>, <code>line</code>, and <code>match</code>. That's the entire API surface.</p>
-
-  <hr />
-
-  <h2>Terminal</h2>
-
-  <div class="terminal">
-    <div class="terminal-bar">
-      <div class="dot dot-r"></div>
-      <div class="dot dot-y"></div>
-      <div class="dot dot-g"></div>
-    </div>
-    <pre><span class="muted">$ </span>java -jar atheon-1.0.1-cli.jar scan .
+    <pre><span class="dim">$</span> java -jar atheon-1.0.1-cli.jar scan .
 
 <span class="crit">[CRITICAL]</span> aws-access-key
   file:  src/config/dev.properties:14
-  desc:  Detects AWS access key IDs (AKIA...)
   match: AKIA**********************MPLE
 
 ─────────────────────────────
@@ -349,59 +257,82 @@ found 1 potential secret(s)
 files: 42  size: 318.7 KB  time: 84ms</pre>
   </div>
 
-  <hr />
+  <h2 id="install">install</h2>
 
-  <h2 id="mission">Runs everywhere</h2>
+  <p>Add the JitPack repository and declare the dependency:</p>
 
-  <p>A JRE is the only requirement. No native binary, no architecture matrix, no install step. Ship Atheon in a Docker container, run it in a GitHub Action, embed it in a Spring Boot service, call it from a Gradle task — it does not care.</p>
+  <pre>&lt;repositories&gt;
+  &lt;repository&gt;
+    &lt;id&gt;jitpack.io&lt;/id&gt;
+    &lt;url&gt;https://jitpack.io&lt;/url&gt;
+  &lt;/repository&gt;
+&lt;/repositories&gt;
 
-  <div class="platform-row">
-    <span class="platform-tag">Windows</span>
-    <span class="platform-tag">macOS</span>
-    <span class="platform-tag">Linux</span>
-    <span class="platform-tag">ARM64</span>
-    <span class="platform-tag">Docker</span>
-    <span class="platform-tag">GitHub Actions</span>
-    <span class="platform-tag">GitLab CI</span>
-    <span class="platform-tag">Jenkins</span>
-  </div>
+&lt;dependency&gt;
+  &lt;groupId&gt;com.github.HoraDomu&lt;/groupId&gt;
+  &lt;artifactId&gt;Atheon&lt;/artifactId&gt;
+  &lt;version&gt;v1.0.1&lt;/version&gt;
+&lt;/dependency&gt;</pre>
 
-  <hr />
+  <p>Or download the CLI JAR from <a href="https://github.com/HoraDomu/Atheon/releases/latest" target="_blank">GitHub Releases</a> and run it anywhere a JRE is installed.</p>
 
-  <h2>Atheon vs. gitleaks</h2>
+  <h2>use it</h2>
 
-  <p><a href="https://github.com/gitleaks/gitleaks" target="_blank">gitleaks</a> is a great tool and Atheon isn't trying to replace it. They solve different problems.</p>
+  <pre>Runner runner = new Runner(new Registry());
 
-  <p>Use gitleaks to audit your git history — it was built for that. Use Atheon when you need secret detection <strong>inside a Java application</strong>: scan a string your service just read from an external config, validate environment variables at startup before they touch your code, check a user-uploaded file before it gets stored. That is the gap Atheon fills, and no CLI tool can fill it.</p>
+runner.scanString("AKIAIOSFODNN7EXAMPLE");
+runner.scanFile(Path.of("config.yaml"));
+runner.scanDir(Path.of("/path/to/project"));
+runner.scanEnv();</pre>
 
-  <hr />
-
-  <h2>CLI</h2>
-
-  <p>Atheon also ships as a self-contained CLI JAR. Download from <a href="https://github.com/HoraDomu/Atheon/releases/latest" target="_blank">GitHub Releases</a> or build from source:</p>
-
-  <pre>git clone https://github.com/HoraDomu/Atheon.git
-cd Atheon &amp;&amp; mvn package -q
-java -jar target/atheon-1.0.1-cli.jar scan .</pre>
-
-  <p>Exit code <code>0</code> is clean. Exit code <code>1</code> means findings. Use <code>--json</code> for machine-readable output. Pipe <code>git diff</code> through it with <code>--stdin</code>.</p>
+  <p>Each <code>Finding</code> exposes <code>scanner</code>, <code>severity</code>, <code>file</code>, <code>line</code>, and <code>match</code>. That is the entire API.</p>
 
   <hr />
 
-  <h2 id="contact">Contact</h2>
+  <h2>cli</h2>
 
-  <p>Contributing a scanner or want to discuss the project? Email <a href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a> or open an issue on <a href="https://github.com/HoraDomu/Atheon" target="_blank">GitHub</a>.</p>
+  <pre><span class="dim"># scan a directory</span>
+java -jar atheon-1.0.1-cli.jar scan .
 
-  <h2>Sponsor</h2>
+<span class="dim"># scan env vars</span>
+java -jar atheon-1.0.1-cli.jar scan --env
 
-  <p>Atheon is built and maintained by <a href="https://github.com/HoraDomu" target="_blank">Dominick Yanez</a>. If it saves you time or protects your infrastructure, consider sponsoring to keep it going.</p>
+<span class="dim"># pipe git diff</span>
+git diff | java -jar atheon-1.0.1-cli.jar scan --stdin
+
+<span class="dim"># json output</span>
+java -jar atheon-1.0.1-cli.jar scan . --json</pre>
+
+  <p>Exit code <code>0</code> is clean. Exit code <code>1</code> means findings. Runs on any OS, any architecture, any CI — if a JRE is there, Atheon works.</p>
+
+  <hr />
+
+  <h2>vs gitleaks</h2>
+
+  <p><a href="https://gitleaks.io" target="_blank">gitleaks</a> is excellent. Atheon does not compete with it.</p>
+
+  <p>Use gitleaks to audit git history. Use Atheon when you need secret detection <strong>inside a Java application</strong> — scanning a string just read from a config, checking environment variables before they reach your code, or embedding checks into a build step without shelling out to a native binary.</p>
+
+  <hr />
+
+  <h2 id="mission">mission</h2>
+
+  <p>Secret detection should be native to Java development — not a binary you wrap in a shell script, not a CI step that requires a separate install. A library you call like any other, embedded in your code, running wherever Java runs.</p>
+
+  <p>Atheon is feature complete. The API, CLI, output formats, and exit codes are stable and will not change. Future releases add scanners and security patches only.</p>
+
+  <hr />
+
+  <h2>contact</h2>
+
+  <p>Open an issue on <a href="https://github.com/HoraDomu/Atheon" target="_blank">GitHub</a> or email <a href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a>.</p>
 
   <p><a href="https://github.com/sponsors/HoraDomu" target="_blank">Sponsor on GitHub →</a></p>
 
 </div>
 
 <footer>
-  <p>Copyright &copy; 2026 Dominick Yanez &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Atheon/blob/main/LICENSE" target="_blank">MIT License</a> &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Atheon" target="_blank">GitHub</a></p>
+  <p>© 2026 Dominick Yanez &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Atheon/blob/main/LICENSE" target="_blank">MIT</a> &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Atheon" target="_blank">GitHub</a></p>
 </footer>
 
 </body>
