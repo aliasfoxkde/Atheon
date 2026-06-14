@@ -1,3 +1,5 @@
+<img src="docs/logo.svg" alt="Leakr" width="72" /><br>
+
 # Leakr
 
 ![Scanners](https://img.shields.io/badge/scanners-5-blue)
@@ -7,6 +9,15 @@
 
 
 **A secret and credential scanner — a Java library you embed in your code and a CLI tool you run anywhere.**
+
+> [!WARNING]
+> Leakr is feature complete. I'm not merging new features into Leakr. Future releases will be security patches and new scanners only.
+
+---
+
+## Mission
+
+Secret detection should be a native part of Java development — not a binary you wrap in a shell script, not a CI step that requires a separate tool. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.
 
 ---
 
