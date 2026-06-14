@@ -20,6 +20,25 @@ Leakr detects leaked secrets — API keys, tokens, and credentials — in your c
 
 ---
 
+## Why Leakr?
+
+Secrets end up in source code all the time. A developer hardcodes an API key to test something locally, forgets to remove it, and commits it. A `.env` file gets checked in by accident. A config template ships with a real credential still in it. Once a secret is in git history, it is effectively public — even if you delete the file, the commit remains.
+
+Most existing secret scanners are built around git hooks or CI pipelines and are tightly coupled to those workflows. They also tend to be external native tools (`trufflehog`, `gitleaks`, etc.) that you invoke as a subprocess — meaning you cannot embed them inside a Java application, and you cannot scan strings or in-memory content programmatically.
+
+Leakr is designed differently:
+
+**It is a Java library first.** You add it as a Maven or Gradle dependency and call it directly from your code. This makes it useful in scenarios no CLI tool can cover: scanning user-uploaded content before storing it, validating config values at application startup, running secret checks inside a CI step written in Java, or integrating into an internal security tool.
+
+**It ships a CLI too.** For the common case — auditing a directory, scanning a diff, checking env vars — you do not need to write any code. Build once, run `java -jar` anywhere a JRE exists.
+
+**It is zero-config.** There is no YAML config, no rule file, no plugin directory to manage. Drop it in, call it, get results. Scanners are auto-discovered at runtime by package scanning — adding a new one is as simple as writing a class that implements `Scanner`.
+
+**It is honest about its scope.** Leakr uses high-confidence regex patterns targeting well-known secret formats (AWS access keys, GitHub PATs, OpenAI keys, Stripe secret keys, Slack bot tokens, Twilio account SIDs). It does not attempt heuristic or entropy-based detection. That keeps false positives low and results trustworthy.
+
+
+---
+
 ## Install
 
 **Maven**
