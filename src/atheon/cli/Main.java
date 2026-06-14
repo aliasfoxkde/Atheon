@@ -1,7 +1,7 @@
-package leakr.cli;
+﻿package atheon.cli;
 
-import leakr.core.*;
-import leakr.output.Printer;
+import atheon.core.*;
+import atheon.output.Printer;
 import picocli.CommandLine;
 import picocli.CommandLine.*;
 
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-@Command(name = "leakr", mixinStandardHelpOptions = true, version = "leakr 1.0",
+@Command(name = "atheon", mixinStandardHelpOptions = true, version = "atheon 1.0",
          description = "Secret and credential scanner",
          subcommands = {Main.ScanCommand.class, Main.ListCommand.class})
 public class Main implements Callable<Integer> {
@@ -43,7 +43,7 @@ public class Main implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             if (target.isEmpty()) {
-                System.err.println("leakr: scan requires a path, --env, or --stdin");
+                System.err.println("atheon: scan requires a path, --env, or --stdin");
                 return 1;
             }
 
@@ -61,7 +61,7 @@ public class Main implements Callable<Integer> {
             } else {
                 Path path = Paths.get(target);
                 if (!Files.exists(path)) {
-                    System.err.println("leakr: path not found: " + target);
+                    System.err.println("atheon: path not found: " + target);
                     return 1;
                 }
                 findings = Files.isDirectory(path)

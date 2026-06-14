@@ -1,16 +1,16 @@
-# Leakr Roadmap
+# Atheon Roadmap
 
-Leakr is a finished product.
+Atheon is a finished product.
 
 The CLI is done. The library API is done. The scanner engine, parallel scanning, JSON output, exit codes, environment variable scanning, stdin support — all of it is done. The core will not change.
 
-**The only thing Leakr will ever need is more scanners.**
+**The only thing Atheon will ever need is more scanners.**
 
 ---
 
 ## How to contribute
 
-A new scanner is a single `.java` file in `src/leakr/scanners/`. Implement the `Scanner` interface, rebuild, and it works. See the README for the full walkthrough.
+A new scanner is a single `.java` file in `src/atheon/scanners/`. Implement the `Scanner` interface, rebuild, and it works. See the README for the full walkthrough.
 
 ---
 
@@ -58,4 +58,4 @@ These will never be added:
 - Server mode or daemon
 - Config file format for defining patterns
 
-Leakr scans content for secrets. That is all it does, and it does it well.
+Atheon scans content for secrets. That is all it does, and it does it well.

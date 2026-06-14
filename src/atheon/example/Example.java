@@ -1,8 +1,8 @@
-package leakr.example;
+﻿package atheon.example;
 
-import leakr.core.Finding;
-import leakr.core.Registry;
-import leakr.core.Runner;
+import atheon.core.Finding;
+import atheon.core.Registry;
+import atheon.core.Runner;
 
 import java.nio.file.Paths;
 import java.util.List;

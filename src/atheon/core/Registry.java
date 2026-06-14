@@ -1,4 +1,4 @@
-package leakr.core;
+﻿package atheon.core;
 
 import java.io.IOException;
 import java.net.URI;
@@ -46,7 +46,7 @@ public class Registry {
     private String toClassName(Path root, Path classFile) {
         Path rel = root.relativize(classFile);
         String s = rel.toString().replace('\\', '/');
-        if (!s.startsWith("leakr/scanners/")) return null;
+        if (!s.startsWith("atheon/scanners/")) return null;
         return s.replace('/', '.').replace(".class", "");
     }
 

@@ -6,13 +6,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.horadomu</groupId>
-    <artifactId>leakr</artifactId>
+    <artifactId>atheon</artifactId>
     <version>1.0.1</version>
     <packaging>jar</packaging>
 
-    <name>Leakr</name>
+    <name>Atheon</name>
     <description>A lightweight, embeddable Java library for detecting secrets and credentials in code, files, and environment variables.</description>
-    <url>https://github.com/HoraDomu/Leakr</url>
+    <url>https://github.com/HoraDomu/Atheon</url>
 
     <licenses>
         <license>
@@ -32,9 +32,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/HoraDomu/Leakr.git</connection>
-        <developerConnection>scm:git:ssh://github.com/HoraDomu/Leakr.git</developerConnection>
-        <url>https://github.com/HoraDomu/Leakr</url>
+        <connection>scm:git:git://github.com/HoraDomu/Atheon.git</connection>
+        <developerConnection>scm:git:ssh://github.com/HoraDomu/Atheon.git</developerConnection>
+        <url>https://github.com/HoraDomu/Atheon</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -103,7 +103,7 @@
                             <shadedClassifierName>cli</shadedClassifierName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>leakr.cli.Main</mainClass>
+                                    <mainClass>atheon.cli.Main</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
@@ -153,7 +153,7 @@
                     <plugin>
                         <groupId>org.sonatype.central</groupId>
                         <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>0.5.0</version>
+                        <version>0.6.0</version>
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>

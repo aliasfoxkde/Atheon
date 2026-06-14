@@ -1,4 +1,4 @@
-package leakr.core;
+﻿package atheon.core;
 
 public enum Severity {
     CRITICAL("critical"),

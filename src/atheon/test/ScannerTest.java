@@ -1,7 +1,7 @@
-package leakr.test;
+﻿package atheon.test;
 
-import leakr.core.Registry;
-import leakr.core.Scanner;
+import atheon.core.Registry;
+import atheon.core.Scanner;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.Map;
  * All cases run together — adding yours confirms it works and nothing else regressed.
  *
  * Build:  mvn package -q
- * Run:    java -cp target/leakr.jar leakr.test.ScannerTest
+ * Run:    java -cp target/atheon.jar atheon.test.ScannerTest
  */
 public class ScannerTest {
 

@@ -1,8 +1,8 @@
-package leakr.output;
+﻿package atheon.output;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import leakr.core.Finding;
-import leakr.core.Stats;
+import atheon.core.Finding;
+import atheon.core.Stats;
 
 import java.util.List;
 

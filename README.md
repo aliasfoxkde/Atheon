@@ -1,32 +1,32 @@
-<img src="docs/logo.svg" alt="Leakr" width="72" /><br>
+<img src="docs/logo.svg" alt="Atheon" width="72" /><br>
 
-# Leakr
+# Atheon
 
 ![Scanners](https://img.shields.io/badge/scanners-6-blue)
 ![Java](https://img.shields.io/badge/Java-17%2B-orange)
-![Maven Central](https://img.shields.io/maven-central/v/io.github.horadomu/leakr)
+![Maven Central](https://img.shields.io/maven-central/v/io.github.horadomu/atheon)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Secret detection for Java applications. A library you embed in your code, and a CLI you run anywhere.**
 
 ---
 
-## What is Leakr?
+## What is Atheon?
 
-Leakr detects leaked secrets — API keys, tokens, and credentials — in your code, config files, and environment variables. It does one thing and does it well.
+Atheon detects leaked secrets — API keys, tokens, and credentials — in your code, config files, and environment variables. It does one thing and does it well.
 
 - **As a library**: call `runner.scanString(...)`, `runner.scanFile(...)`, or `runner.scanDir(...)` directly from your Java application. No subprocess. No native binary. Just a dependency.
-- **As a CLI tool**: run `leakr scan <path>` from any terminal on any platform with a JRE.
+- **As a CLI tool**: run `atheon scan <path>` from any terminal on any platform with a JRE.
 
 ---
 
-## Why Leakr?
+## Why Atheon?
 
 Secrets end up in source code all the time. A developer hardcodes an API key to test something locally, forgets to remove it, and commits it. A `.env` file gets checked in by accident. A config template ships with a real credential still in it. Once a secret is in git history, it is effectively public — even if you delete the file, the commit remains.
 
 Most existing secret scanners are built around git hooks or CI pipelines and are tightly coupled to those workflows. They also tend to be external native tools (`trufflehog`, `gitleaks`, etc.) that you invoke as a subprocess — meaning you cannot embed them inside a Java application, and you cannot scan strings or in-memory content programmatically.
 
-Leakr is designed differently:
+Atheon is designed differently:
 
 **It is a Java library first.** You add it as a Maven or Gradle dependency and call it directly from your code. This makes it useful in scenarios no CLI tool can cover: scanning user-uploaded content before storing it, validating config values at application startup, running secret checks inside a CI step written in Java, or integrating into an internal security tool.
 
@@ -34,8 +34,9 @@ Leakr is designed differently:
 
 **It is zero-config.** There is no YAML config, no rule file, no plugin directory to manage. Drop it in, call it, get results. Scanners are auto-discovered at runtime by package scanning — adding a new one is as simple as writing a class that implements `Scanner`.
 
-**It is honest about its scope.** Leakr uses high-confidence regex patterns targeting well-known secret formats (AWS access keys, GitHub PATs, OpenAI keys, Stripe secret keys, Slack bot tokens, Twilio account SIDs). It does not attempt heuristic or entropy-based detection. That keeps false positives low and results trustworthy.
+**It is honest about its scope.** Atheon uses high-confidence regex patterns targeting well-known secret formats (AWS access keys, GitHub PATs, OpenAI keys, Stripe secret keys, Slack bot tokens, Twilio account SIDs). It does not attempt heuristic or entropy-based detection. That keeps false positives low and results trustworthy.
 
+**It runs everywhere Java runs.** A single JAR. No architecture-specific binaries. No native dependencies. If a JRE is installed, Atheon works — Windows, macOS, Linux, ARM, Docker, CI, wherever.
 
 ---
 
@@ -46,7 +47,7 @@ Leakr is designed differently:
 ```xml
 <dependency>
     <groupId>io.github.horadomu</groupId>
-    <artifactId>leakr</artifactId>
+    <artifactId>atheon</artifactId>
     <version>1.0.1</version>
 </dependency>
 ```
@@ -54,7 +55,7 @@ Leakr is designed differently:
 **Gradle**
 
 ```gradle
-implementation 'io.github.horadomu:leakr:1.0.1'
+implementation 'io.github.horadomu:atheon:1.0.1'
 ```
 
 ---
@@ -62,7 +63,7 @@ implementation 'io.github.horadomu:leakr:1.0.1'
 ## Library Usage
 
 ```java
-import leakr.core.*;
+import atheon.core.*;
 import java.nio.file.*;
 import java.util.List;
 
@@ -85,41 +86,41 @@ Clone the repo, then build with whichever tool you have available.
 **Maven**
 
 ```bash
-git clone https://github.com/HoraDomu/Leakr.git
-cd Leakr
+git clone https://github.com/HoraDomu/Atheon.git
+cd Atheon
 mvn package -q
-java -jar target/leakr-1.0.1-cli.jar scan /path/to/project
+java -jar target/atheon-1.0.1-cli.jar scan /path/to/project
 ```
 
 **Gradle**
 
 ```bash
-git clone https://github.com/HoraDomu/Leakr.git
-cd Leakr
+git clone https://github.com/HoraDomu/Atheon.git
+cd Atheon
 ./gradlew shadowJar
-java -jar build/libs/leakr-1.0.1-cli.jar scan /path/to/project
+java -jar build/libs/atheon-1.0.1-cli.jar scan /path/to/project
 ```
 
 **Plain Java (no build tool)**
 
 ```bash
-git clone https://github.com/HoraDomu/Leakr.git
-cd Leakr
+git clone https://github.com/HoraDomu/Atheon.git
+cd Atheon
 # Pull dependencies into lib/
 mvn dependency:copy-dependencies -DoutputDirectory=lib -q
 
 # Compile
-javac -cp "lib/*" -d out src/leakr/cli/Main.java src/leakr/core/*.java src/leakr/output/*.java src/leakr/scanners/*.java
+javac -cp "lib/*" -d out src/atheon/cli/Main.java src/atheon/core/*.java src/atheon/output/*.java src/atheon/scanners/*.java
 
 # Run
-java -cp "out:lib/*" leakr.cli.Main scan /path/to/project
+java -cp "out:lib/*" atheon.cli.Main scan /path/to/project
 # Windows: use semicolons
-java -cp "out;lib/*" leakr.cli.Main scan /path/to/project
+java -cp "out;lib/*" atheon.cli.Main scan /path/to/project
 ```
 
 The Maven `package` goal produces two JARs in `target/`:
-- `leakr-1.0.1-cli.jar` — self-contained JAR for CLI use
-- `leakr-1.0.1.jar` — thin library JAR for embedding as a dependency
+- `atheon-1.0.1-cli.jar` — self-contained JAR for CLI use
+- `atheon-1.0.1.jar` — thin library JAR for embedding as a dependency
 
 ---
 
@@ -127,28 +128,28 @@ The Maven `package` goal produces two JARs in `target/`:
 
 ```bash
 # Scan a directory
-java -jar target/leakr-1.0.1-cli.jar scan /path/to/project
+java -jar target/atheon-1.0.1-cli.jar scan /path/to/project
 
 # Scan a single file
-java -jar target/leakr-1.0.1-cli.jar scan config.env
+java -jar target/atheon-1.0.1-cli.jar scan config.env
 
 # Scan environment variables
-java -jar target/leakr-1.0.1-cli.jar scan --env
+java -jar target/atheon-1.0.1-cli.jar scan --env
 
 # Pipe content from stdin
-git diff | java -jar target/leakr-1.0.1-cli.jar scan --stdin
+git diff | java -jar target/atheon-1.0.1-cli.jar scan --stdin
 
 # JSON output
-java -jar target/leakr-1.0.1-cli.jar scan /path/to/project --json
+java -jar target/atheon-1.0.1-cli.jar scan /path/to/project --json
 
 # Exclude directories
-java -jar target/leakr-1.0.1-cli.jar scan . --exclude target,dist,node_modules
+java -jar target/atheon-1.0.1-cli.jar scan . --exclude target,dist,node_modules
 
 # Filter by file extension
-java -jar target/leakr-1.0.1-cli.jar scan . --ext .env,.yaml,.json,.tf
+java -jar target/atheon-1.0.1-cli.jar scan . --ext .env,.yaml,.json,.tf
 
 # List registered scanners
-java -jar target/leakr-1.0.1-cli.jar list
+java -jar target/atheon-1.0.1-cli.jar list
 ```
 
 Exit code `0` means clean. Exit code `1` means findings were detected.
@@ -173,14 +174,14 @@ files: 42  size: 318.7 KB  time: 84ms
 
 ## Adding a Scanner
 
-Leakr auto-discovers every class in the `leakr.scanners` package that implements `Scanner`. No registration, no config file — drop a class in, rebuild, and it is live.
+Atheon auto-discovers every class in the `atheon.scanners` package that implements `Scanner`. No registration, no config file — drop a class in, rebuild, and it is live.
 
 ### 1. Create the scanner
 
 ```java
-package leakr.scanners;
+package atheon.scanners;
 
-import leakr.core.*;
+import atheon.core.*;
 import java.util.*;
 import java.util.regex.*;
 
@@ -200,18 +201,18 @@ public class MyServiceScanner implements Scanner {
 }
 ```
 
-Place it in `src/leakr/scanners/MyServiceScanner.java`.
+Place it in `src/atheon/scanners/MyServiceScanner.java`.
 
 ### 2. Rebuild and verify
 
 ```bash
 mvn package -q
-java -jar target/leakr-1.0.1-cli.jar list
+java -jar target/atheon-1.0.1-cli.jar list
 ```
 
 ### 3. Add a test case
 
-Open `src/leakr/test/ScannerTest.java` and add one entry to `CASES`:
+Open `src/atheon/test/ScannerTest.java` and add one entry to `CASES`:
 
 ```java
 new Case("myservice-api-key",
@@ -224,7 +225,7 @@ new Case("myservice-api-key",
 ## Testing
 
 ```bash
-java -cp target/leakr-1.0.1-cli.jar leakr.test.ScannerTest
+java -cp target/atheon-1.0.1-cli.jar atheon.test.ScannerTest
 ```
 
 ```
@@ -243,7 +244,7 @@ Exit code `0` on full pass, `1` on any failure.
 ---
 
 > [!WARNING]
-> Leakr is feature complete. Future releases will be security patches and new scanners only. The library API, CLI, output formats, and exit codes are stable and will not change.
+> Atheon is feature complete. Future releases will be security patches and new scanners only. The library API, CLI, output formats, and exit codes are stable and will not change.
 
 ---
 
