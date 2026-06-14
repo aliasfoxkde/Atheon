@@ -13,55 +13,58 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       font-size: 16px;
       line-height: 1.65;
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem 5rem;
     }
 
     nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 4rem;
+      padding: 1.5rem 2rem;
+      max-width: 720px;
+      margin: 0 auto;
     }
 
-    .nav-brand {
-      font-weight: 700;
-      font-size: 1rem;
-      color: #1a1a1a;
-      text-decoration: none;
-    }
-
-    .nav-links {
-      list-style: none;
-      display: flex;
-      gap: 0;
-      font-size: 0.9rem;
-    }
-
-    .nav-links li + li::before {
-      content: ' · ';
-      color: #bbb;
-      padding: 0 0.1rem;
-    }
-
+    .nav-brand { font-weight: 700; font-size: 1rem; color: #1a1a1a; text-decoration: none; }
+    .nav-links { list-style: none; display: flex; gap: 1.5rem; font-size: 0.875rem; }
     nav a { color: #555; text-decoration: none; }
     nav a:hover { color: #1a1a1a; }
 
-    .logo { display: block; margin-bottom: 1.25rem; }
-
-    h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      margin-bottom: 0.2rem;
+    .hero {
+      text-align: center;
+      padding: 3.5rem 2rem 3rem;
+      max-width: 720px;
+      margin: 0 auto;
     }
 
-    .subtitle {
-      font-size: 0.875rem;
+    .hero img { margin-bottom: 1.5rem; }
+
+    .hero h1 {
+      font-size: 3.25rem;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 0.6rem;
+      line-height: 1;
+    }
+
+    .hero .tagline {
+      font-size: 1.1rem;
       color: #f07055;
       font-weight: 500;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .badges {
+      display: flex;
+      justify-content: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 0;
+    }
+
+    .content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 5rem;
     }
 
     p { margin-bottom: 0.9rem; color: #2a2a2a; }
@@ -78,11 +81,7 @@
     a { color: #1a1a1a; text-decoration: underline; text-underline-offset: 2px; }
     a:hover { color: #f07055; }
 
-    hr {
-      border: none;
-      border-top: 1px solid #ebebeb;
-      margin: 2.5rem 0;
-    }
+    hr { border: none; border-top: 1px solid #ebebeb; margin: 2.5rem 0; }
 
     pre {
       background: #f7f7f5;
@@ -108,48 +107,40 @@
 
     pre code { background: none; padding: 0; font-size: 1em; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin: 0.9rem 0;
+    .props {
+      list-style: none;
+      margin: 1rem 0 1.5rem;
     }
 
-    th {
-      text-align: left;
-      font-weight: 600;
-      padding: 0.4rem 0.6rem;
-      border-bottom: 2px solid #e8e8e6;
-      color: #1a1a1a;
-    }
-
-    td {
-      padding: 0.4rem 0.6rem;
-      border-bottom: 1px solid #f0f0ee;
+    .props li {
+      padding: 0.25rem 0;
       color: #2a2a2a;
     }
 
-    td:nth-child(2), td:nth-child(3) {
-      text-align: center;
-      color: #555;
+    .props li::before {
+      content: '→ ';
+      color: #f07055;
+      font-weight: 700;
     }
 
     .heart {
       font-family: ui-monospace, monospace;
       font-size: 0.75rem;
       line-height: 1.3;
-      color: #ccc;
+      color: #ddd;
       white-space: pre;
-      margin: 2.75rem 0 2rem;
+      margin: 3rem 0 1.5rem;
       user-select: none;
+      text-align: center;
     }
 
     footer {
       font-size: 0.8rem;
       color: #aaa;
+      text-align: center;
     }
 
-    footer a { color: #aaa; }
+    footer a { color: #aaa; text-decoration: none; }
     footer a:hover { color: #1a1a1a; }
   </style>
 </head>
@@ -159,102 +150,95 @@
   <a class="nav-brand" href="/">leakr</a>
   <ul class="nav-links">
     <li><a href="https://github.com/HoraDomu/Leakr" target="_blank">GitHub</a></li>
-    <li><a href="#why">Why Leakr</a></li>
     <li><a href="#mission">Mission</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
 </nav>
 
-<img class="logo" src="logo.svg" alt="Leakr logo" width="62" height="78" />
+<div class="hero">
+  <img src="logo.svg" alt="Leakr" width="80" />
+  <h1>leakr</h1>
+  <p class="tagline">Open-source secret detection for Java.</p>
+  <div class="badges">
+    <img src="https://img.shields.io/badge/Java-17%2B-orange" alt="Java 17+" />
+    <img src="https://img.shields.io/maven-central/v/io.github.horadomu/leakr" alt="Maven Central" />
+    <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" />
+  </div>
+</div>
 
-<h1>leakr</h1>
-<p class="subtitle">open-source secret scanner for Java</p>
+<div class="content">
 
-<p>Leakr is a Java library for detecting leaked secrets — API keys, tokens, and credentials — in your code, config files, and environment variables. Add one dependency, call one method. No subprocess, no binary, no configuration required.</p>
+  <p>Leakr detects leaked API keys, tokens, and credentials in your code, config files, and environment variables. Add one dependency, call one method. No subprocess, no binary, no configuration.</p>
 
-<h2>Install</h2>
+  <ul class="props">
+    <li>Embeddable Java library — call it directly from your application code</li>
+    <li>Scans strings, files, directories, and live environment variables</li>
+    <li>JRE only — one JAR, any platform, no native binary</li>
+    <li>Parallel directory scanning sized to the host CPU automatically</li>
+  </ul>
 
-<pre>&lt;dependency&gt;
+  <h2>Install</h2>
+
+  <pre>&lt;dependency&gt;
   &lt;groupId&gt;io.github.horadomu&lt;/groupId&gt;
   &lt;artifactId&gt;leakr&lt;/artifactId&gt;
   &lt;version&gt;1.0.0&lt;/version&gt;
 &lt;/dependency&gt;</pre>
 
-<h2>Use it</h2>
+  <h2>Use it</h2>
 
-<pre>Runner runner = new Runner(new Registry());
+  <pre>Runner runner = new Runner(new Registry());
 
-// Scan a string
-List&lt;Finding&gt; findings = runner.scanString("AKIAIOSFODNN7EXAMPLE");
+runner.scanString("AKIAIOSFODNN7EXAMPLE");
+runner.scanFile(Path.of("config.yaml"));
+runner.scanDir(Path.of("/path/to/project"));
+runner.scanEnv();</pre>
 
-// Scan a file or an entire directory (parallel, skips binaries automatically)
-List&lt;Finding&gt; findings = runner.scanFile(Path.of("config.yaml"));
-List&lt;Finding&gt; findings = runner.scanDir(Path.of("/path/to/project"));
+  <p>Each <code>Finding</code> exposes <code>scanner</code>, <code>severity</code>, <code>file</code>, <code>line</code>, and <code>match</code>. That's the entire API.</p>
 
-// Scan live environment variables at runtime
-List&lt;Finding&gt; findings = runner.scanEnv();</pre>
+  <hr />
 
-<p>Each <code>Finding</code> exposes <code>scanner</code>, <code>severity</code>, <code>file</code>, <code>line</code>, and <code>match</code>. That's the entire API.</p>
+  <h2>Leakr and gitleaks</h2>
 
-<hr />
+  <p><a href="https://github.com/gitleaks/gitleaks" target="_blank">gitleaks</a> is a great tool and Leakr isn't trying to compete with it. They solve different problems.</p>
 
-<h2 id="why">Leakr and gitleaks</h2>
+  <p>If you want to scan your git commit history for secrets that were accidentally checked in, use gitleaks. It was built for that and does it well.</p>
 
-<p><a href="https://github.com/gitleaks/gitleaks" target="_blank">gitleaks</a> is a great tool and Leakr isn't trying to compete with it. They solve different problems.</p>
+  <p>Leakr is for when you need secret detection inside a Java application — not as a separate tool you shell out to, but as a library you call directly. Scan a string your app just read from a config file. Scan environment variables at service startup before they reach your code. Scan a directory as part of a build step with no binary to install and no architecture to worry about. That is the gap Leakr fills.</p>
 
-<p>If you want to scan your git commit history for secrets that were accidentally checked in, use gitleaks. It was built for that and does it well.</p>
+  <hr />
 
-<p>Leakr is for when you need secret detection inside a Java application — not as a separate tool you shell out to, but as a library you call directly. Scan a string your app just read from a config file. Scan environment variables at service startup before they're used. Scan a directory as part of a build step without installing anything beyond a JRE. That's what Leakr is for, and that's a gap gitleaks doesn't fill.</p>
+  <h2>CLI</h2>
 
-<hr />
+  <p>Leakr also ships as a self-contained CLI JAR for scanning without writing any code. Download from <a href="https://github.com/HoraDomu/Leakr/releases/latest" target="_blank">GitHub Releases</a> or build from source:</p>
 
-<h2>Built-in scanners</h2>
-
-<p>6 scanners ship out of the box, covering the credentials most likely to cause catastrophic damage if leaked. All are fully tested.</p>
-
-<table>
-  <thead>
-    <tr><th>Scanner</th><th>Detects</th><th>Severity</th></tr>
-  </thead>
-  <tbody>
-    <tr><td><code>aws-access-key</code></td><td>AWS access key IDs (AKIA/ASIA…)</td><td>Critical</td></tr>
-    <tr><td><code>github-pat</code></td><td>GitHub personal access tokens (ghp_…)</td><td>Critical</td></tr>
-    <tr><td><code>openai-api-key</code></td><td>OpenAI API keys (sk-…)</td><td>Critical</td></tr>
-    <tr><td><code>stripe-secret-key</code></td><td>Stripe secret keys (sk_live_…)</td><td>Critical</td></tr>
-    <tr><td><code>slack-bot-token</code></td><td>Slack bot tokens (xoxb-…)</td><td>High</td></tr>
-    <tr><td><code>twilio-account-sid</code></td><td>Twilio account SIDs (AC…)</td><td>High</td></tr>
-  </tbody>
-</table>
-
-<p>Adding a scanner is one class. Drop it in <code>leakr.scanners</code>, implement the <code>Scanner</code> interface, rebuild. No registration, no config file, no pull request required for internal scanners.</p>
-
-<hr />
-
-<h2>CLI</h2>
-
-<p>Leakr also ships as a self-contained CLI JAR for scanning without writing code. Download from <a href="https://github.com/HoraDomu/Leakr/releases/latest" target="_blank">GitHub Releases</a> or build from source:</p>
-
-<pre>git clone https://github.com/HoraDomu/Leakr.git
+  <pre>git clone https://github.com/HoraDomu/Leakr.git
 cd Leakr &amp;&amp; mvn package -q
 java -jar target/leakr-1.0.0-cli.jar scan .</pre>
 
-<p>Exit code <code>0</code> means clean. Exit code <code>1</code> means findings. Use <code>--json</code> for machine-readable output. Pipe <code>git diff</code> through it with <code>--stdin</code>.</p>
+  <p>Exit code <code>0</code> means clean. Exit code <code>1</code> means findings. Use <code>--json</code> for machine-readable output. Pipe <code>git diff</code> through it with <code>--stdin</code>.</p>
 
-<hr />
+  <hr />
 
-<h2 id="mission">Mission</h2>
+  <h2 id="mission">Mission</h2>
 
-<p>Secret detection should be a native part of Java development — not a binary you wrap in a shell script, not a CI step that requires a separate tool install. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.</p>
+  <p>Secret detection should be a native part of Java development — not a binary you wrap in a shell script, not a CI step that requires a separate tool install. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.</p>
 
-<p>Leakr is feature complete. The CLI, library API, output formats, and exit codes are stable and will not change. Future releases add scanners and security patches only.</p>
+  <p>Leakr is feature complete. The CLI, library API, output formats, and exit codes are stable and will not change. Future releases add scanners and security patches only.</p>
 
-<hr />
+  <hr />
 
-<h2 id="contact">Contact</h2>
+  <h2 id="contact">Contact</h2>
 
-<p>Interested in contributing a scanner or discussing the project? Email <a href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a> or open an issue on <a href="https://github.com/HoraDomu/Leakr" target="_blank">GitHub</a>.</p>
+  <p>Interested in contributing a scanner or discussing the project? Email <a href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a> or open an issue on <a href="https://github.com/HoraDomu/Leakr" target="_blank">GitHub</a>.</p>
 
-<div class="heart">  ██   ██
+  <h2>Sponsor</h2>
+
+  <p>Leakr is built and maintained by <a href="https://github.com/HoraDomu" target="_blank">Dominick Yanez</a>. If it saves you time or protects your infrastructure, consider sponsoring the project to keep it going.</p>
+
+  <p><a href="https://github.com/sponsors/HoraDomu" target="_blank">Sponsor on GitHub →</a></p>
+
+  <div class="heart">  ██   ██
  █████████
  █████████
   ███████
@@ -262,9 +246,11 @@ java -jar target/leakr-1.0.0-cli.jar scan .</pre>
     ███
      █</div>
 
-<footer>
-  <p>Copyright &copy; 2026 Dominick Yanez &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Leakr/blob/main/LICENSE" target="_blank">License</a></p>
-</footer>
+  <footer>
+    <p>Copyright &copy; 2026 Dominick Yanez &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Leakr/blob/main/LICENSE" target="_blank">License</a></p>
+  </footer>
+
+</div>
 
 </body>
 </html>

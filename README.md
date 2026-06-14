@@ -15,8 +15,6 @@
 
 Leakr detects leaked secrets — API keys, tokens, and credentials — in your code, config files, and environment variables. It does one thing and does it well.
 
-It works two ways:
-
 - **As a library**: call `runner.scanString(...)`, `runner.scanFile(...)`, or `runner.scanDir(...)` directly from your Java application. No subprocess. No native binary. Just a dependency.
 - **As a CLI tool**: run `leakr scan <path>` from any terminal on any platform with a JRE.
 
@@ -24,7 +22,7 @@ It works two ways:
 
 ## Install
 
-Add to your Maven project:
+**Maven**
 
 ```xml
 <dependency>
@@ -34,7 +32,7 @@ Add to your Maven project:
 </dependency>
 ```
 
-Or with Gradle:
+**Gradle**
 
 ```gradle
 implementation 'io.github.horadomu:leakr:1.0.0'
@@ -51,70 +49,17 @@ import java.util.List;
 
 Runner runner = new Runner(new Registry());
 
-// Scan a string
 List<Finding> findings = runner.scanString("AKIAIOSFODNN7EXAMPLE");
-
-// Scan a single file
 List<Finding> findings = runner.scanFile(Path.of("config.yaml"));
-
-// Scan a directory (parallel, skips binaries and noise dirs automatically)
 List<Finding> findings = runner.scanDir(Path.of("/path/to/project"));
-
-// Scan live environment variables
 List<Finding> findings = runner.scanEnv();
 ```
 
-Each `Finding` exposes: `scanner`, `severity`, `file`, `line`, `description`, `match`.
-
-That's the entire API. No configuration, no setup, no builder pattern.
-
----
-
-## Why Leakr when gitleaks exists?
-
-[gitleaks](https://github.com/gitleaks/gitleaks) is excellent at what it does: scanning git history for committed secrets. That is not what Leakr does.
-
-|                              | Leakr          | gitleaks       |
-|------------------------------|:--------------:|:--------------:|
-| **Embeddable Java library**  | **✓**          | **✗**          |
-| Scan environment variables   | ✓              |                |
-| Scan stdin / arbitrary text  | ✓              | partial        |
-| Zero native dependencies     | ✓ (JRE only)   | ✗ (Go binary)  |
-| Add a scanner = one class    | ✓              | config + rules |
-| Scan files and directories   | ✓              | ✓              |
-| Scan git history             |                | ✓              |
-
-If you want git history scanning, use gitleaks. If you want to embed secret detection in a Java application, scan environment variables at startup, or integrate into a pipeline without a binary dependency, use Leakr.
-
----
-
-## Why Java?
-
-- **Embeddable**: drop it into any Maven or Gradle project and call it from application code, not a shell.
-- **One JAR, any platform**: runs on Windows, Linux, and macOS without architecture-specific binaries. If you have a JRE, you have Leakr.
-- **Enterprise-native**: Java lives in CI pipelines, build servers, and backend services. Leakr lives there with it.
-- **Parallel by default**: directory scans use a thread pool sized to the host CPU automatically.
-
----
-
-## Built-in Scanners
-
-6 scanners ship out of the box. All fully tested.
-
-| Scanner | Detects | Severity |
-|---|---|---|
-| `aws-access-key` | AWS access key IDs (AKIA/ASIA…) | Critical |
-| `github-pat` | GitHub personal access tokens (ghp_…) | Critical |
-| `openai-api-key` | OpenAI API keys (sk-…) | Critical |
-| `stripe-secret-key` | Stripe secret keys (sk_live_…) | Critical |
-| `slack-bot-token` | Slack bot tokens (xoxb-…) | High |
-| `twilio-account-sid` | Twilio account SIDs (AC…) | High |
+Each `Finding` exposes: `scanner`, `severity`, `file`, `line`, `description`, `match`. No configuration required.
 
 ---
 
 ## CLI Quickstart
-
-### Build from source
 
 ```bash
 git clone https://github.com/HoraDomu/Leakr.git
@@ -123,10 +68,12 @@ mvn package -q
 ```
 
 This produces two JARs in `target/`:
-- `leakr-1.0.0-cli.jar` — self-contained fat JAR for CLI use
+- `leakr-1.0.0-cli.jar` — self-contained JAR for CLI use
 - `leakr-1.0.0.jar` — thin library JAR for embedding as a dependency
 
-### Run the CLI
+---
+
+## Run the CLI
 
 ```bash
 # Scan a directory
@@ -138,25 +85,27 @@ java -jar target/leakr-1.0.0-cli.jar scan config.env
 # Scan environment variables
 java -jar target/leakr-1.0.0-cli.jar scan --env
 
-# Pipe content from another command
+# Pipe content from stdin
 git diff | java -jar target/leakr-1.0.0-cli.jar scan --stdin
 
-# JSON output (for CI parsing or downstream tooling)
+# JSON output
 java -jar target/leakr-1.0.0-cli.jar scan /path/to/project --json
 
 # Exclude directories
 java -jar target/leakr-1.0.0-cli.jar scan . --exclude target,dist,node_modules
 
-# Limit to specific file extensions
+# Filter by file extension
 java -jar target/leakr-1.0.0-cli.jar scan . --ext .env,.yaml,.json,.tf
 
-# List all registered scanners
+# List registered scanners
 java -jar target/leakr-1.0.0-cli.jar list
 ```
 
 Exit code `0` means clean. Exit code `1` means findings were detected.
 
-### Sample output
+---
+
+## Sample Output
 
 ```
 [CRITICAL] aws-access-key
@@ -174,9 +123,9 @@ files: 42  size: 318.7 KB  time: 84ms
 
 ## Adding a Scanner
 
-Leakr auto-discovers every class in the `leakr.scanners` package that implements `Scanner`. No registration, no config file. Drop a class in, rebuild, done.
+Leakr auto-discovers every class in the `leakr.scanners` package that implements `Scanner`. No registration, no config file — drop a class in, rebuild, and it is live.
 
-### 1. Create the class
+### 1. Create the scanner
 
 ```java
 package leakr.scanners;
@@ -203,14 +152,12 @@ public class MyServiceScanner implements Scanner {
 
 Place it in `src/leakr/scanners/MyServiceScanner.java`.
 
-### 2. Rebuild and confirm
+### 2. Rebuild and verify
 
 ```bash
 mvn package -q
 java -jar target/leakr-1.0.0-cli.jar list
 ```
-
-Your scanner appears automatically.
 
 ### 3. Add a test case
 
@@ -218,8 +165,8 @@ Open `src/leakr/test/ScannerTest.java` and add one entry to `CASES`:
 
 ```java
 new Case("myservice-api-key",
-    "myservice_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",  // must produce a match
-    "myservice_tooshort")                            // must NOT produce a match
+    "myservice_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",  // must match
+    "myservice_tooshort")                            // must not match
 ```
 
 ---
@@ -252,4 +199,4 @@ Exit code `0` on full pass, `1` on any failure.
 
 ## License
 
-MIT — free to use, modify, and distribute. Copyright notice must be preserved. See [LICENSE](LICENSE).
+MIT — free to use, modify, and distribute. The copyright notice must be preserved in all copies. See [LICENSE](LICENSE).
