@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Leakr: Secret Scanner</title>
+  <title>Leakr — Secret Detection for Java</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -108,6 +108,32 @@
 
     pre code { background: none; padding: 0; font-size: 1em; }
 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin: 0.9rem 0;
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      padding: 0.4rem 0.6rem;
+      border-bottom: 2px solid #e8e8e6;
+      color: #1a1a1a;
+    }
+
+    td {
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid #f0f0ee;
+      color: #2a2a2a;
+    }
+
+    td:nth-child(2), td:nth-child(3) {
+      text-align: center;
+      color: #555;
+    }
+
     .heart {
       font-family: ui-monospace, monospace;
       font-size: 0.75rem;
@@ -133,6 +159,7 @@
   <a class="nav-brand" href="/">leakr</a>
   <ul class="nav-links">
     <li><a href="https://github.com/HoraDomu/Leakr" target="_blank">GitHub</a></li>
+    <li><a href="#why">Why Leakr</a></li>
     <li><a href="#mission">Mission</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
@@ -141,36 +168,107 @@
 <img class="logo" src="logo.svg" alt="Leakr logo" width="62" height="78" />
 
 <h1>leakr</h1>
-<p class="subtitle">open-source secret scanner for Java</p>
+<p class="subtitle">secret detection for Java applications · MIT licensed</p>
 
-<p>Leakr is an open-source secret and credential scanner for Java. Maintained by Dominick Yanez aka HoraDomu,It's one JAR, any platform. Scan files, directories, environment variables, and stdin for leaked API keys, tokens, and credentials, or embed it directly in your Java application with no subprocess and no native binary required.</p>
-
-<p><span class="scanner-count"></span> built-in scanners, with the goal to adding more. Since this is a feature complete product the scanners add width rather than depth, and allow the Scans to be more complete and detect keys and secrets that could lead to catastrophic consequences. If there are any I forgot to add please contact me about them, I will try to cover the most important ones. All scanners are fully tested..</p>
-
-<p><a href="https://github.com/HoraDomu/Leakr" target="_blank">View on GitHub →</a></p>
-
-<hr />
+<p>Leakr is a Java library for detecting leaked secrets — API keys, tokens, and credentials — in your code, config files, and environment variables. Add one dependency, call one method. No subprocess, no binary, no configuration required.</p>
 
 <h2>Install</h2>
 
-<pre>curl -L https://github.com/HoraDomu/Leakr/releases/download/v1.0.0/leakr.jar -o leakr.jar
-java -jar leakr.jar scan .</pre>
+<pre>&lt;dependency&gt;
+  &lt;groupId&gt;io.github.horadomu&lt;/groupId&gt;
+  &lt;artifactId&gt;leakr&lt;/artifactId&gt;
+  &lt;version&gt;1.0.0&lt;/version&gt;
+&lt;/dependency&gt;</pre>
 
-<p>Exit code <code>0</code> means clean. Exit code <code>1</code> means findings. Pipe-friendly with <code>--json</code> output for CI. Pipe <code>git diff</code> straight through it with <code>--stdin</code>. Build from source by cloning the repo and running <code>mvn package -q</code>.</p>
+<h2>Use it</h2>
+
+<pre>Runner runner = new Runner(new Registry());
+
+// Scan a string
+List&lt;Finding&gt; findings = runner.scanString("AKIAIOSFODNN7EXAMPLE");
+
+// Scan a file or an entire directory (parallel, skips binaries automatically)
+List&lt;Finding&gt; findings = runner.scanFile(Path.of("config.yaml"));
+List&lt;Finding&gt; findings = runner.scanDir(Path.of("/path/to/project"));
+
+// Scan live environment variables at runtime
+List&lt;Finding&gt; findings = runner.scanEnv();</pre>
+
+<p>Each <code>Finding</code> exposes <code>scanner</code>, <code>severity</code>, <code>file</code>, <code>line</code>, and <code>match</code>. That's the entire API.</p>
+
+<hr />
+
+<h2 id="why">Why Leakr and not gitleaks?</h2>
+
+<p><a href="https://github.com/gitleaks/gitleaks" target="_blank">gitleaks</a> is excellent at what it does: scanning git commit history. That is not what Leakr does. Leakr is a native Java library you embed in application code — something gitleaks cannot be.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Leakr</th>
+      <th>gitleaks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Embeddable Java library</td><td>✓</td><td>✗</td></tr>
+    <tr><td>Scan environment variables</td><td>✓</td><td>✗</td></tr>
+    <tr><td>Scan stdin / arbitrary text</td><td>✓</td><td>partial</td></tr>
+    <tr><td>Zero native dependencies (JRE only)</td><td>✓</td><td>✗</td></tr>
+    <tr><td>Add a scanner = one class, no config</td><td>✓</td><td>✗</td></tr>
+    <tr><td>Scan git history</td><td>✗</td><td>✓</td></tr>
+  </tbody>
+</table>
+
+<p>If you need git history scanning, use gitleaks. If you need to embed secret detection in a Java service, scan environment variables at startup, or integrate into a build pipeline without a binary dependency, use Leakr.</p>
+
+<hr />
+
+<h2>Built-in scanners</h2>
+
+<p>6 scanners ship out of the box, covering the credentials most likely to cause catastrophic damage if leaked. All are fully tested.</p>
+
+<table>
+  <thead>
+    <tr><th>Scanner</th><th>Detects</th><th>Severity</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>aws-access-key</code></td><td>AWS access key IDs (AKIA/ASIA…)</td><td>Critical</td></tr>
+    <tr><td><code>github-pat</code></td><td>GitHub personal access tokens (ghp_…)</td><td>Critical</td></tr>
+    <tr><td><code>openai-api-key</code></td><td>OpenAI API keys (sk-…)</td><td>Critical</td></tr>
+    <tr><td><code>stripe-secret-key</code></td><td>Stripe secret keys (sk_live_…)</td><td>Critical</td></tr>
+    <tr><td><code>slack-bot-token</code></td><td>Slack bot tokens (xoxb-…)</td><td>High</td></tr>
+    <tr><td><code>twilio-account-sid</code></td><td>Twilio account SIDs (AC…)</td><td>High</td></tr>
+  </tbody>
+</table>
+
+<p>Adding a scanner is one class. Drop it in <code>leakr.scanners</code>, implement the <code>Scanner</code> interface, rebuild. No registration, no config file, no pull request required for internal scanners.</p>
+
+<hr />
+
+<h2>CLI</h2>
+
+<p>Leakr also ships as a self-contained CLI JAR for scanning without writing code. Download from <a href="https://github.com/HoraDomu/Leakr/releases/latest" target="_blank">GitHub Releases</a> or build from source:</p>
+
+<pre>git clone https://github.com/HoraDomu/Leakr.git
+cd Leakr &amp;&amp; mvn package -q
+java -jar target/leakr-1.0.0-cli.jar scan .</pre>
+
+<p>Exit code <code>0</code> means clean. Exit code <code>1</code> means findings. Use <code>--json</code> for machine-readable output. Pipe <code>git diff</code> through it with <code>--stdin</code>.</p>
 
 <hr />
 
 <h2 id="mission">Mission</h2>
 
-<p>Secret detection should be a native part of Java development. Not a binary you wrap in a shell script, not a CI step that requires a separate tool. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.</p>
+<p>Secret detection should be a native part of Java development — not a binary you wrap in a shell script, not a CI step that requires a separate tool install. A library you call like any other, embedded in your code, running wherever Java runs, requiring nothing beyond a JRE.</p>
 
-<p>Leakr is feature complete. New features are not being merged. Future releases will be security patches and new scanners only.</p>
+<p>Leakr is feature complete. The CLI, library API, output formats, and exit codes are stable and will not change. Future releases add scanners and security patches only.</p>
 
 <hr />
 
 <h2 id="contact">Contact</h2>
 
-<p>Interested in contributing or discussing the mission? Email me at <a href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a> or send me a message on <a href="https://github.com/HoraDomu" target="_blank">GitHub</a>.</p>
+<p>Interested in contributing a scanner or discussing the project? Email <a href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a> or open an issue on <a href="https://github.com/HoraDomu/Leakr" target="_blank">GitHub</a>.</p>
 
 <div class="heart">  ██   ██
  █████████
@@ -183,16 +281,6 @@ java -jar leakr.jar scan .</pre>
 <footer>
   <p>Copyright &copy; 2026 Dominick Yanez &nbsp;·&nbsp; <a href="https://github.com/HoraDomu/Leakr/blob/main/LICENSE" target="_blank">License</a></p>
 </footer>
-
-
-<script>
-  // ── UPDATE THIS NUMBER WHEN YOU ADD SCANNERS ──
-  const SCANNER_COUNT = 5;
-  // ─────────────────────────────────────────────
-  document.querySelectorAll('.scanner-count').forEach(function(el) {
-    el.textContent = SCANNER_COUNT;
-  });
-</script>
 
 </body>
 </html>

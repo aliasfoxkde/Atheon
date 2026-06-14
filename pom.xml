@@ -16,8 +16,8 @@
 
     <licenses>
         <license>
-            <name>Proprietary</name>
-            <url>https://github.com/HoraDomu/Leakr/blob/main/LICENSE</url>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
             <distribution>repo</distribution>
         </license>
     </licenses>

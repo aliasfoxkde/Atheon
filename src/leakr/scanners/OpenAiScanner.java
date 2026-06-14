@@ -10,7 +10,7 @@ public class OpenAiScanner implements Scanner {
         Pattern.compile("\\bsk-[A-Za-z0-9_-]{20,}\\b");
 
     public String name() {
-        return "OpenAIKey";
+        return "openai-api-key";
     }
 
     public String description() {
