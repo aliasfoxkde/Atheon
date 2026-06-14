@@ -168,7 +168,7 @@
 <img class="logo" src="logo.svg" alt="Leakr logo" width="62" height="78" />
 
 <h1>leakr</h1>
-<p class="subtitle">secret detection for Java applications · MIT licensed</p>
+<p class="subtitle">open-source secret scanner for Java</p>
 
 <p>Leakr is a Java library for detecting leaked secrets — API keys, tokens, and credentials — in your code, config files, and environment variables. Add one dependency, call one method. No subprocess, no binary, no configuration required.</p>
 
@@ -198,29 +198,13 @@ List&lt;Finding&gt; findings = runner.scanEnv();</pre>
 
 <hr />
 
-<h2 id="why">Why Leakr and not gitleaks?</h2>
+<h2 id="why">Leakr and gitleaks</h2>
 
-<p><a href="https://github.com/gitleaks/gitleaks" target="_blank">gitleaks</a> is excellent at what it does: scanning git commit history. That is not what Leakr does. Leakr is a native Java library you embed in application code — something gitleaks cannot be.</p>
+<p><a href="https://github.com/gitleaks/gitleaks" target="_blank">gitleaks</a> is a great tool and Leakr isn't trying to compete with it. They solve different problems.</p>
 
-<table>
-  <thead>
-    <tr>
-      <th></th>
-      <th>Leakr</th>
-      <th>gitleaks</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr><td>Embeddable Java library</td><td>✓</td><td>✗</td></tr>
-    <tr><td>Scan environment variables</td><td>✓</td><td>✗</td></tr>
-    <tr><td>Scan stdin / arbitrary text</td><td>✓</td><td>partial</td></tr>
-    <tr><td>Zero native dependencies (JRE only)</td><td>✓</td><td>✗</td></tr>
-    <tr><td>Add a scanner = one class, no config</td><td>✓</td><td>✗</td></tr>
-    <tr><td>Scan git history</td><td>✗</td><td>✓</td></tr>
-  </tbody>
-</table>
+<p>If you want to scan your git commit history for secrets that were accidentally checked in, use gitleaks. It was built for that and does it well.</p>
 
-<p>If you need git history scanning, use gitleaks. If you need to embed secret detection in a Java service, scan environment variables at startup, or integrate into a build pipeline without a binary dependency, use Leakr.</p>
+<p>Leakr is for when you need secret detection inside a Java application — not as a separate tool you shell out to, but as a library you call directly. Scan a string your app just read from a config file. Scan environment variables at service startup before they're used. Scan a directory as part of a build step without installing anything beyond a JRE. That's what Leakr is for, and that's a gap gitleaks doesn't fill.</p>
 
 <hr />
 
