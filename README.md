@@ -47,14 +47,14 @@ Leakr is designed differently:
 <dependency>
     <groupId>io.github.horadomu</groupId>
     <artifactId>leakr</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
 **Gradle**
 
 ```gradle
-implementation 'io.github.horadomu:leakr:1.0.0'
+implementation 'io.github.horadomu:leakr:1.0.1'
 ```
 
 ---
@@ -80,15 +80,46 @@ Each `Finding` exposes: `scanner`, `severity`, `file`, `line`, `description`, `m
 
 ## CLI Quickstart
 
+Clone the repo, then build with whichever tool you have available.
+
+**Maven**
+
 ```bash
 git clone https://github.com/HoraDomu/Leakr.git
 cd Leakr
 mvn package -q
+java -jar target/leakr-1.0.1-cli.jar scan /path/to/project
 ```
 
-This produces two JARs in `target/`:
-- `leakr-1.0.0-cli.jar` — self-contained JAR for CLI use
-- `leakr-1.0.0.jar` — thin library JAR for embedding as a dependency
+**Gradle**
+
+```bash
+git clone https://github.com/HoraDomu/Leakr.git
+cd Leakr
+./gradlew shadowJar
+java -jar build/libs/leakr-1.0.1-cli.jar scan /path/to/project
+```
+
+**Plain Java (no build tool)**
+
+```bash
+git clone https://github.com/HoraDomu/Leakr.git
+cd Leakr
+# Pull dependencies into lib/
+mvn dependency:copy-dependencies -DoutputDirectory=lib -q
+
+# Compile
+javac -cp "lib/*" -d out src/leakr/cli/Main.java src/leakr/core/*.java src/leakr/output/*.java src/leakr/scanners/*.java
+
+# Run
+java -cp "out:lib/*" leakr.cli.Main scan /path/to/project
+# Windows: use semicolons
+java -cp "out;lib/*" leakr.cli.Main scan /path/to/project
+```
+
+The Maven `package` goal produces two JARs in `target/`:
+- `leakr-1.0.1-cli.jar` — self-contained JAR for CLI use
+- `leakr-1.0.1.jar` — thin library JAR for embedding as a dependency
 
 ---
 
@@ -96,28 +127,28 @@ This produces two JARs in `target/`:
 
 ```bash
 # Scan a directory
-java -jar target/leakr-1.0.0-cli.jar scan /path/to/project
+java -jar target/leakr-1.0.1-cli.jar scan /path/to/project
 
 # Scan a single file
-java -jar target/leakr-1.0.0-cli.jar scan config.env
+java -jar target/leakr-1.0.1-cli.jar scan config.env
 
 # Scan environment variables
-java -jar target/leakr-1.0.0-cli.jar scan --env
+java -jar target/leakr-1.0.1-cli.jar scan --env
 
 # Pipe content from stdin
-git diff | java -jar target/leakr-1.0.0-cli.jar scan --stdin
+git diff | java -jar target/leakr-1.0.1-cli.jar scan --stdin
 
 # JSON output
-java -jar target/leakr-1.0.0-cli.jar scan /path/to/project --json
+java -jar target/leakr-1.0.1-cli.jar scan /path/to/project --json
 
 # Exclude directories
-java -jar target/leakr-1.0.0-cli.jar scan . --exclude target,dist,node_modules
+java -jar target/leakr-1.0.1-cli.jar scan . --exclude target,dist,node_modules
 
 # Filter by file extension
-java -jar target/leakr-1.0.0-cli.jar scan . --ext .env,.yaml,.json,.tf
+java -jar target/leakr-1.0.1-cli.jar scan . --ext .env,.yaml,.json,.tf
 
 # List registered scanners
-java -jar target/leakr-1.0.0-cli.jar list
+java -jar target/leakr-1.0.1-cli.jar list
 ```
 
 Exit code `0` means clean. Exit code `1` means findings were detected.
@@ -175,7 +206,7 @@ Place it in `src/leakr/scanners/MyServiceScanner.java`.
 
 ```bash
 mvn package -q
-java -jar target/leakr-1.0.0-cli.jar list
+java -jar target/leakr-1.0.1-cli.jar list
 ```
 
 ### 3. Add a test case
@@ -193,7 +224,7 @@ new Case("myservice-api-key",
 ## Testing
 
 ```bash
-java -cp target/leakr-1.0.0-cli.jar leakr.test.ScannerTest
+java -cp target/leakr-1.0.1-cli.jar leakr.test.ScannerTest
 ```
 
 ```
