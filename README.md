@@ -30,31 +30,6 @@ cat file.txt | atheon -
 
 Exit code `0` = clean. Exit code `1` = findings. CI-friendly by default.
 
----
-
-## Adding a pattern
-
-One file. Two methods.
-
-```go
-package patterns
-
-import (
-    "atheon/core"
-    "regexp"
-)
-
-func init() {
-    core.Register(&myPattern{re: regexp.MustCompile(`your-regex-here`)})
-}
-
-type myPattern struct{ re *regexp.Regexp }
-
-func (p *myPattern) Name() string             { return "my-pattern-name" }
-func (p *myPattern) Matches(line string) bool { return p.re.MatchString(line) }
-```
-
-Drop the file in `patterns/`, rebuild. It appears in `atheon list` automatically.
 
 ---
 
