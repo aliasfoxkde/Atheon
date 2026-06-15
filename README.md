@@ -58,6 +58,7 @@ Pipe support:
 
 ```
 cat file.txt | atheon -
+<<<<<<< HEAD
 ```
 
 Exit code `0` = clean. Exit code `1` = findings. CI-friendly by default.
@@ -103,6 +104,8 @@ GOOS=windows GOARCH=amd64 go build -o atheon.exe .
 GOOS=linux   GOARCH=amd64 go build -o atheon-linux .
 GOOS=darwin  GOARCH=arm64 go build -o atheon-macos .
 ```
+=======
+>>>>>>> 23ecd0447c45edc2e086d7c753a393d869e67196
 
 ---
 
