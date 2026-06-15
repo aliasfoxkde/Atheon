@@ -16,7 +16,7 @@ Atheon is a pattern matching engine. You tell it what to look for. You point it 
 
 ## Why this matters
 
-Data ends up where it shouldn't. A hardcoded credential in a config file. A production secret in a log. A sensitive string committed into a repository by accident and now permanently in git history. These mistakes happen constantly — across every team, every stack, every domain.
+Text ends up where it shouldn't — constantly. A hardcoded credential in a config file. A patient ID in a debug log. A production secret committed into history. PII in an API response. A prohibited cipher name in a compliance-scoped codebase. These mistakes happen across every team, every stack, every domain.
 
 The problem isn't that people are careless. The problem is there's no systematic way to catch what you can't see.
 
