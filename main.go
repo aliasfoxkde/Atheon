@@ -29,7 +29,11 @@ func main() {
 		}
 
 	case "-", "--stdin":
-		data, _ := io.ReadAll(os.Stdin)
+		data, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "error: reading stdin:", err)
+			os.Exit(1)
+		}
 		findings := core.ScanString(string(data), "stdin")
 		printFindings(findings, nil)
 		if len(findings) > 0 {

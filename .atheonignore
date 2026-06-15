@@ -1,0 +1,9 @@
+# Paths excluded from secret scanning.
+# Supports exact paths, directory prefixes, and * globs.
+
+# Demo files contain intentional fake secrets for illustration purposes.
+demo/
+demo-config.txt
+
+# Test fixtures use placeholder values that look like real secrets.
+test/

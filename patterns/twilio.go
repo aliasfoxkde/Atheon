@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	core.Register(&twilioPattern{re: regexp.MustCompile(`AC[0-9a-fA-F]{32}`)})
+	core.Register(&twilioPattern{re: regexp.MustCompile(`\bAC[0-9a-fA-F]{32}\b`)})
 }
 
 type twilioPattern struct{ re *regexp.Regexp }

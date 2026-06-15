@@ -1,0 +1,27 @@
+# ---------------------------------------------------------------
+# EXAMPLE FILE — all secrets below are fake and intentionally
+# structured to trigger Atheon patterns for demo purposes.
+# ---------------------------------------------------------------
+
+app:
+  name: myapp
+  port: 8080
+  env: production
+
+database:
+  host: localhost
+  port: 5432
+  name: myapp_db
+
+# TODO: move to secrets manager — left here from a debug session
+openai:
+  api_key: sk-a8f3c2d91xyzABCDEF12345678901234
+
+aws:
+  region: us-east-1
+  # debug key: AKIAIOSFODNN7EXAMPLE
+  bucket: myapp-uploads
+
+logging:
+  level: info
+  output: stdout
