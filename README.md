@@ -1,4 +1,6 @@
-# Atheon
+<p align="center">
+  <img src="./assets/logo.svg" alt="Atheon" width="600" />
+</p>
 
 ![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
