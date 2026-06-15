@@ -59,11 +59,14 @@ func ScanDir(root string) ([]Finding, *Stats, error) {
 	results := make([][]Finding, len(paths))
 	sizes := make([]int64, len(paths))
 	var wg sync.WaitGroup
+	sem := make(chan struct{}, 256)
 
 	for i, p := range paths {
 		wg.Add(1)
+		sem <- struct{}{}
 		go func(i int, p string) {
 			defer wg.Done()
+			defer func() { <-sem }()
 			data, err := os.ReadFile(p)
 			if err != nil {
 				return
