@@ -4,53 +4,37 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Patterns](https://img.shields.io/badge/patterns-6-blueviolet)
 
-> **Status:** Feature complete. The engine is done. What grows from here are patterns and bug fixes — nothing more, nothing less.
+> **One tool. All patterns. Any input.**
+
+Atheon is a community-driven pattern matching engine. You define what you're looking for. You point it at anything. It finds every match and tells you exactly where — returning a clear `true` or `false` for every rule, every time.
 
 ---
 
-**One tool. All patterns. Any input.**
+## What Atheon is
 
-Atheon is a pattern matching engine. You tell it what to look for. You point it at anything. It finds every match and tells you exactly where.
+Atheon is a CLI tool built around a single idea: **any pattern, any domain, any input.** It doesn't care whether you're scanning for leaked credentials, patient identifiers, financial account numbers, prohibited strings in compliance-scoped code, or anything else you can describe as a rule. If the pattern is clear — if it can return true or false — Atheon runs it.
 
----
-
-## Why this matters
-
-Text ends up where it shouldn't — constantly. A hardcoded credential in a config file. A patient ID in a debug log. A production secret committed into history. PII in an API response. A prohibited cipher name in a compliance-scoped codebase. These mistakes happen across every team, every stack, every domain.
-
-The problem isn't that people are careless. The problem is there's no systematic way to catch what you can't see.
-
-Atheon is that system. A pattern matching engine you define, run anywhere, and trust completely — because you wrote the rules.
-
----
-## Atheons Mission
-Atheon isn't trying to be the next big GitLeaks or anything of that nature, really. It's not competing to be this super giant; it's trying to be a platform.
-
-Imagine this: a CLI tool that a team of devs can use, right? And for some reason, in their code, they're working with sensitive data. They add their own pattern to Atheon, then push it to the codebase. Now Atheon's new release and their local version have this pattern registered.
-
-They find the sensitive info they were looking for, and now it's not committed.
-
-But imagine that now Atheon has this pattern, and another group of devs decides to use it because they're in a similar situation. The pattern is already registered. Now they run it on their codebase and boom—the pattern is found, day is saved.
-
-That's the idea. That's Atheon: a community-driven CLI tool that lets me, you, and Billy Bob add our own patterns that others can use as well.
-
-Refer to the contributing guide to add your own pattern, but do keep in mind that the creator, HoraDomu, made the architecture sound for simple, easy additions.
+The engine itself is deliberately minimal. It has no opinions about what matters. That knowledge lives in the patterns — and the patterns come from the community.
 
 ---
 
-## What pattern matching means
+## The Mission
 
-A pattern is a rule: "if a line looks like this, flag it." That rule can be a regex, a keyword check, a structural test — anything that returns true or false. Every pattern has a name. Every match tells you the file, the line, and what was found.
+Atheon isn't trying to be the next big secrets scanner. It's not competing to become a giant. It's trying to be a **platform**.
 
-The engine itself is deliberately minimal. It doesn't know what a secret is, what compliance means, or what matters to your organization. You do. So you define it, and the engine enforces it — over files, directories, environment variables, or any stream of text piped through it.
+Here's the idea: a developer on a team is working with sensitive data. They write a pattern for Atheon, contribute it, and it ships in the next release. Now everyone using Atheon has that pattern registered. The next team in a similar situation doesn't have to build it from scratch — it's already there.
 
-Pattern matching is useful in any domain where text contains something that shouldn't be there, or something that must be there. Security. Compliance. Legal. Operations. Healthcare. Finance. If you can describe the rule, Atheon can run it.
+That's Atheon: a community-driven engine where you, me, and anyone else can add patterns that every user benefits from. The goal is a library of rules that covers every domain where text contains something that matters — built not by one company, but by everyone who uses it.
+
+**Security. Compliance. Finance. Healthcare. Legal. Operations. Gaming. Anything.**
+
+If you can describe the rule, Atheon can run it.
 
 ---
 
 ## The scenario that makes this real
 
-A developer wraps up a sprint and pushes a configuration file. Inside it, buried in a comment from a debugging session three weeks ago, is a production API key. The commit goes through. The pipeline passes. The key is now in git history, in the build artifact, and eventually in a production image. Someone rotates it two months later after a billing alert.
+A developer wraps up a sprint and pushes a configuration file. Buried in a comment from a debugging session three weeks ago is a production API key. The commit goes through. The pipeline passes. Two months later, someone notices unusual billing activity.
 
 Atheon, wired into a pre-push hook:
 
@@ -70,13 +54,13 @@ That's it. That's the product.
 
 Download the binary for your platform from [Releases](https://github.com/HoraDomu/Atheon/releases/latest). No install, no runtime, no dependencies. Drop it in your PATH and run it.
 
-**Or build from source:**
+**Build from source:**
 
 ```
 go build -o atheon .
 ```
 
-Cross-compile for any platform:
+**Cross-compile for any platform:**
 
 ```
 GOOS=windows GOARCH=amd64 go build -o atheon.exe .
@@ -107,14 +91,17 @@ Exit code `0` = clean. Exit code `1` = findings. CI-friendly by default.
 
 ## Contributing
 
- See [CONTRIBUTING.md](CONTRIBUTING.md).
+Patterns are the heart of Atheon. Every pattern is one file, two methods — small, fast to review, and immediately useful to every user once merged.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to add your own.
+
 ---
 
 ## Releases
 
-Every 3 patterns merged = a new version release. No exceptions, no skipping. The pattern count drives the version. When the badge hits the next multiple of 3, a release goes out.
+Every 3 patterns merged = a new version release. The pattern count drives the version.
 
-To build binaries for all platforms at once:
+Build binaries for all platforms at once:
 
 ```
 GOOS=windows GOARCH=amd64 go build -o dist/atheon-windows-amd64.exe .
@@ -125,19 +112,27 @@ GOOS=darwin  GOARCH=arm64 go build -o dist/atheon-macos-arm64 .
 
 Put the outputs in a `dist/` folder, attach them to the GitHub release, and update the patterns badge at the top of this file.
 
+Latest release: [github.com/HoraDomu/Atheon/releases/latest](https://github.com/HoraDomu/Atheon/releases/latest)
+
+---
+
+## Contact
+
+Questions, pattern requests, or anything else:
+
+**Email:** [dommcpro@gmail.com](mailto:dommcpro@gmail.com)
+
 ---
 
 ## License
 
 MIT with Additional Terms — Copyright © 2026 Dominick Yanez
 
-You are free to fork this repository, clone the source, study it, modify it for personal or internal use, and contribute patterns or bug fixes back. That's encouraged.
+You are free to fork, clone, study, modify for personal or internal use, and contribute patterns or bug fixes back. That's encouraged.
 
 What you may not do:
-- Ship this software, or any derivative of it, as your own standalone product, tool, or service under a different name or brand
+- Ship this software, or any derivative of it, as your own standalone product under a different name or brand
 - Remove or obscure the author's name or copyright notice from any copy, fork, or derivative work
-
-Violating these terms is copyright infringement. Legal action will follow.
 
 For permissions beyond this scope: [dommcpro@gmail.com](mailto:dommcpro@gmail.com)
 

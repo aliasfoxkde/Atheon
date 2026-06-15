@@ -18,7 +18,6 @@ var binaryExts = map[string]bool{
 	".png": true, ".jpg": true, ".jpeg": true, ".gif": true,
 	".pdf": true, ".zip": true, ".tar": true, ".gz": true,
 	".exe": true, ".bin": true, ".so": true, ".dylib": true,
-	".class": true, ".jar": true,
 }
 
 func ScanFile(path string) ([]Finding, *Stats, error) {

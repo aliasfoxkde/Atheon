@@ -8,22 +8,22 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: #ffffff;
-      color: #111111;
+      background: #0a0a0a;
+      color: #f0f0f0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       font-size: 16px;
-      line-height: 1.75;
+      line-height: 1.8;
     }
 
     .wrap {
-      max-width: 620px;
+      max-width: 660px;
       margin: 0 auto;
       padding: 0 1.5rem;
     }
 
     nav {
       padding: 1.75rem 0;
-      border-bottom: 1px solid #ebebeb;
+      border-bottom: 1px solid #1f1f1f;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -32,64 +32,61 @@
     .brand {
       font-size: 0.9rem;
       font-weight: 700;
-      color: #111;
+      color: #f0f0f0;
       text-decoration: none;
       font-family: ui-monospace, monospace;
       letter-spacing: -0.3px;
     }
 
-    nav a { color: #888; font-size: 0.85rem; text-decoration: none; }
-    nav a:hover { color: #111; }
+    nav a { color: #666; font-size: 0.85rem; text-decoration: none; }
+    nav a:hover { color: #f0f0f0; }
 
     .hero {
-      padding: 5.5rem 0 4.5rem;
+      padding: 6rem 0 5rem;
       text-align: center;
     }
 
     h1 {
-      font-size: 2.6rem;
+      font-size: 3.2rem;
       font-weight: 800;
-      letter-spacing: -1.5px;
-      margin-bottom: 1.1rem;
-      color: #111;
+      letter-spacing: -2px;
+      margin-bottom: 1rem;
+      color: #ffffff;
     }
 
     .tagline {
       font-size: 1rem;
-      color: #888;
+      color: #666;
       font-family: ui-monospace, monospace;
       letter-spacing: -0.2px;
-      margin-bottom: 2.5rem;
     }
 
-    .download {
-      display: inline-block;
-      background: #111;
-      color: #fff;
-      font-size: 0.9rem;
-      font-weight: 600;
-      padding: 0.75rem 2rem;
-      border-radius: 6px;
-      text-decoration: none;
-      letter-spacing: -0.2px;
+    hr { border: none; border-top: 1px solid #1f1f1f; margin: 3.5rem 0; }
+
+    section { padding: 0 0 0.5rem; }
+
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.9rem;
+      letter-spacing: -0.3px;
     }
 
-    .download:hover { background: #333; }
+    p { color: #aaa; margin-bottom: 0.9rem; }
+    p:last-child { margin-bottom: 0; }
 
-    .sub {
-      display: block;
-      margin-top: 0.75rem;
-      font-size: 0.78rem;
-      color: #bbb;
-    }
+    a.inline { color: #f0f0f0; }
+    a.inline:hover { text-decoration: underline; }
 
     pre {
-      background: #f5f5f5;
-      border-radius: 6px;
-      padding: 1rem 1.25rem;
+      background: #111;
+      border: 1px solid #1f1f1f;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
       font-family: ui-monospace, monospace;
       font-size: 0.85rem;
-      color: #333;
+      color: #c8c8c8;
       overflow-x: auto;
       text-align: left;
       margin: 1.25rem 0;
@@ -98,47 +95,112 @@
     code {
       font-family: ui-monospace, monospace;
       font-size: 0.85em;
-      background: #f5f5f5;
-      padding: 0.1em 0.35em;
-      border-radius: 3px;
-      color: #333;
+      background: #161616;
+      border: 1px solid #222;
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      color: #c8c8c8;
     }
 
-    hr { border: none; border-top: 1px solid #ebebeb; margin: 3.5rem 0; }
+    .download-wrap {
+      background: #111;
+      border: 1px solid #1f1f1f;
+      border-radius: 10px;
+      padding: 2rem;
+      text-align: center;
+      margin: 1.5rem 0;
+    }
 
-    section { padding: 0 0 3rem; }
+    .download-wrap p {
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
 
-    h2 {
-      font-size: 1rem;
+    .download-btn {
+      display: inline-block;
+      background: #ffffff;
+      color: #0a0a0a;
+      font-size: 0.9rem;
       font-weight: 700;
-      color: #111;
-      margin-bottom: 0.75rem;
+      padding: 0.8rem 2.25rem;
+      border-radius: 6px;
+      text-decoration: none;
+      letter-spacing: -0.2px;
+      transition: background 0.15s;
     }
 
-    p { color: #555; margin-bottom: 0.9rem; }
-    p:last-child { margin-bottom: 0; }
+    .download-btn:hover { background: #e0e0e0; }
 
-    a.inline { color: #111; }
-    a.inline:hover { text-decoration: underline; }
+    .sub {
+      display: block;
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: #444;
+      font-family: ui-monospace, monospace;
+    }
 
-    .status {
-      font-size: 0.78rem;
+    .contribute-box {
+      background: #111;
+      border: 1px solid #1f1f1f;
+      border-radius: 10px;
+      padding: 1.75rem 2rem;
+      margin: 1.5rem 0;
+    }
+
+    .contribute-box p { color: #888; margin-bottom: 0.6rem; }
+    .contribute-box p:last-child { margin-bottom: 0; }
+
+    .domain-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin: 1.25rem 0;
+    }
+
+    .domain-tag {
+      background: #111;
+      border: 1px solid #1f1f1f;
+      border-radius: 6px;
+      padding: 0.65rem 1rem;
+      font-size: 0.82rem;
       color: #aaa;
       font-family: ui-monospace, monospace;
+    }
+
+    .domain-tag span {
+      display: block;
+      color: #555;
+      font-size: 0.72rem;
+      margin-top: 0.15rem;
+    }
+
+    .closing {
       text-align: center;
-      padding: 0.6rem 0 0;
+      padding: 3rem 0 1rem;
+    }
+
+    .closing p {
+      color: #555;
+      font-size: 0.92rem;
+      line-height: 1.9;
+    }
+
+    .closing strong {
+      color: #888;
+      font-weight: 600;
     }
 
     footer {
-      border-top: 1px solid #ebebeb;
+      border-top: 1px solid #1a1a1a;
       padding: 2rem 0;
-      font-size: 0.78rem;
-      color: #bbb;
+      font-size: 0.75rem;
+      color: #333;
       text-align: center;
     }
 
-    footer a { color: #bbb; text-decoration: none; }
-    footer a:hover { color: #111; }
+    footer a { color: #333; text-decoration: none; }
+    footer a:hover { color: #888; }
   </style>
 </head>
 <body>
@@ -153,59 +215,120 @@
   <div class="hero">
     <h1>Atheon</h1>
     <p class="tagline">One tool. All patterns. Any input.</p>
-    <a class="download" href="https://github.com/HoraDomu/Atheon/releases/latest" target="_blank">Download</a>
-    <span class="sub">Windows &nbsp;·&nbsp; macOS &nbsp;·&nbsp; Linux &nbsp;·&nbsp; no install</span>
   </div>
 
   <hr />
 
   <section>
-    <h2>What it is</h2>
-    <p>Atheon is a pattern matching engine. You define what you're looking for. You point it at a file, a directory, your environment variables, or a stream of text. It finds every match and tells you exactly where.</p>
-    <p>The engine doesn't have opinions about what matters. You do — so you write the rules, and Atheon enforces them. Over anything.</p>
+    <h2>The mission</h2>
+    <p>Atheon exists to be a platform — not a product. A community-driven pattern matching engine where anyone can contribute a pattern that every user immediately benefits from.</p>
+    <p>The engine is finished. What grows from here are the patterns: rules for any domain, written by anyone, covering everything text can contain. Security. Finance. Healthcare. Compliance. Legal. Operations. Gaming. If you can describe what you're looking for in a way that returns true or false, Atheon can run it.</p>
+    <p>No single team can cover every domain. But a community can.</p>
   </section>
 
   <hr />
 
   <section>
-    <h2>Why it matters</h2>
-    <p>Text ends up where it shouldn't — constantly. A hardcoded credential in a config file. A patient ID in a debug log. A prohibited cipher name in compliance-scoped code. PII in an API response. A secret committed to a repository and now permanently in history.</p>
-    <p>These aren't rare edge cases. They happen to careful teams running good processes. The difference between a near-miss and an incident is often just whether anyone was looking.</p>
-    <p>Atheon is the thing that's always looking.</p>
+    <h2>What it is</h2>
+    <p>Atheon is a CLI tool. You define a pattern — a name and a match function. You point Atheon at a file, a directory, your environment variables, or any stream of text piped through it. It finds every match and tells you the file, the line, and exactly what was found.</p>
+    <p>The engine has no opinions about what matters. You do. So you write the rule, and Atheon enforces it — everywhere, every time, returning exit code <code>1</code> the moment something is found.</p>
   </section>
 
   <hr />
 
   <section>
     <h2>The scenario</h2>
-    <p>A developer pushes a configuration file. Buried in a comment from a debugging session weeks ago is a production API key. The commit goes through. The pipeline passes. Two months later, someone notices unusual billing activity.</p>
+    <p>A developer wraps up a sprint and pushes a configuration file. Buried in a comment from a debugging session three weeks ago is a production API key. The commit goes through. The pipeline passes. Two months later, someone notices unusual billing activity.</p>
     <p>Atheon, wired into a pre-push hook:</p>
     <pre>$ atheon ./
 
 [api-key] config/app.yaml:47  →  # debug key: sk-prod-a8f3c...</pre>
     <p>Exit code <code>1</code>. The push never happens. The key never leaves the machine. The incident never occurs.</p>
+    <p>That's it. That's Atheon.</p>
   </section>
 
   <hr />
 
   <section>
-    <h2>Infinitely extensible</h2>
-    <p>A pattern is just a name and a match function. That's the entire contract. It can be a regex, a keyword, a structural check — anything that returns true or false on a line of text.</p>
-    <p>That simplicity is intentional. There's no config format to learn, no DSL, no plugin manager. You write Go, you drop the file in, you rebuild. The pattern appears immediately in <code>atheon list</code>. The engine doesn't change. Only your rules grow.</p>
-    <p>Security teams use it to catch leaked credentials. Compliance teams use it to scan for PII. Legal teams search contracts for specific clauses. Operations teams monitor pipeline logs. Healthcare, finance, internal tooling — if the domain has text and rules, Atheon runs those rules.</p>
-    <p>This is the beginning of what it can become.</p>
+    <h2>Get Atheon</h2>
+    <div class="download-wrap">
+      <p>No install. No runtime. No dependencies. Drop the binary in your PATH and run it.</p>
+      <a class="download-btn" href="https://github.com/HoraDomu/Atheon/releases/latest" target="_blank">Download Atheon</a>
+      <span class="sub">Windows &nbsp;·&nbsp; macOS &nbsp;·&nbsp; Linux</span>
+    </div>
+    <p>Or build from source if you prefer:</p>
+    <pre>go build -o atheon .</pre>
+    <p>Cross-compile for any platform:</p>
+    <pre>GOOS=windows GOARCH=amd64 go build -o atheon.exe .
+GOOS=linux   GOARCH=amd64 go build -o atheon-linux .
+GOOS=darwin  GOARCH=arm64 go build -o atheon-macos .</pre>
   </section>
 
   <hr />
 
   <section>
-    <h2>Want something detected?</h2>
-    <p>If there's a pattern you need — a token format, a compliance requirement, something internal to your organization — reach out. Patterns are small and fast to add, and the right ones make Atheon more useful for everyone.</p>
+    <h2>Contribute</h2>
+    <p>Patterns are the heart of Atheon. Every pattern is one file, two methods — small, fast to review, and immediately useful to every user once merged. If there's a domain you work in, a format you know, or a rule that would have saved your team time — that belongs here.</p>
+    <div class="contribute-box">
+      <p>Want to add a pattern or have one in mind?</p>
+      <p>
+        Email: <a class="inline" href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a>
+      </p>
+      <p>
+        Guide: <a class="inline" href="https://github.com/HoraDomu/Atheon/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md</a>
+      </p>
+      <p>
+        Repository: <a class="inline" href="https://github.com/HoraDomu/Atheon" target="_blank">github.com/HoraDomu/Atheon</a>
+      </p>
+    </div>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Domains</h2>
+    <p>Atheon is built to work across every domain where text contains something that matters. Here's what's already covered and where the community is actively building next.</p>
+
+    <div class="domain-grid">
+      <div class="domain-tag">
+        Security
+        <span>API keys, tokens, secrets, credentials</span>
+      </div>
+      <div class="domain-tag">
+        Compliance / PII
+        <span>Personal identifiers, regulated data</span>
+      </div>
+      <div class="domain-tag">
+        Finance
+        <span>Account numbers, card formats, routing codes</span>
+      </div>
+      <div class="domain-tag">
+        Healthcare
+        <span>Patient IDs, medical record numbers</span>
+      </div>
+      <div class="domain-tag">
+        Legal
+        <span>Contract clauses, prohibited terms</span>
+      </div>
+      <div class="domain-tag">
+        Operations
+        <span>Log anomalies, pipeline signals</span>
+      </div>
+    </div>
+
+    <p>See what patterns are being requested and what domains are open for contribution on the <a class="inline" href="https://github.com/HoraDomu/Atheon/issues" target="_blank">GitHub issues page</a>.</p>
+  </section>
+
+  <hr />
+
+  <div class="closing">
     <p>
-      Email: <a class="inline" href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a><br />
-      GitHub: <a class="inline" href="https://github.com/HoraDomu/Atheon" target="_blank">github.com/HoraDomu/Atheon</a>
+      Atheon is small right now — and that's the point.<br />
+      Every tool that becomes something real starts exactly here: a clear idea, an open door, and the right people walking through it.<br /><br />
+      <strong>Whatever domain you work in, there's a place for your pattern here.</strong><br />
+      Welcome to Atheon.
     </p>
-  </section>
+  </div>
 
   <hr />
 
