@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	core.Register(&githubPattern{re: regexp.MustCompile(`ghp_[0-9a-zA-Z]{36}`)})
+	core.Register(&githubPattern{re: regexp.MustCompile(`\bghp_[0-9a-zA-Z]{36}\b`)})
 }
 
 type githubPattern struct{ re *regexp.Regexp }

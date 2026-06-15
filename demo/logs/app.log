@@ -1,0 +1,14 @@
+# EXAMPLE FILE — fake application log.
+# The Stripe key and Twilio SID in the error lines below are fake
+# and intentionally formatted to trigger Atheon patterns.
+
+2026-06-15T08:12:03Z INFO  server started on :8080
+2026-06-15T08:12:11Z INFO  health check OK
+2026-06-15T08:14:55Z INFO  user login: user_id=4821
+2026-06-15T08:15:02Z INFO  payment initiated: amount=99.00 currency=USD
+2026-06-15T08:15:03Z ERROR stripe charge failed — dumping request context: key=sk_live_4eC8z2lNpQrSvWxYaBcDeFgH amount=9900 currency=usd
+2026-06-15T08:15:03Z ERROR twilio notify failed — account=ACa1b2c3d4e5f6789012abcdef34567890 to=+15550001234
+2026-06-15T08:16:44Z INFO  request GET /health 200 2ms
+2026-06-15T08:17:01Z INFO  request POST /api/payment 500 841ms
+2026-06-15T08:19:30Z WARN  retry limit reached for job_id=9921
+2026-06-15T08:22:10Z INFO  graceful shutdown initiated
