@@ -1,14 +1,9 @@
 # binaries
-leakr.exe
-
-# Maven
-target/
-dependency-reduced-pom.xml
+/atheon
+/atheon.exe
+/atheon-*
 
 # IDE
 .vs/
 .idea/
 *.iml
-.classpath
-.project
-.settings/

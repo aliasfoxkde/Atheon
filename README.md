@@ -1,128 +1,79 @@
-<pre>
-        /\     /\
-       /  \___/  \
-      / .-------. \
-     / /         \ \
-    / /   .---.   \ \
-   | |   /     \   | |
-   | |  |  [*]  |  | |
-   | |   \     /   | |
-    \ \   '---'   / /
-     \ \         / /
-      \ '-------' /
-       \_________/
-            |
-           |||
-</pre>
-
 # Atheon
 
-![Java](https://img.shields.io/badge/Java-17%2B-orange)
-![Scanners](https://img.shields.io/badge/scanners-6-blue)
+![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**A secret detection GUI for Java. Download one JAR. Run it anywhere a JRE exists.**
+**A pattern matching engine. Define what you're looking for. Point it at anything.**
 
 ---
 
-## What is Atheon?
+## Download
 
-Atheon scans your code, config files, and environment variables for leaked API keys, tokens, and credentials. It runs as a self-contained desktop GUI — no install, no configuration, no native binary. Double-click the JAR or run it from a terminal.
-
----
-
-## Why it matters
-
-Secrets end up in code all the time — an API key hardcoded for a quick test, a `.env` file committed by accident, a config template that shipped with real credentials still in it. Once a secret is in git history it is effectively public. Atheon catches them before that happens.
+Grab the binary for your platform from [Releases](https://github.com/HoraDomu/Atheon/releases/latest) — no install, no runtime required.
 
 ---
 
-## Why a GUI?
+## Usage
 
-Every other secret scanner is CLI-only. Atheon's terminal-style GUI runs on any platform with a JRE — Windows, macOS, Linux, ARM, Docker, CI — without downloading a platform-specific binary. Open it, scan, done.
-
----
-
-## Install
-
-Download `atheon.jar` from [GitHub Releases](https://github.com/HoraDomu/Atheon/releases/latest).
-
-**Run:**
-```bash
-java -jar atheon.jar
+```
+atheon <path>          scan a directory
+atheon --file <path>   scan a single file
+atheon --env           scan environment variables
+atheon list            list loaded patterns
 ```
 
-That's it. The window opens.
+Pipe support:
+
+```
+cat file.txt | atheon -
+```
+
+Exit code `0` = clean. Exit code `1` = findings. CI-friendly by default.
 
 ---
 
-## Commands
+## Adding a pattern
 
-Type any of these at the `atheon>` prompt:
+One file. Two methods.
 
-| Command | What it does |
-|---|---|
-| `scan` | Open a folder picker and scan the directory |
-| `scan file` | Open a file picker and scan one file |
-| `scan env` | Scan all environment variables |
-| `list` | Show every registered scanner |
-| `help` | Show all commands |
-| `clear` | Clear the terminal |
-| `//new` | Open a second session tab |
-| `//exit` | Close Atheon |
+```go
+package patterns
 
----
+import (
+    "atheon/core"
+    "regexp"
+)
 
-## Adding a scanner
-
-Drop a single `.java` file into `src/atheon/scanners/`. Implement `Scanner`, rebuild, and it appears automatically — no registration, no config.
-
-```java
-package atheon.scanners;
-
-import atheon.core.*;
-import java.util.*;
-import java.util.regex.*;
-
-public class MyServiceScanner implements Scanner {
-    private static final Pattern PATTERN = Pattern.compile("myservice_[a-zA-Z0-9]{32}");
-
-    public String name()        { return "myservice-api-key"; }
-    public String description() { return "Detects MyService API keys"; }
-    public Severity severity()  { return Severity.HIGH; }
-
-    public List<String> scan(String input) {
-        List<String> matches = new ArrayList<>();
-        Matcher m = PATTERN.matcher(input);
-        while (m.find()) matches.add(m.group());
-        return matches;
-    }
+func init() {
+    core.Register(&myPattern{re: regexp.MustCompile(`your-regex-here`)})
 }
+
+type myPattern struct{ re *regexp.Regexp }
+
+func (p *myPattern) Name() string             { return "my-pattern-name" }
+func (p *myPattern) Matches(line string) bool { return p.re.MatchString(line) }
 ```
+
+Drop the file in `patterns/`, rebuild. It appears in `atheon list` automatically.
 
 ---
 
-## Testing a scanner
+## Build
 
-Open `src/atheon/test/ScannerTest.java` and add one entry to `CASES`:
-
-```java
-new Case("myservice-api-key",
-    "myservice_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",  // must match
-    "myservice_short")                               // must not match
+```
+go build -o atheon .
 ```
 
-Build and run:
+Cross-compile:
 
-```bash
-mvn package -q
-java -cp target/atheon.jar atheon.test.ScannerTest
+```
+GOOS=windows GOARCH=amd64 go build -o atheon.exe .
+GOOS=linux   GOARCH=amd64 go build -o atheon-linux .
+GOOS=darwin  GOARCH=arm64 go build -o atheon-macos .
 ```
 
 ---
 
 ## License
 
-MIT License — Copyright © 2026 Dominick Yanez
-
-Free to use, modify, and distribute. The copyright notice must be preserved in all copies.
+MIT — Copyright © 2026 Dominick Yanez

@@ -1,19 +1,10 @@
-# Leakr test fixtures — fake secrets for manual scanner validation
-# These are intentionally invalid/non-functional values that match each scanner's pattern.
-# Run: java -jar target/leakr.jar scan test/fixtures.txt
-# Expected: one finding per scanner (5 total with v1.0 scanners)
+# Atheon test fixtures
+# Run: atheon --file test/fixtures.txt
+# Expected: one finding per pattern
 
-# aws-access-key
-AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-
-# github-pat
-GITHUB_TOKEN=ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
-# stripe-secret-key
-STRIPE_SECRET_KEY=sk_live_aaaaaaaaaaaaaaaaaaaaaaaa
-
-# slack-bot-token
-SLACK_BOT_TOKEN=xoxb-12345678901-12345678901-aaaaaaaaaaaaaaaaaaaaaaaa
-
-# twilio-account-sid
-TWILIO_ACCOUNT_SID=ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+EXAMPLE_KEY_1=AKIAIOSFODNN7EXAMPLE
+EXAMPLE_KEY_2=ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+EXAMPLE_KEY_3=sk_live_aaaaaaaaaaaaaaaaaaaaaaaa
+EXAMPLE_KEY_4=xoxb-12345678901-12345678901-aaaaaaaaaaaaaaaaaaaaaaaa
+EXAMPLE_KEY_5=ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+EXAMPLE_KEY_6=sk-4u8d9f8g7h6j5k4l3m2n1o0p
