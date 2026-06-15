@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Atheon — Pattern Matching Engine</title>
+  <title>Atheon — One tool. All patterns. Any input.</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -12,7 +12,7 @@
       color: #111111;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       font-size: 16px;
-      line-height: 1.7;
+      line-height: 1.75;
     }
 
     .wrap {
@@ -42,23 +42,24 @@
     nav a:hover { color: #111; }
 
     .hero {
-      padding: 5rem 0 4rem;
+      padding: 5.5rem 0 4.5rem;
       text-align: center;
     }
 
     h1 {
-      font-size: 2.5rem;
+      font-size: 2.6rem;
       font-weight: 800;
       letter-spacing: -1.5px;
-      margin-bottom: 1rem;
+      margin-bottom: 1.1rem;
       color: #111;
     }
 
-    .hero p {
-      font-size: 1.05rem;
-      color: #555;
-      max-width: 480px;
-      margin: 0 auto 2.5rem;
+    .tagline {
+      font-size: 1rem;
+      color: #888;
+      font-family: ui-monospace, monospace;
+      letter-spacing: -0.2px;
+      margin-bottom: 2.5rem;
     }
 
     .download {
@@ -91,7 +92,16 @@
       color: #333;
       overflow-x: auto;
       text-align: left;
-      margin: 1rem 0;
+      margin: 1.25rem 0;
+    }
+
+    code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.85em;
+      background: #f5f5f5;
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+      color: #333;
     }
 
     hr { border: none; border-top: 1px solid #ebebeb; margin: 3.5rem 0; }
@@ -102,14 +112,22 @@
       font-size: 1rem;
       font-weight: 700;
       color: #111;
-      margin-bottom: 0.65rem;
+      margin-bottom: 0.75rem;
     }
 
-    p { color: #555; margin-bottom: 0.85rem; }
+    p { color: #555; margin-bottom: 0.9rem; }
     p:last-child { margin-bottom: 0; }
 
     a.inline { color: #111; }
     a.inline:hover { text-decoration: underline; }
+
+    .status {
+      font-size: 0.78rem;
+      color: #aaa;
+      font-family: ui-monospace, monospace;
+      text-align: center;
+      padding: 0.6rem 0 0;
+    }
 
     footer {
       border-top: 1px solid #ebebeb;
@@ -121,15 +139,6 @@
 
     footer a { color: #bbb; text-decoration: none; }
     footer a:hover { color: #111; }
-
-    code {
-      font-family: ui-monospace, monospace;
-      font-size: 0.85em;
-      background: #f5f5f5;
-      padding: 0.1em 0.35em;
-      border-radius: 3px;
-      color: #333;
-    }
   </style>
 </head>
 <body>
@@ -143,7 +152,7 @@
 
   <div class="hero">
     <h1>Atheon</h1>
-    <p>Scan your code, configs, and environment for leaked secrets before they become a problem.</p>
+    <p class="tagline">One tool. All patterns. Any input.</p>
     <a class="download" href="https://github.com/HoraDomu/Atheon/releases/latest" target="_blank">Download</a>
     <span class="sub">Windows &nbsp;·&nbsp; macOS &nbsp;·&nbsp; Linux &nbsp;·&nbsp; no install</span>
   </div>
@@ -152,48 +161,46 @@
 
   <section>
     <h2>What it is</h2>
-    <p>Atheon is a command-line tool that scans files, directories, environment variables, or piped input and flags any lines that match known secret patterns — API keys, tokens, credentials. It tells you exactly which file, which line, and what was found.</p>
-    <p>It ships with patterns for the most common providers out of the box, and adding your own takes a single Go file.</p>
-    <pre>atheon ./src
-atheon --file config.yaml
-atheon --env
-cat pipeline.log | atheon -</pre>
+    <p>Atheon is a pattern matching engine. You define what you're looking for. You point it at a file, a directory, your environment variables, or a stream of text. It finds every match and tells you exactly where.</p>
+    <p>The engine doesn't have opinions about what matters. You do — so you write the rules, and Atheon enforces them. Over anything.</p>
   </section>
 
   <hr />
 
   <section>
-    <h2>Example</h2>
-    <p>You're about to push a feature branch. You want to make sure no credentials slipped into the diff.</p>
-    <pre>$ atheon ./src
-
-[aws-access-key] config/deploy.yaml:14  →  AWS_KEY=AKIAIOSFODNN7EXAMPLE
-[openai-api-key] .env.local:3           →  OPENAI_API_KEY=sk-proj-abc123...</pre>
-    <p>Two findings, two lines. Fix them before the push. Exit code <code>1</code> means something was found — wire that into your CI pipeline and the check runs automatically on every commit.</p>
+    <h2>Why it matters</h2>
+    <p>Sensitive data ends up where it shouldn't — constantly. A hardcoded credential in a config file. A token accidentally printed to a log. A secret committed to a repository and now permanently in history.</p>
+    <p>These aren't rare edge cases. They happen to careful teams running good processes. The difference between a near-miss and a breach is often just whether anyone was looking.</p>
+    <p>Atheon is the thing that's always looking.</p>
   </section>
 
   <hr />
 
   <section>
-    <h2>Built-in patterns</h2>
-    <p>Atheon ships with detection for the most commonly leaked credentials: AWS access keys, GitHub personal access tokens, OpenAI API keys, Slack tokens, Stripe keys, and Twilio tokens. Run <code>atheon list</code> to see everything loaded.</p>
+    <h2>The scenario</h2>
+    <p>A developer pushes a configuration file. Buried in a comment from a debugging session weeks ago is a production API key. The commit goes through. The pipeline passes. Two months later, someone notices unusual billing activity.</p>
+    <p>Atheon, wired into a pre-push hook:</p>
+    <pre>$ atheon ./
+
+[api-key] config/app.yaml:47  →  # debug key: sk-prod-a8f3c...</pre>
+    <p>Exit code <code>1</code>. The push never happens. The key never leaves the machine. The incident never occurs.</p>
   </section>
 
   <hr />
 
   <section>
-    <h2>Extend it</h2>
-    <p>The pattern contract is two methods. If you can write a regex or any boolean check, you can add a pattern. Drop the file in <code>patterns/</code>, rebuild, and it shows up in <code>atheon list</code> automatically.</p>
-    <pre>func (p *myPattern) Name() string             { return "my-pattern" }
-func (p *myPattern) Matches(line string) bool { return p.re.MatchString(line) }</pre>
-    <p>No config format, no DSL, no plugin manager — just Go code alongside the engine.</p>
+    <h2>Infinitely extensible</h2>
+    <p>A pattern is just a name and a match function. That's the entire contract. It can be a regex, a keyword, a structural check — anything that returns true or false on a line of text.</p>
+    <p>That simplicity is intentional. There's no config format to learn, no DSL, no plugin manager. You write Go, you drop the file in, you rebuild. The pattern appears immediately in <code>atheon list</code>. The engine doesn't change. Only your rules grow.</p>
+    <p>Security teams use it to catch leaked credentials. Compliance teams use it to scan for PII. Legal teams search contracts for specific clauses. Operations teams monitor pipeline logs. Healthcare, finance, internal tooling — if the domain has text and rules, Atheon runs those rules.</p>
+    <p>This is the beginning of what it can become.</p>
   </section>
 
   <hr />
 
   <section>
-    <h2>Have something specific in mind?</h2>
-    <p>If there's a token format, internal convention, or compliance rule you want Atheon to detect, reach out. Patterns are small and fast to add.</p>
+    <h2>Want something detected?</h2>
+    <p>If there's a pattern you need — a token format, a compliance requirement, something internal to your organization — reach out. Patterns are small and fast to add, and the right ones make Atheon more useful for everyone.</p>
     <p>
       Email: <a class="inline" href="mailto:dommcpro@gmail.com">dommcpro@gmail.com</a><br />
       GitHub: <a class="inline" href="https://github.com/HoraDomu/Atheon" target="_blank">github.com/HoraDomu/Atheon</a>

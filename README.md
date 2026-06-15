@@ -3,45 +3,71 @@
 ![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**Scan your code, configs, and environment for leaked secrets before they become a problem.**
-
-Atheon is a command-line tool that reads files, directories, environment variables, or piped input and flags any lines that match known secret patterns — API keys, tokens, credentials. It ships with patterns for the most common providers out of the box, and you can add your own in minutes.
+> **Status:** Feature complete. The engine is done. What grows from here are patterns and bug fixes — nothing more, nothing less.
 
 ---
 
-## Download
+**One tool. All patterns. Any input.**
 
-Grab the binary for your platform from [Releases](https://github.com/HoraDomu/Atheon/releases/latest) — no install, no runtime required.
-
----
-
-## What Atheon detects (built-in)
-
-| Pattern | Example match |
-|---|---|
-| `aws-access-key` | `AKIA...` / `ASIA...` |
-| `github-pat` | `ghp_...` |
-| `openai-api-key` | `sk-...` |
-| `slack-token` | `xox[bprs]-...` |
-| `stripe-key` | `sk_live_...` / `pk_live_...` |
-| `twilio-token` | Twilio account SIDs and auth tokens |
-
-Run `atheon list` to see every loaded pattern.
+Atheon is a pattern matching engine. You tell it what to look for. You point it at anything. It finds every match and tells you exactly where.
 
 ---
 
-## Example scenario
+## Why this matters
 
-You're about to push a feature branch. You want to make sure no credentials slipped into the diff.
+Data ends up where it shouldn't. A hardcoded credential in a config file. A production secret in a log. A sensitive string committed into a repository by accident and now permanently in git history. These mistakes happen constantly — across every team, every stack, every domain.
+
+The problem isn't that people are careless. The problem is there's no systematic way to catch what you can't see.
+
+Atheon is that system. A pattern matching engine you define, run anywhere, and trust completely — because you wrote the rules.
+
+---
+
+## What pattern matching means
+
+A pattern is a rule: "if a line looks like this, flag it." That rule can be a regex, a keyword check, a structural test — anything that returns true or false. Every pattern has a name. Every match tells you the file, the line, and what was found.
+
+The engine itself is deliberately minimal. It doesn't know what a secret is, what compliance means, or what matters to your organization. You do. So you define it, and the engine enforces it — over files, directories, environment variables, or any stream of text piped through it.
+
+Pattern matching is useful in any domain where text contains something that shouldn't be there, or something that must be there. Security. Compliance. Legal. Operations. Healthcare. Finance. If you can describe the rule, Atheon can run it.
+
+---
+
+## The scenario that makes this real
+
+A developer wraps up a sprint and pushes a configuration file. Inside it, buried in a comment from a debugging session three weeks ago, is a production API key. The commit goes through. The pipeline passes. The key is now in git history, in the build artifact, and eventually in a production image. Someone rotates it two months later after a billing alert.
+
+Atheon, wired into a pre-push hook:
 
 ```
-$ atheon ./src
+$ atheon ./
 
-[aws-access-key] config/deploy.yaml:14  →  AWS_KEY=AKIAIOSFODNN7EXAMPLE
-[openai-api-key] .env.local:3           →  OPENAI_API_KEY=sk-proj-abc123...
+[api-key] config/app.yaml:47  →  # debug key: sk-prod-a8f3c...
 ```
 
-Two findings, two lines, no guesswork. Fix them before the push. Exit code `1` means something was found — wire that into your CI pipeline and the check runs automatically on every commit.
+Exit code `1`. The push never happens. The key never leaves the machine.
+
+That's it. That's the product.
+
+---
+
+## Install
+
+Download the binary for your platform from [Releases](https://github.com/HoraDomu/Atheon/releases/latest). No install, no runtime, no dependencies. Drop it in your PATH and run it.
+
+**Or build from source:**
+
+```
+go build -o atheon .
+```
+
+Cross-compile for any platform:
+
+```
+GOOS=windows GOARCH=amd64 go build -o atheon.exe .
+GOOS=linux   GOARCH=amd64 go build -o atheon-linux .
+GOOS=darwin  GOARCH=arm64 go build -o atheon-macos .
+```
 
 ---
 
@@ -58,7 +84,6 @@ Pipe support:
 
 ```
 cat file.txt | atheon -
-<<<<<<< HEAD
 ```
 
 Exit code `0` = clean. Exit code `1` = findings. CI-friendly by default.
@@ -87,25 +112,25 @@ func (p *myPattern) Name() string             { return "my-pattern-name" }
 func (p *myPattern) Matches(line string) bool { return p.re.MatchString(line) }
 ```
 
-Drop the file in `patterns/`, rebuild. It appears in `atheon list` automatically. If you have an internal token format, a company-specific credential, or a compliance rule — this is all you need.
+Drop the file in `patterns/`, rebuild. It appears in `atheon list` automatically.
+
+The same two methods work for anything — credentials, PII, internal token formats, compliance markers, prohibited strings. If you can describe the rule, this is all the code it takes.
 
 ---
 
-## Build
+## Contributing
 
-```
-go build -o atheon .
-```
+Atheon is not looking for new features. The engine is done.
 
-Cross-compile:
+What it will always accept:
+- **Bug fixes** — if something behaves incorrectly, open an issue and it will be addressed
+- **New patterns** — if you have a pattern worth adding, open an issue describing what it detects and why it matters
 
-```
-GOOS=windows GOARCH=amd64 go build -o atheon.exe .
-GOOS=linux   GOARCH=amd64 go build -o atheon-linux .
-GOOS=darwin  GOARCH=arm64 go build -o atheon-macos .
-```
-=======
->>>>>>> 23ecd0447c45edc2e086d7c753a393d869e67196
+To contribute:
+- Open an issue on [GitHub](https://github.com/HoraDomu/Atheon/issues) describing the bug or pattern
+- Or email directly: [dommcpro@gmail.com](mailto:dommcpro@gmail.com)
+
+Issues are reviewed and addressed by maintainers. The simpler and more focused the contribution, the faster it moves.
 
 ---
 
