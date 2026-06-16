@@ -10,7 +10,7 @@ import (
 
 func TestJSONFlagPrintsFindings(t *testing.T) {
 	file := t.TempDir() + "/config.txt"
-	if err := os.WriteFile(file, []byte("token=sk-abcdefghijklmnopqrstuvwxyz\n"), 0o644); err != nil {
+	if err := os.WriteFile(file, []byte("token=sk-abcdefghijklmnopqrstuvwxyz\n"), 0o644); err != nil { //nolint atheon:ignore
 		t.Fatal(err)
 	}
 	out, err := exec.Command("go", "run", ".", "--json", "--file", file).Output()

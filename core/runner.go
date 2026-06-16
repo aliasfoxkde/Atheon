@@ -172,6 +172,9 @@ func scanLines(content, file string) []Finding {
 	var findings []Finding
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
+		if strings.Contains(line, "atheon:ignore") {
+			continue
+		}
 		for _, p := range registry {
 			if p.Matches(line) {
 				findings = append(findings, Finding{
