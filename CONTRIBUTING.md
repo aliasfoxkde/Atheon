@@ -47,3 +47,4 @@ Atheon grows through patterns. Every pattern is one file with two methods, so ke
    Open a pull request with what the pattern detects, why it matters, and the test cases you used.
 
 Maintainers review for correctness, false positive rate, name clarity, and overlap with existing patterns.
+Also PLEASE PLEASE PLEASE dont vibe code I want this working, if you're reading this I know you're smart you can do this! Only use it for maybe writing like explaing what was fixed.
