@@ -12,14 +12,14 @@ Atheon is built by the community. Every pattern added is a permanent contributio
 
 ---
 
-##Contributors
+## Contributors
 
 | GitHub |
-|------|--------|----------------|
-| [@nightcityblade] (https://github.com/nightcityblade) | 
+|--------|
+| [@nightcityblade](https://github.com/nightcityblade) |
 
 ---
 
 ## How to get here
 
-Open a pull request. Merge a pattern, or fix . Your name goes here permanently.
+Open a pull request. Merge a pattern, or fix a bug. Your name goes here permanently.

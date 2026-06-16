@@ -3,7 +3,13 @@
 
 # Demo files contain intentional fake secrets for illustration purposes.
 demo/
-demo-config.txt
 
 # Test fixtures use placeholder values that look like real secrets.
 test/
+
+# Compiled release binaries — binary content triggers false positives.
+atheon-linux
+atheon-linux-amd64
+atheon-macos
+atheon-macos-amd64
+atheon-macos-arm64
