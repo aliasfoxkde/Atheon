@@ -34,13 +34,11 @@ If you can describe the rule, Atheon can run it.
 
 ---
 
-## Little Video explaining more
+## See it in action
 
+[![Watch on YouTube](https://img.youtube.com/vi/4vlepIzRGqw/maxresdefault.jpg)](https://youtu.be/4vlepIzRGqw)
 
-https://youtu.be/4vlepIzRGqw
-
-
-Skip to 9:36 for the live demo and or watch the whole thing to kinda just see whats up
+Skip to **9:36** for the live demo, or watch the whole thing to see what Atheon is about.
 
 ---
 

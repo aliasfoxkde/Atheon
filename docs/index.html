@@ -191,6 +191,36 @@
       font-weight: 600;
     }
 
+    .video-wrap {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      margin: 1.25rem 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #1f1f1f;
+    }
+
+    .video-wrap iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .video-note {
+      font-size: 0.82rem;
+      color: #555;
+      font-family: ui-monospace, monospace;
+      margin-top: 0.6rem;
+    }
+
+    .video-note strong {
+      color: #888;
+    }
+
     footer {
       border-top: 1px solid #1a1a1a;
       padding: 2rem 0;
@@ -232,6 +262,20 @@
     <h2>What it is</h2>
     <p>Atheon is a CLI tool. You define a pattern — a name and a match function. You point Atheon at a file, a directory, your environment variables, or any stream of text piped through it. It finds every match and tells you the file, the line, and exactly what was found.</p>
     <p>The engine has no opinions about what matters. You do. So you write the rule, and Atheon enforces it — everywhere, every time, returning exit code <code>1</code> the moment something is found.</p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>See it in action</h2>
+    <div class="video-wrap">
+      <iframe
+        src="https://www.youtube.com/embed/4vlepIzRGqw"
+        allowfullscreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+      </iframe>
+    </div>
+    <p class="video-note">Skip to <strong>9:36</strong> for the live demo — or watch the whole thing to see what Atheon is about.</p>
   </section>
 
   <hr />
