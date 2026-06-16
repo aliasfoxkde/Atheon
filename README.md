@@ -34,6 +34,16 @@ If you can describe the rule, Atheon can run it.
 
 ---
 
+## Little Video explaining more
+
+
+https://youtu.be/4vlepIzRGqw
+
+
+Skip to 9:36 for the live demo and or watch the whole thing to kinda just see whats up
+
+---
+
 ## The scenario that makes this real
 
 A developer wraps up a sprint and pushes a configuration file. Buried in a comment from a debugging session three weeks ago is a production API key. The commit goes through. The pipeline passes. Two months later, someone notices unusual billing activity.
