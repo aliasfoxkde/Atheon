@@ -4,7 +4,7 @@
 
 ![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Patterns](https://img.shields.io/badge/patterns-6-blueviolet)
+![Patterns](https://img.shields.io/badge/patterns-14-blueviolet)
 
 > **One tool. All patterns. Any input.**
 
