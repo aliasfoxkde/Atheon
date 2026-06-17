@@ -70,14 +70,6 @@ Download the binary for your platform from [Releases](https://github.com/HoraDom
 go build -o atheon .
 ```
 
-**Cross-compile for any platform:**
-
-```
-GOOS=windows GOARCH=amd64 go build -o atheon.exe .
-GOOS=linux   GOARCH=amd64 go build -o atheon-linux .
-GOOS=darwin  GOARCH=arm64 go build -o atheon-macos .
-```
-
 ---
 
 ## Usage
@@ -111,16 +103,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to add your own.
 
 Every 3 patterns merged = a new version release. The pattern count drives the version.
 
-Build binaries for all platforms at once:
-
-```
-GOOS=windows GOARCH=amd64 go build -o dist/atheon-windows-amd64.exe .
-GOOS=linux   GOARCH=amd64 go build -o dist/atheon-linux-amd64 .
-GOOS=darwin  GOARCH=amd64 go build -o dist/atheon-macos-amd64 .
-GOOS=darwin  GOARCH=arm64 go build -o dist/atheon-macos-arm64 .
-```
-
-Put the outputs in a `dist/` folder, attach them to the GitHub release, and update the patterns badge at the top of this file.
+Releases are fully automated — tagging a version builds all platform binaries and publishes them to GitHub Releases, Homebrew, and Scoop automatically.
 
 Latest release: [github.com/HoraDomu/Atheon/releases/latest](https://github.com/HoraDomu/Atheon/releases/latest)
 

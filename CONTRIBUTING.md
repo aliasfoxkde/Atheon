@@ -23,10 +23,10 @@ Atheon grows through patterns. Every pattern is one file with two methods, so ke
        "regexp"
    )
 
-   func init() { core.Register(&myPattern{re: regexp.MustCompile(`your-regex-here`)}) }
-   type myPattern struct{ re *regexp.Regexp }
-   func (p *myPattern) Name() string             { return "my-pattern-name" }
-   func (p *myPattern) Matches(line string) bool { return p.re.MatchString(line) }
+   func init() { core.Register(&examplePattern{re: regexp.MustCompile(`your-regex-here`)}) }
+   type examplePattern struct{ re *regexp.Regexp }
+   func (p *examplePattern) Name() string             { return "my-pattern-name" }
+   func (p *examplePattern) Matches(line string) bool { return p.re.MatchString(line) }
    ```
    Use lowercase hyphenated names, and be specific: `stripe-live-key`, not `stripe`.
 

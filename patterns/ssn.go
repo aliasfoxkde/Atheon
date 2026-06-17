@@ -5,7 +5,7 @@ import (
     "regexp"
 )
 
-func init() { core.Register(&myPattern{re: regexp.MustCompile(`\b\d{3}-\d{2}-\d{4}\b`)}) }
-type myPattern struct{ re *regexp.Regexp }
-func (p *myPattern) Name() string             { return "Social Security Number" }
-func (p *myPattern) Matches(line string) bool { return p.re.MatchString(line) }
+func init() { core.Register(&ssnPattern{re: regexp.MustCompile(`\b\d{3}-\d{2}-\d{4}\b`)}) }
+type ssnPattern struct{ re *regexp.Regexp }
+func (p *ssnPattern) Name() string             { return "Social Security Number" }
+func (p *ssnPattern) Matches(line string) bool { return p.re.MatchString(line) }
