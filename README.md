@@ -93,28 +93,85 @@ go build -o atheon .
 ## Usage
 
 ```
-atheon <path>          scan a directory
-atheon --file <path>   scan a single file
-atheon --env           scan environment variables
+atheon <path>          scan a directory or file
+atheon --file <path>   scan a single file explicitly
+atheon --env           scan all environment variables
 atheon --json <path>   output findings as JSON
-atheon list            list loaded patterns
+atheon list            list every loaded pattern
+atheon --help          show help
 ```
 
-Pipe support:
+Pipe support — pass `-` to read from stdin:
 
 ```
 cat file.txt | atheon -
+git diff | atheon -
 ```
 
 Exit code `0` = clean. Exit code `1` = findings. CI-friendly by default.
 
+---
+
 **Cross-platform:** native binaries for Windows, macOS (Intel + Apple Silicon), and Linux. No runtime, no dependencies.
 
-**Ignore rules:** directory scans automatically respect `.gitignore`. Drop a `.atheonignore` in your project root to exclude anything not already covered — test fixtures, generated files, `.env` files, and so on. To suppress a single line without excluding the whole file, add `atheon:ignore` anywhere on that line:
+---
+
+**Ignore rules**
+
+Directory scans automatically respect `.gitignore`. Drop a `.atheonignore` in your project root to exclude anything not already covered — test fixtures, generated files, `.env` files:
+
+```
+# .atheonignore
+test/
+*.generated.go
+.env
+```
+
+To suppress a single line without ignoring the whole file, add `atheon:ignore` anywhere on that line:
 
 ```
 DEBUG_KEY=sk-fake-key-for-testing  # atheon:ignore
 ```
+
+---
+
+**JSON output**
+
+Use `--json` to integrate with other tools or build your own pipeline on top:
+
+```
+atheon --json ./
+```
+
+Output is a JSON array, one object per finding:
+
+```json
+[{"pattern":"openai-api-key","file":"config/app.yaml","line":47,"match":"# debug key: sk-..."}]
+```
+
+---
+
+**Environment scanning**
+
+`--env` scans every variable in the current environment — useful in CI to catch secrets injected at runtime rather than stored in files:
+
+```
+atheon --env
+```
+
+---
+
+**Pre-commit / pre-push hook**
+
+Drop Atheon into a git hook to block bad commits before they leave the machine:
+
+```sh
+# .git/hooks/pre-push
+#!/bin/sh
+atheon ./
+```
+
+Or wire it into whatever hook runner you already use (pre-commit, Husky, Lefthook). Atheon returns exit code `1` on any finding, which is all a hook needs to abort.
 
 ---
 
