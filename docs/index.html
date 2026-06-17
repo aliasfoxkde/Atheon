@@ -291,7 +291,11 @@ atheon --all .</pre>
     <p>Atheon, wired into a pre-push hook:</p>
     <pre>$ atheon ./
 
-[api-key] config/app.yaml:47  →  # debug key: sk-prod-a8f3c...</pre>
+openai-api-key  config/app.yaml:47
+  # de****a8f3c
+
+1 finding(s)
+scanned 14 file(s)  22.1 KB  3ms</pre>
     <p>Exit code <code>1</code>. The push never happens. The key never leaves the machine. The incident never occurs.</p>
     <p>That's it. That's Atheon.</p>
   </section>

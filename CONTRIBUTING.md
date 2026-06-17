@@ -1,26 +1,21 @@
 # Contributing
 
-Atheon grows through patterns. Every pattern is one YAML file — no Go required, no engine changes, no recompile needed.
+Atheon grows through patterns. Every pattern is one YAML file — no Go required, no engine changes, fast to review, and immediately useful to every user once merged.
 
-## Adding a pattern
+---
+
+## Adding a YAML pattern
 
 **1. Check it doesn't already exist**
 
 ```sh
 atheon list
-```
-
-**2. Pick the right category**
-
-```sh
 atheon list categories
 ```
 
-Category is just the folder name under `community/`. If yours doesn't fit an existing one, create a new folder — the bundler picks it up automatically.
+**2. Create the YAML file**
 
-**3. Create the YAML file**
-
-Drop a `.yaml` file into the appropriate `community/<category>/` folder:
+Drop a `.yaml` file into the appropriate `community/<category>/` folder. The folder name is the category — if yours doesn't fit an existing one, create a new folder.
 
 ```yaml
 name: my-service-api-key
@@ -30,25 +25,17 @@ match: '\bmsvc_[A-Za-z0-9]{32}\b'
 - `name` — lowercase hyphenated, specific: `stripe-live-key` not `stripe`
 - `match` — a valid RE2 regex. Use single quotes so backslashes don't need escaping.
 
-**4. Rebuild the bundle**
+**3. Rebuild the bundle**
 
 ```sh
 go run ./bundler
 ```
 
-This reads all YAML files in `community/` and writes `core/patterns.bundle`. Commit both the YAML file and the updated bundle.
+Commit both the YAML file and the updated `core/patterns.bundle`.
 
-**5. Confirm it loaded**
+**4. Add a test case**
 
-```sh
-atheon list
-```
-
-Your pattern name should appear.
-
-**6. Test it**
-
-Open `core/bundle_test.go` and add a case for your pattern under the `cases` map:
+Open `core/bundle_test.go` and add an entry under the `cases` map:
 
 ```go
 "my-service-api-key": {
@@ -57,42 +44,32 @@ Open `core/bundle_test.go` and add a case for your pattern under the `cases` map
 },
 ```
 
-Then run:
+**5. Run tests and verify manually**
 
 ```sh
 go test ./...
-```
-
-The suite enforces that every registered pattern has a test case — it will fail without one.
-
-**7. Verify manually**
-
-```sh
 atheon --file <path-to-sample>
 ```
 
 Every expected match should appear. No unexpected matches.
 
-**8. Submit**
+**6. Submit**
 
 Open a pull request. Include what the pattern detects, why it matters, and the test cases you used. Maintainers review for correctness, false positive rate, name clarity, and overlap with existing patterns.
 
 ---
 
-## Adding a new category
+## Go contributions
 
-Create the folder and drop a YAML file in it:
+Any Go code contributed to this project must be clean and idiomatic. That means:
 
-```
-community/
-  my-new-category/
-    first-pattern.yaml
-```
+- Standard Go naming conventions — exported names are `PascalCase`, unexported are `camelCase`, acronyms follow Go style (`url` not `URL` for unexported, `URL` not `Url` for exported)
+- No unnecessary abstraction — if three lines do the job, don't wrap them in a helper
+- Error handling is explicit — no swallowed errors without a clear reason
+- No comments that explain what the code does — only add a comment when the **why** is non-obvious
+- `go fmt` and `go vet` must pass before submitting
+- If you add a dependency, justify it — the engine has very few and we'd like to keep it that way
 
-The bundler derives the category name from the folder. No other changes needed.
+The engine is intentionally minimal and stable. Contributions that touch `core/` without a clear bug fix or performance reason will not be merged. If you're unsure whether a change is in scope, open an issue first.
 
----
-
-## Engine changes
-
-Bug fixes and quality-of-life improvements to `core/` are welcome. Open an issue first to describe what you're changing and why — the engine is intentionally minimal and changes are reviewed carefully.
+If you're unsure whether something is idiomatic, the [Effective Go](https://go.dev/doc/effective_go) guide and [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) are the references we follow. Code that is hard to read will be sent back regardless of whether it works.
