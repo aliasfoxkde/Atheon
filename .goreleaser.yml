@@ -3,9 +3,11 @@ version: 2
 before:
   hooks:
     - go mod tidy
+    - go run ./bundler
 
 builds:
-  - env:
+  - id: atheon
+    env:
       - CGO_ENABLED=0
     goos:
       - windows
@@ -21,6 +23,24 @@ builds:
     ldflags:
       - -s -w
 
+  - id: atheon-mcp
+    env:
+      - CGO_ENABLED=0
+    main: ./cmd/mcp
+    goos:
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    binary: atheon-mcp
+    ldflags:
+      - -s -w
+
 archives:
   - formats:
       - tar.gz
@@ -29,6 +49,9 @@ archives:
         formats:
           - zip
     name_template: "atheon-{{ .Os }}-{{ .Arch }}"
+
+extra_files:
+  - glob: core/patterns.bundle
 
 checksum:
   name_template: "checksums.txt"
