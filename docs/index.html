@@ -262,6 +262,7 @@
     <h2>What it is</h2>
     <p>Atheon is a CLI tool. You define a pattern — a name and a match function. You point Atheon at a file, a directory, your environment variables, or any stream of text piped through it. It finds every match and tells you the file, the line, and exactly what was found.</p>
     <p>The engine has no opinions about what matters. You do. So you write the rule, and Atheon enforces it — everywhere, every time, returning exit code <code>1</code> the moment something is found.</p>
+    <p>Directory scans automatically respect <code>.gitignore</code>. Drop a <code>.atheonignore</code> in your project root to exclude additional paths — test fixtures, generated files, <code>.env</code> files, anything else. Native binaries ship for Windows, macOS (Intel + Apple Silicon), and Linux with no runtime or dependencies.</p>
   </section>
 
   <hr />
