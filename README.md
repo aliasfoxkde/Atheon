@@ -108,6 +108,14 @@ cat file.txt | atheon -
 
 Exit code `0` = clean. Exit code `1` = findings. CI-friendly by default.
 
+**Cross-platform:** native binaries for Windows, macOS (Intel + Apple Silicon), and Linux. No runtime, no dependencies.
+
+**Ignore rules:** directory scans automatically respect `.gitignore`. Drop a `.atheonignore` in your project root to exclude anything not already covered — test fixtures, generated files, `.env` files, and so on. To suppress a single line without excluding the whole file, add `atheon:ignore` anywhere on that line:
+
+```
+DEBUG_KEY=sk-fake-key-for-testing  # atheon:ignore
+```
+
 ---
 
 ## Contributing
