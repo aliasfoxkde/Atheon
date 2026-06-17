@@ -21,21 +21,27 @@ var binaryExts = map[string]bool{
 	".exe": true, ".bin": true, ".so": true, ".dylib": true,
 }
 
-// loadIgnorePatterns reads .atheonignore from root and returns glob patterns to skip.
+// loadIgnorePatterns reads .atheonignore and .gitignore from root and returns glob patterns to skip.
 func loadIgnorePatterns(root string) []string {
-	f, err := os.Open(filepath.Join(root, ".atheonignore"))
-	if err != nil {
-		return nil
-	}
-	defer f.Close()
 	var patterns []string
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		line := strings.TrimSpace(sc.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
+	for _, name := range []string{".atheonignore", ".gitignore"} {
+		f, err := os.Open(filepath.Join(root, name))
+		if err != nil {
 			continue
 		}
-		patterns = append(patterns, line)
+		sc := bufio.NewScanner(f)
+		for sc.Scan() {
+			line := strings.TrimSpace(sc.Text())
+			if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "!") {
+				continue
+			}
+			// Strip leading / — gitignore anchors to root, our matcher handles that already.
+			line = strings.TrimPrefix(line, "/")
+			if line != "" {
+				patterns = append(patterns, line)
+			}
+		}
+		f.Close()
 	}
 	return patterns
 }
