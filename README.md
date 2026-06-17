@@ -8,15 +8,15 @@
 
 > **One tool. All patterns. Any input.**
 
-Atheon is a community-driven pattern matching engine. You define what you're looking for. You point it at anything. It finds every match and tells you exactly where — returning a clear `true` or `false` for every rule, every time.
+Atheon is a community-driven pattern matching engine. You define what you're looking for. You point it at anything. It finds every match and tells you exactly where returning a clear `true` or `false` for every rule, every time.
 
 ---
 
 ## What Atheon is
 
-Atheon is a CLI tool built around a single idea: **any pattern, any domain, any input.** It doesn't care whether you're scanning for leaked credentials, patient identifiers, financial account numbers, prohibited strings in compliance-scoped code, or anything else you can describe as a rule. If the pattern is clear — if it can return true or false — Atheon runs it.
+Atheon is a CLI tool built around a single idea: **any pattern, any domain, any input.** It doesn't care whether you're scanning for leaked credentials, patient identifiers, financial account numbers, prohibited strings in compliance-scoped code, or anything else you can describe as a rule. If the pattern is clear if it can return true or false Atheon runs it.
 
-The engine itself is deliberately minimal. It has no opinions about what matters. That knowledge lives in the patterns — and the patterns come from the community.
+The engine itself is deliberately minimal. It has no opinions about what matters. That knowledge lives in the patterns and the patterns come from the community.
 
 ---
 
@@ -24,9 +24,9 @@ The engine itself is deliberately minimal. It has no opinions about what matters
 
 Atheon isn't trying to be the next big secrets scanner. It's not competing to become a giant. It's trying to be a **platform**.
 
-Here's the idea: a developer on a team is working with sensitive data. They write a pattern for Atheon, contribute it, and it ships in the next release. Now everyone using Atheon has that pattern registered. The next team in a similar situation doesn't have to build it from scratch — it's already there.
+Here's the idea: a developer on a team is working with sensitive data. They write a pattern for Atheon, contribute it, and it ships in the next release. Now everyone using Atheon has that pattern registered. The next team in a similar situation doesn't have to build it from scratch it's already there.
 
-That's Atheon: a community-driven engine where you, me, and anyone else can add patterns that every user benefits from. The goal is a library of rules that covers every domain where text contains something that matters — built not by one company, but by everyone who uses it.
+That's Atheon: a community-driven engine where you, me, and anyone else can add patterns that every user benefits from. The goal is a library of rules that covers every domain where text contains something that matters built not by one company, but by everyone who uses it.
 
 **Security. Compliance. Finance. Healthcare. Legal. Operations. Gaming. Anything.**
 
@@ -51,7 +51,11 @@ Atheon, wired into a pre-push hook:
 ```
 $ atheon ./
 
-[api-key] config/app.yaml:47  →  # debug key: sk-prod-a8f3c...
+openai-api-key  config/app.yaml:47
+  # de****4f59
+
+1 finding(s)
+scanned 14 file(s)  22.1 KB  3ms
 ```
 
 Exit code `1`. The push never happens. The key never leaves the machine.
@@ -92,6 +96,7 @@ go build -o atheon .
 atheon <path>          scan a directory
 atheon --file <path>   scan a single file
 atheon --env           scan environment variables
+atheon --json <path>   output findings as JSON
 atheon list            list loaded patterns
 ```
 
@@ -107,7 +112,7 @@ Exit code `0` = clean. Exit code `1` = findings. CI-friendly by default.
 
 ## Contributing
 
-Patterns are the heart of Atheon. Every pattern is one file, two methods — small, fast to review, and immediately useful to every user once merged.
+Patterns are the heart of Atheon. Every pattern is one file, two methods small, fast to review, and immediately useful to every user once merged.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to add your own.
 
@@ -137,7 +142,7 @@ Questions, pattern requests, or anything else:
 
 ## License
 
-MIT with Additional Terms — Copyright © 2026 Dominick Yanez
+MIT with Additional Terms Copyright © 2026 Dominick Yanez
 
 You are free to fork, clone, study, modify for personal or internal use, and contribute patterns or bug fixes back. That's encouraged.
 

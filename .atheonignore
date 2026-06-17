@@ -1,8 +1,9 @@
 # Paths excluded from secret scanning.
 # Supports exact paths, directory prefixes, and * globs.
 
-# Test fixtures use placeholder values that look like real secrets.
+# Test fixtures and test files use placeholder values that look like real secrets.
 test/
+*_test.go
 
 # Compiled release binaries — binary content triggers false positives.
 atheon-linux

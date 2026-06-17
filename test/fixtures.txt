@@ -1,6 +1,6 @@
 # Atheon test fixtures
 # Run: atheon --file test/fixtures.txt
-# Expected: one finding per pattern
+# Expected: at least one finding per pattern
 
 EXAMPLE_KEY_1=AKIAIOSFODNN7EXAMPLE
 EXAMPLE_KEY_2=ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
