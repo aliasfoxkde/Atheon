@@ -17,6 +17,7 @@ Atheon is built by the community. Every pattern added is a permanent contributio
 | GitHub |
 |--------|
 | [@nightcityblade](https://github.com/nightcityblade) |
+| [@Kkkakania ](https://github.com/Kkkakania) |
 
 ---
 
