@@ -8,13 +8,13 @@
 
 > **One tool. All patterns. Any input.**
 
-Atheon is a community-driven pattern matching engine. You define what you're looking for. You point it at anything. It finds every match and tells you exactly where — returning a clear `true` or `false` for every rule, every time.
+Atheon is a community-driven pattern matching engine. You define what you're looking for. You point it at anything. It finds every match and tells you exactly where  returning a clear `true` or `false` for every rule, every time.
 
 ---
 
 ## What Atheon is
 
-Atheon is a CLI tool built around a single idea: **any pattern, any domain, any input.** It doesn't care whether you're scanning for leaked credentials, patient identifiers, financial account numbers, prohibited strings in compliance-scoped code, or anything else you can describe as a rule. If the pattern is clear — if it can return true or false — Atheon runs it.
+Atheon is a CLI tool built around a single idea: **any pattern, any domain, any input.** It doesn't care whether you're scanning for leaked credentials, patient identifiers, financial account numbers, prohibited strings in compliance-scoped code, or anything else you can describe as a rule. If the pattern is clear  if it can return true or false  Atheon runs it.
 
 The engine itself is deliberately minimal. It has no opinions about what matters. That knowledge lives in the patterns, and the patterns come from the community.
 
@@ -24,9 +24,9 @@ The engine itself is deliberately minimal. It has no opinions about what matters
 
 Atheon isn't trying to be the next big secrets scanner. It's not competing to become a giant. It's trying to be a **platform**.
 
-Here's the idea: a developer on a team is working with sensitive data. They write a pattern for Atheon, contribute it, and it ships in the next release. Now everyone using Atheon has that pattern registered. The next team in a similar situation doesn't have to build it from scratch — it's already there.
+Here's the idea: a developer on a team is working with sensitive data. They write a pattern for Atheon, contribute it, and it ships in the next release. Now everyone using Atheon has that pattern registered. The next team in a similar situation doesn't have to build it from scratch  it's already there.
 
-That's Atheon: a community-driven engine where you, me, and anyone else can add patterns that every user benefits from. The goal is a library of rules that covers every domain where text contains something that matters — built not by one company, but by everyone who uses it.
+That's Atheon: a community-driven engine where you, me, and anyone else can add patterns that every user benefits from. The goal is a library of rules that covers every domain where text contains something that matters  built not by one company, but by everyone who uses it.
 
 **Security. Compliance. Finance. Healthcare. Legal. Operations. Gaming. Anything.**
 
@@ -105,7 +105,7 @@ atheon update                        download the latest patterns bundle
 atheon --help                        show help
 ```
 
-Pipe support — pass `-` to read from stdin:
+Pipe support  pass `-` to read from stdin:
 
 ```
 cat file.txt | atheon -
@@ -136,7 +136,7 @@ This keeps scans fast regardless of how many patterns are in the bundle. A pre-c
 
 **Ignore rules**
 
-Directory scans automatically respect `.gitignore`. Drop a `.atheonignore` in your project root to exclude anything not already covered — test fixtures, generated files, `.env` files:
+Directory scans automatically respect `.gitignore`. Drop a `.atheonignore` in your project root to exclude anything not already covered  test fixtures, generated files, `.env` files:
 
 ```
 # .atheonignore
@@ -171,7 +171,7 @@ Output is a JSON array, one object per finding:
 
 **Environment scanning**
 
-`--env` scans every variable in the current environment — useful in CI to catch secrets injected at runtime rather than stored in files:
+`--env` scans every variable in the current environment  useful in CI to catch secrets injected at runtime rather than stored in files:
 
 ```
 atheon --env
@@ -220,7 +220,7 @@ Available tools: `scan_string`, `scan_file`, `scan_dir`. All accept an optional 
 
 ## Pattern bundle
 
-All patterns live in `community/` as plain YAML files — no Go required. The engine ships with a compiled bundle embedded in the binary. Run `atheon update` to pull the latest bundle from the release.
+All patterns live in `community/` as plain YAML files  no Go required. The engine ships with a compiled bundle embedded in the binary. Run `atheon update` to pull the latest bundle from the release.
 
 Adding a new pattern is one file:
 
@@ -236,7 +236,7 @@ The folder name is the category. No engine changes, no recompile, no release gat
 
 ## Contributing
 
-Patterns are the heart of Atheon. Every pattern is one YAML file — small, fast to review, and immediately useful to every user once merged.
+Patterns are the heart of Atheon. Every pattern is one YAML file  small, fast to review, and immediately useful to every user once merged.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to add your own.
 
@@ -244,7 +244,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to add your own.
 
 ## Releases
 
-New versions ship on the **10th and 21st of every month**. Releases are fully automated — tagging a version builds all platform binaries, generates the patterns bundle, and publishes everything to GitHub Releases, Homebrew, and Scoop automatically.
+New versions ship on the **10th and 21st of every month**. Releases are fully automated  tagging a version builds all platform binaries, generates the patterns bundle, and publishes everything to GitHub Releases, Homebrew, and Scoop automatically.
 
 Latest release: [github.com/HoraDomu/Atheon/releases/latest](https://github.com/HoraDomu/Atheon/releases/latest)
 
