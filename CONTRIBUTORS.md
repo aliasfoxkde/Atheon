@@ -4,7 +4,7 @@ Atheon is built by the community. Every pattern added is a permanent contributio
 
 ---
 
-## Core
+## Maintainers
 
 | Name | GitHub |
 |------|--------|
