@@ -36,15 +36,24 @@ Atheon grows through patterns. Every pattern is one file with two methods, so ke
    atheon list
    ```
 
-5. **Test the pattern**
-   Create sample lines that should match and should not match, then run:
+5. **Add a test case**
+   Open `patterns/patterns_test.go` and add an entry for your pattern under the `cases` map:
+   ```go
+   "my-pattern-name": {
+       matches:    []string{"line that must match"},
+       nonMatches: []string{"line that must not match"},
+   },
+   ```
+   The test suite enforces that every registered pattern has a case — `go test ./patterns` will fail without it.
+
+6. **Verify manually**
+   Run against a sample file or directory to confirm the output looks right:
    ```sh
-   atheon "scan file path" 
+   atheon --file <path>
    ```
    Every expected match should appear, with no unexpected matches.
 
-6. **Submit the contribution**
+7. **Submit the contribution**
    Open a pull request with what the pattern detects, why it matters, and the test cases you used.
 
 Maintainers review for correctness, false positive rate, name clarity, and overlap with existing patterns.
-Also PLEASE PLEASE PLEASE dont vibe code I want this working, if you're reading this I know you're smart you can do this! Only use it for maybe writing like explaing what was fixed.
