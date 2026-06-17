@@ -62,7 +62,21 @@ That's it. That's the product.
 
 ## Install
 
-Download the binary for your platform from [Releases](https://github.com/HoraDomu/Atheon/releases/latest). No install, no runtime, no dependencies. Drop it in your PATH and run it.
+**Homebrew (macOS / Linux):**
+
+```
+brew tap HoraDomu/atheon
+brew install atheon
+```
+
+**Scoop (Windows):**
+
+```
+scoop bucket add atheon https://github.com/HoraDomu/scoop-atheon
+scoop install atheon
+```
+
+**Manual:** Download the binary for your platform from [Releases](https://github.com/HoraDomu/Atheon/releases/latest). No install, no runtime, no dependencies. Drop it in your PATH and run it.
 
 **Build from source:**
 
@@ -101,11 +115,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to add your own.
 
 ## Releases
 
-Every 3 patterns merged = a new version release. The pattern count drives the version.
-
-Releases are fully automated — tagging a version builds all platform binaries and publishes them to GitHub Releases, Homebrew, and Scoop automatically.
+New versions ship on the **10th and 21st of every month**. Releases are fully automated — tagging a version builds all platform binaries and publishes them to GitHub Releases, Homebrew, and Scoop automatically.
 
 Latest release: [github.com/HoraDomu/Atheon/releases/latest](https://github.com/HoraDomu/Atheon/releases/latest)
+
+---
+
+## Thank you
+
+Atheon is built by the community. Every pattern contributed ships to every user in the next release. See everyone who has helped make it here: [CONTRIBUTORS.md](CONTRIBUTORS.md)
 
 ---
 
