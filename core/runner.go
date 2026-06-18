@@ -22,28 +22,26 @@ var binaryExts = map[string]bool{
 	".exe": true, ".bin": true, ".so": true, ".dylib": true,
 }
 
-func loadIgnorePatterns(root string) []string {
-	// This function is no longer needed, but kept for compatibility
-	return []string{}
-}
-
-func loadIgnorePatternsMatcher(root string) *ignore.GitIgnore {
+func loadIgnorePatternsMatcher(root string) []*ignore.GitIgnore {
+	var matchers []*ignore.GitIgnore
 	for _, name := range []string{".atheonignore", ".gitignore"} {
-		gitIgnore, err := ignore.CompileIgnoreFile(filepath.Join(root, name))
+		gi, err := ignore.CompileIgnoreFile(filepath.Join(root, name))
 		if err != nil {
 			continue
 		}
-		return gitIgnore
+		matchers = append(matchers, gi)
 	}
-	return nil
+	return matchers
 }
 
-func isIgnored(path string, gitIgnore *ignore.GitIgnore) bool {
-	if gitIgnore == nil {
-		return false
-	}
+func isIgnored(path string, matchers []*ignore.GitIgnore) bool {
 	clean := filepath.ToSlash(path)
-	return gitIgnore.MatchesPath(clean)
+	for _, m := range matchers {
+		if m.MatchesPath(clean) {
+			return true
+		}
+	}
+	return false
 }
 
 func ScanFile(path string) ([]Finding, *Stats, error) {

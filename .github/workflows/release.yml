@@ -22,7 +22,7 @@ jobs:
           cache: true
 
       - name: Download GoReleaser
-        run: go install github.com/goreleaser/goreleaser/v2@latest
+        run: go install github.com/goreleaser/goreleaser/v2@v2.9.0
 
       - name: Run GoReleaser
         run: |

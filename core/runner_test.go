@@ -180,7 +180,7 @@ func TestIsIgnored(t *testing.T) {
 		t.Run(tt.path, func(t *testing.T) {
 			result := isIgnored(tt.path, nil)
 			if result != tt.expected {
-				t.Errorf("isIgnored(%q, nil) = %v, want %v", tt.path, result, tt.expected)
+				t.Errorf("isIgnored(%q, nil) = %v, want %v", tt.path, result, tt.expected) //nolint
 			}
 		})
 	}
@@ -189,43 +189,25 @@ func TestIsIgnored(t *testing.T) {
 func TestLoadIgnorePatterns(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	// Create test .gitignore file
 	gitignorePath := filepath.Join(tmpDir, ".gitignore")
-	gitignoreContent := `# Comment line
-*.log
-temp_*
-
-!important.log
-`
+	gitignoreContent := "# Comment line\n*.log\ntemp_*\n\n!important.log\n"
 	if err := os.WriteFile(gitignorePath, []byte(gitignoreContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	patterns := loadIgnorePatterns(tmpDir)
-
-	// Test that patterns are loaded
-	if len(patterns) == 0 {
-		t.Error("expected to load patterns from .gitignore")
+	matchers := loadIgnorePatternsMatcher(tmpDir)
+	if len(matchers) == 0 {
+		t.Fatal("expected at least one matcher")
 	}
 
-	// Verify patterns were loaded (excluding comments and negation)
-	hasLogPattern := false
-	hasTempPattern := false
-	for _, pattern := range patterns {
-		if pattern == "*.log" {
-			hasLogPattern = true
-		}
-		if pattern == "temp_*" {
-			hasTempPattern = true
-		}
+	if !isIgnored("foo.log", matchers) {
+		t.Error("expected foo.log to be ignored")
 	}
-
-	if !hasLogPattern {
-		t.Error("expected to find *.log pattern")
+	if !isIgnored("temp_file.go", matchers) {
+		t.Error("expected temp_file.go to be ignored")
 	}
-
-	if !hasTempPattern {
-		t.Error("expected to find temp_* pattern")
+	if isIgnored("main.go", matchers) {
+		t.Error("expected main.go to not be ignored")
 	}
 }
 

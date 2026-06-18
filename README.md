@@ -4,7 +4,7 @@
 
 ![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Patterns](https://img.shields.io/badge/patterns-14-blueviolet)
+![Patterns](https://img.shields.io/badge/patterns-57-blueviolet)
 
 > **One tool. All patterns. Any input.**
 
@@ -213,13 +213,14 @@ Atheon ships a separate `atheon-mcp` binary that speaks the Model Context Protoc
 
 **Homebrew:**
 ```bash
-brew install HoraDomu/homebrew-atheon
-# Installs both atheon and atheon-mcp binaries
+brew tap HoraDomu/atheon
+brew install atheon
+# Installs both atheon and atheon-mcp
 ```
 
 **Scoop (Windows):**
 ```powershell
-scoop bucket add HoraDomu/scoop-atheon
+scoop bucket add atheon https://github.com/HoraDomu/scoop-atheon
 scoop install atheon
 # Includes both atheon and atheon-mcp
 ```
@@ -322,6 +323,7 @@ Available categories for filtering:
 - `pii` - Personal information (SSN, credit cards, etc.)
 - `code-quality` - Debug statements, TODOs, technical debt
 - `healthcare` - Medical identifiers, PHI patterns
+- `finance` - IBAN, ABA routing numbers, SWIFT/BIC codes
 
 Omit the `categories` parameter to scan all categories.
 

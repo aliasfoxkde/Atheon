@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, '**' ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -77,15 +77,22 @@ jobs:
         run: go mod download
 
       - name: Build CLI
-        run: go build -v -o atheon .
+        run: go build -v -o atheon${{ runner.os == 'Windows' && '.exe' || '' }} .
 
       - name: Build MCP Server
-        run: go build -v -o atheon-mcp ./cmd/mcp
+        run: go build -v -o atheon-mcp${{ runner.os == 'Windows' && '.exe' || '' }} ./cmd/mcp
 
-      - name: Run basic smoke tests
+      - name: Run basic smoke tests (unix)
+        if: runner.os != 'Windows'
         run: |
           ./atheon list categories
           ./atheon --help
+
+      - name: Run basic smoke tests (windows)
+        if: runner.os == 'Windows'
+        run: |
+          .\atheon.exe list categories
+          .\atheon.exe --help
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -93,7 +100,9 @@ jobs:
           name: binaries-${{ matrix.os }}
           path: |
             atheon
+            atheon.exe
             atheon-mcp
+            atheon-mcp.exe
 
   lint:
     runs-on: ubuntu-latest
@@ -106,15 +115,13 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
 
       - name: Run staticcheck
         uses: dominikh/staticcheck-action@v1.3.0
-        continue-on-error: true
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
-          args: --timeout=5m --verbose
-        continue-on-error: true
+          version: v1.64.8
+          args: --timeout=5m

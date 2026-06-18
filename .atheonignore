@@ -1,13 +1,16 @@
-# Paths excluded from secret scanning.
-# Supports exact paths, directory prefixes, and * globs.
+# Pattern definition files always match their own content
+community/
 
-# Test fixtures and test files use placeholder values that look like real secrets.
-test/
+# Test files contain intentional example patterns
 *_test.go
+test/
 
-# Compiled release binaries — binary content triggers false positives.
-atheon-linux
-atheon-linux-amd64
-atheon-macos
-atheon-macos-amd64
-atheon-macos-arm64
+# Generated files
+coverage.html
+coverage.out
+
+# Dependency hash file
+go.sum
+
+# Website
+docs/

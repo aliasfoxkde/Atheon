@@ -1,2 +1,2 @@
 name: fixme-comment
-match: '(?i)FIXME|XXX|HACK|BUG'
+match: '(?i)\b(FIXME|XXX|HACK)\b'

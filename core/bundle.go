@@ -38,9 +38,6 @@ func (p *bundlePattern) Matches(line string) bool { return p.enabled && p.re.Mat
 func (p *bundlePattern) Enabled() bool            { return p.enabled }
 func (p *bundlePattern) SetEnabled(enabled bool)  { p.enabled = enabled }
 
-func (p *bundlePattern) Matches(line string) bool { return p.enabled && p.re.MatchString(line) }
-func (p *bundlePattern) Enabled() bool             { return p.enabled }
-func (p *bundlePattern) SetEnabled(enabled bool)  { p.enabled = enabled }
 type categoryScanner struct {
 	combined *regexp.Regexp
 	patterns []Pattern
@@ -84,15 +81,26 @@ func loadBundle(data []byte) error {
 			fmt.Fprintf(os.Stderr, "atheon: skipping %q: %v\n", def.Name, err)
 			continue
 		}
-		// Default to enabled if not specified in JSON
-		enabled := true
-		if len(defs) == 1 || def.Name != "" {
-			enabled = def.Enabled
-		}
-		bp := &bundlePattern{name: def.Name, category: def.Category, match: def.Match, enabled: enabled, re: re}
+		bp := &bundlePattern{name: def.Name, category: def.Category, match: def.Match, enabled: def.Enabled, re: re}
 		allPatterns = append(allPatterns, bp)
 		Register(bp)
 	}
+
+	// Old bundles predate the enabled field; JSON zero-value false means all appear
+	// disabled. Detect this and default everything to enabled.
+	anyEnabled := false
+	for _, p := range allPatterns {
+		if p.enabled {
+			anyEnabled = true
+			break
+		}
+	}
+	if !anyEnabled {
+		for _, p := range allPatterns {
+			p.enabled = true
+		}
+	}
+
 	return nil
 }
 
@@ -166,7 +174,6 @@ func DownloadBundle() error {
 	return os.WriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o644)
 }
 
-// EnablePattern enables a specific pattern
 func EnablePattern(name string) bool {
 	for _, p := range allPatterns {
 		if p.name == name {
@@ -178,7 +185,6 @@ func EnablePattern(name string) bool {
 	return false
 }
 
-// DisablePattern disables a specific pattern
 func DisablePattern(name string) bool {
 	for _, p := range allPatterns {
 		if p.name == name {
@@ -190,7 +196,6 @@ func DisablePattern(name string) bool {
 	return false
 }
 
-// SetPatternEnabled sets the enabled state of a pattern
 func SetPatternEnabled(name string, enabled bool) bool {
 	for _, p := range allPatterns {
 		if p.name == name {
@@ -202,7 +207,6 @@ func SetPatternEnabled(name string, enabled bool) bool {
 	return false
 }
 
-// ListDisabledPatterns returns all disabled patterns
 func ListDisabledPatterns() []string {
 	var disabled []string
 	for _, p := range allPatterns {
@@ -213,7 +217,6 @@ func ListDisabledPatterns() []string {
 	return disabled
 }
 
-// ListEnabledPatterns returns all enabled patterns
 func ListEnabledPatterns() []string {
 	var enabled []string
 	for _, p := range allPatterns {
@@ -224,7 +227,6 @@ func ListEnabledPatterns() []string {
 	return enabled
 }
 
-// rebuildActiveScanners rebuilds active scanners after pattern state changes
 func rebuildActiveScanners() {
 	var activeCats []string
 	catSeen := map[string]bool{}
