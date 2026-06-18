@@ -1,2 +1,2 @@
 name: aba-routing-number
-match: '\b[0-9]{9}\b'
+match: '(?i)routing[\s_-]*(number|num|no)?[\s:=]+\b[0-9]{9}\b'

@@ -1,0 +1,2 @@
+name: temporary-code
+match: 'REMOVE\s+THIS|DELETE\s+SOON|FIXME.*PRODUCTION'

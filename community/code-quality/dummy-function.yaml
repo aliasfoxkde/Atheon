@@ -1,0 +1,2 @@
+name: dummy-function
+match: '(?i)def.*dummy|function.*mock|class.*fake|test.*shim'
