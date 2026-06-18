@@ -1,0 +1,2 @@
+name: empty-catch-block
+match: 'catch\s*\([^)]*\)\s*\{\s*\}|catch\s*\([^{]*\)\s*;?\s*//.*'

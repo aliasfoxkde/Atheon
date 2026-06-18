@@ -1,0 +1,2 @@
+name: todo-comment
+match: '(?i)TODO|FIXME|XXX|HACK'
