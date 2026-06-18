@@ -1,0 +1,2 @@
+name: todo-stub
+match: '(?i)TODO.*implement|FIXME.*later|XXX.*stub|HACK.*temporary'

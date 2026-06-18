@@ -23,6 +23,7 @@ type patternDef struct {
 	Name     string `json:"name"`
 	Category string `json:"category"`
 	Match    string `json:"match"`
+	Enabled  bool   `json:"enabled"`
 }
 
 func main() {
