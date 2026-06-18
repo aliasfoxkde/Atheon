@@ -30,7 +30,7 @@ jobs:
 
       - name: Run go fmt check
         run: |
-          if [ -n "$(gofmt -s .)" ]; then
+          if [ -n "$(gofmt -l .)" ]; then
             echo "Go code is not formatted:"
             gofmt -d .
             exit 1
