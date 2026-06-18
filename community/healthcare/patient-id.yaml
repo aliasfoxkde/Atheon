@@ -1,0 +1,2 @@
+name: patient-id
+match: '\b(?:PATIENT|PT)[0-9]{8,12}\b'
