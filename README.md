@@ -55,7 +55,7 @@ openai-api-key  config/app.yaml:47
   # de****4f59
 
 1 finding(s)
-scanned 14 file(s)  22.1 KB  3ms
+scanned 23 file(s)  41.3 KB  4ms
 ```
 
 Exit code `1`. The push never happens. The key never leaves the machine.
