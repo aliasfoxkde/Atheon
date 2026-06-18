@@ -1,0 +1,2 @@
+name: bare-exception-block
+match: 'except(?: *[:\[].*)?: *pass'
