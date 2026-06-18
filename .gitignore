@@ -8,3 +8,7 @@
 .idea/
 *.iml
 .pr-notes/
+
+# generated
+coverage.html
+coverage.out
