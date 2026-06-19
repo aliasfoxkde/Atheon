@@ -12,7 +12,7 @@ func TestMain(m *testing.M) {
 	home, _ := os.UserHomeDir()
 	bundlePath := filepath.Join(home, ".atheon", "patterns.bundle")
 	if data, err := os.ReadFile(bundlePath); err == nil {
-		loadBundle(data)
+		_ = loadBundle(data) // Ignore error in test setup
 	}
 	os.Exit(m.Run())
 }
