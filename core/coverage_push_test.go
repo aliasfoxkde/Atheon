@@ -202,9 +202,9 @@ func TestScanFileIgnored(t *testing.T) {
 	}
 }
 
-// TestScanEnvMalformedEnv exercises the ScanEnv len(parts) != 2 branch.
+// TestScanEnvMalformedEnv exercises the scanEnv len(parts) != 2 branch.
 // os.Environ() always returns KEY=VALUE entries so this is hard to trigger
-// directly; instead we exercise the rest of the function and trust coverage.
+// directly; instead we exercise scanEnv with a hand-crafted env list.
 func TestScanEnvNoFindingsEmpty(t *testing.T) {
 	// Save env, clear it, scan, restore.
 	orig := os.Environ()
@@ -226,6 +226,25 @@ func TestScanEnvNoFindingsEmpty(t *testing.T) {
 	findings := ScanEnv()
 	if len(findings) != 0 {
 		t.Errorf("expected no findings with empty env, got %d", len(findings))
+	}
+}
+
+// TestScanEnvMalformedEntry exercises the len(parts) != 2 branch by passing
+// an env list with a malformed entry (no = sign).
+func TestScanEnvMalformedEntry(t *testing.T) {
+	envs := []string{
+		"MALFORMED_NO_EQUALS",
+		"VALID_KEY=AKIAIOSFODNN7EXAMPLE",
+		"ANOTHER_MALFORMED",
+	}
+	findings := scanEnv(envs)
+	if len(findings) == 0 {
+		t.Error("expected findings from valid entry")
+	}
+	for _, f := range findings {
+		if f.File == "env:MALFORMED_NO_EQUALS" || f.File == "env:ANOTHER_MALFORMED" {
+			t.Errorf("malformed entry should be skipped, got: %+v", f)
+		}
 	}
 }
 

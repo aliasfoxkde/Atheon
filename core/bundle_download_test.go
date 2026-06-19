@@ -188,3 +188,19 @@ func TestDownloadBundleMockChangesReported(t *testing.T) {
 		t.Fatalf("DownloadBundle failed: %v", err)
 	}
 }
+
+// TestDownloadBundleNetworkError exercises the client.Get error branch
+// by pointing the URL at an unroutable address.
+func TestDownloadBundleNetworkError(t *testing.T) {
+	// Use a closed httptest server URL — port won't accept connections
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	srv.Close() // immediately close so the URL is invalid
+
+	restore := setBundleDownloadURL(srv.URL)
+	defer restore()
+
+	err := DownloadBundle()
+	if err == nil {
+		t.Error("expected network error from closed server URL")
+	}
+}
