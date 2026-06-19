@@ -41,6 +41,30 @@ valid-pattern
 	}
 }
 
+// TestCompileIgnoreFileSlashOnly exercises the slash-only pattern that
+// triggers ignorePatternToRegexp's "empty pattern" error inside
+// compileIgnoreFile. The pattern is skipped (continue) without panic.
+func TestCompileIgnoreFileSlashOnly(t *testing.T) {
+	tmp := filepath.Join(t.TempDir(), ".atheonignore")
+	content := `/
+valid-pattern
+`
+	if err := os.WriteFile(tmp, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	m, err := compileIgnoreFile(tmp)
+	if err != nil {
+		t.Fatalf("compileIgnoreFile failed: %v", err)
+	}
+	if m == nil {
+		t.Fatal("expected non-nil matcher")
+	}
+	// The "/" pattern is skipped silently; valid-pattern remains
+	if !m.matchesPath("valid-pattern") {
+		t.Error("expected valid-pattern to be matched")
+	}
+}
+
 // TestLoadPatternStateNoFile exercises the no-file branch returning empty state.
 func TestLoadPatternStateNoFile(t *testing.T) {
 	home, _ := os.UserHomeDir()
