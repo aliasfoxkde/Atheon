@@ -167,9 +167,9 @@ func TestPatternStatePersistenceFull(t *testing.T) {
 	// Create a test pattern state
 	testState := &PatternState{
 		Patterns: map[string]bool{
-			"aws-access-key":    true,
-			"openai-api-key":    false,
-			"credit-card":       true,
+			"aws-access-key": true,
+			"openai-api-key": false,
+			"credit-card":    true,
 		},
 	}
 
