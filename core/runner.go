@@ -141,8 +141,15 @@ func ScanDir(root string) ([]Finding, *Stats, error) {
 }
 
 func ScanEnv() []Finding {
+	return scanEnv(os.Environ())
+}
+
+// scanEnv is the inner implementation that accepts an explicit env list.
+// Splitting this out lets tests exercise the len(parts) != 2 branch
+// without having to mutate the real process environment.
+func scanEnv(envs []string) []Finding {
 	var findings []Finding
-	for _, env := range os.Environ() {
+	for _, env := range envs {
 		parts := strings.SplitN(env, "=", 2)
 		if len(parts) != 2 {
 			continue
