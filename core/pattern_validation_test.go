@@ -308,45 +308,83 @@ func TestPatternEdgeCases(t *testing.T) {
 // TestPatternEnabledToggle tests pattern enable/disable functionality
 func TestPatternEnabledToggle(t *testing.T) {
 	patterns := All()
+	if len(patterns) == 0 {
+		t.Skip("No patterns available for testing")
+	}
 
-	// Find a test pattern to toggle
-	var testPattern Pattern
-	for _, p := range patterns {
-		if p.Category() == "code-quality" {
-			testPattern = p
+	// Find a test pattern to toggle - use any category
+	testName := patterns[0].Name()
+
+	// Capture original enabled state by checking allPatterns directly
+	originalEnabled := false
+	foundOriginal := false
+	for _, p := range allPatterns {
+		if p.name == testName {
+			originalEnabled = p.enabled
+			foundOriginal = true
 			break
 		}
 	}
-
-	if testPattern == nil {
-		t.Fatal("Could not find a code-quality pattern to test")
+	if !foundOriginal {
+		t.Skipf("Pattern %q not found in allPatterns", testName)
 	}
 
-	originalState := testPattern.Enabled()
+	// Cleanup: ensure pattern is enabled at start
+	if !originalEnabled {
+		EnablePattern(testName)
+	}
+	defer func() {
+		// Restore original state
+		if originalEnabled {
+			EnablePattern(testName)
+		} else {
+			DisablePattern(testName)
+		}
+	}()
 
 	// Test DisablePattern function
-	success := DisablePattern(testPattern.Name())
+	success := DisablePattern(testName)
 	if !success {
 		t.Error("DisablePattern function failed")
 	}
-	if testPattern.Enabled() {
-		t.Error("Pattern should be disabled")
+
+	// Verify pattern is disabled in allPatterns
+	disabledInAll := false
+	foundInAll := false
+	for _, p := range allPatterns {
+		if p.name == testName {
+			foundInAll = true
+			if !p.enabled {
+				disabledInAll = true
+			}
+			break
+		}
+	}
+	if !foundInAll {
+		t.Errorf("Pattern %q missing from allPatterns after disable", testName)
+	}
+	if !disabledInAll {
+		t.Errorf("Pattern %q should be disabled in allPatterns", testName)
 	}
 
 	// Test EnablePattern function
-	success = EnablePattern(testPattern.Name())
+	success = EnablePattern(testName)
 	if !success {
 		t.Error("EnablePattern function failed")
 	}
-	if !testPattern.Enabled() {
-		t.Error("Pattern should be enabled")
-	}
 
-	// Restore original state
-	if originalState {
-		DisablePattern(testPattern.Name())
-	} else {
-		EnablePattern(testPattern.Name())
+	// Verify pattern is enabled in allPatterns
+	enabledInAll := false
+	for _, p := range allPatterns {
+		if p.name == testName {
+			if p.enabled {
+				enabledInAll = true
+			}
+			break
+		}
+	}
+	if !enabledInAll {
+		t.Errorf("Pattern %q should be enabled in allPatterns", testName)
 	}
 }
 

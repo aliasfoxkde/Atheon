@@ -14,12 +14,17 @@ import (
 var version = "dev"
 
 func main() {
-	args := os.Args[1:]
+	os.Exit(run(os.Args[1:]))
+}
 
+// run executes the CLI with the given args and returns the exit code.
+// This is separated from main() so tests can call it without os.Exit
+// terminating the test process.
+func run(args []string) int {
 	// Handle --version flag
 	if len(args) > 0 && args[0] == "--version" {
 		fmt.Printf("atheon %s\n", version)
-		os.Exit(0)
+		return 0
 	}
 
 	jsonOutput := len(args) > 0 && args[0] == "--json"
@@ -35,7 +40,7 @@ func main() {
 
 	if len(args) == 0 {
 		printHelp()
-		return
+		return 0
 	}
 
 	switch args[0] {
@@ -43,78 +48,86 @@ func main() {
 		fmt.Println("downloading patterns bundle...")
 		if err := core.DownloadBundle(); err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
-			os.Exit(1)
+			return 1
 		}
 		fmt.Println("patterns updated.")
+		return 0
 
 	case "enable":
 		if len(args) < 2 {
 			fmt.Fprintln(os.Stderr, "error: enable requires a pattern name")
-			os.Exit(1)
+			return 1
 		}
 		if !core.EnablePattern(args[1]) {
 			fmt.Fprintf(os.Stderr, "error: pattern '%s' not found\n", args[1])
-			os.Exit(1)
+			return 1
 		}
 		fmt.Printf("enabled pattern: %s\n", args[1])
+		return 0
 
 	case "disable":
 		if len(args) < 2 {
 			fmt.Fprintln(os.Stderr, "error: disable requires a pattern name")
-			os.Exit(1)
+			return 1
 		}
 		if !core.DisablePattern(args[1]) {
 			fmt.Fprintf(os.Stderr, "error: pattern '%s' not found\n", args[1])
-			os.Exit(1)
+			return 1
 		}
 		fmt.Printf("disabled pattern: %s\n", args[1])
+		return 0
 
 	case "list":
 		cmdList(args[1:])
+		return 0
 
 	case "--help", "help", "-h":
 		printHelp()
+		return 0
 
 	case "--env":
 		findings := core.ScanEnv()
 		printFindings(findings, nil, jsonOutput)
 		if len(findings) > 0 {
-			os.Exit(1)
+			return 1
 		}
+		return 0
 
 	case "-", "--stdin":
 		data, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error: reading stdin:", err)
-			os.Exit(1)
+			return 1
 		}
 		findings := core.ScanString(string(data), "stdin")
 		printFindings(findings, nil, jsonOutput)
 		if len(findings) > 0 {
-			os.Exit(1)
+			return 1
 		}
+		return 0
 
 	case "--file":
 		if len(args) < 2 {
 			fmt.Fprintln(os.Stderr, "error: --file requires a path")
-			os.Exit(1)
+			return 1
 		}
 		findings, stats, err := core.ScanFile(args[1])
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
-			os.Exit(1)
+			return 1
 		}
 		printFindings(findings, stats, jsonOutput)
 		if len(findings) > 0 {
-			os.Exit(1)
+			return 1
 		}
+		return 0
 
 	default:
 		path := args[0]
 		info, err := os.Stat(path)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error: path not found:", path)
-			os.Exit(1)
+			return 1
 		}
 		var findings []core.Finding
 		var stats *core.Stats
@@ -125,12 +138,13 @@ func main() {
 		}
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
-			os.Exit(1)
+			return 1
 		}
 		printFindings(findings, stats, jsonOutput)
 		if len(findings) > 0 {
-			os.Exit(1)
+			return 1
 		}
+		return 0
 	}
 }
 
