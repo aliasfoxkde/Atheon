@@ -1,0 +1,40 @@
+name: focus-management
+match: 'tabIndex.*-1(?=.*(?!\s*aria-label))|useEffect.*focus.*\[\]'
+severity: medium
+language: javascript
+category: accessibility
+description: |
+  Poor focus management patterns that create barriers for keyboard
+  users and violate accessibility standards.
+
+  Examples:
+  - tabIndex={-1} without proper explanation
+  - Missing focus restoration after modal close
+  - Auto-focus in useEffect without user intent
+  - Focus trap implementation issues
+
+  Issues:
+  - Elements removed from tab order inappropriately
+  - Focus not managed in modals and dialogs
+  - Auto-focus without user consent
+  - Missing focus indicators
+
+  Better patterns:
+  - Use tabIndex={-1} only for non-interactive elements
+  - Restore focus after modal/dialog close
+  - Implement proper focus traps
+  - Provide visible focus indicators
+
+  Mitigation:
+  - Test keyboard navigation thoroughly
+  - Implement focus management patterns
+  - Use ARIA live regions for announcements
+  - Provide clear focus indicators
+
+  WCAG Criteria:
+  - 2.4.3 Focus Order (Level A)
+  - 2.4.7 Focus Visible (Level AA)
+  - 3.2.1 On Focus (Level A)
+references:
+  - https://www.w3.org/WAI/WCAG21/Understanding/focus-visible.html
+  - https://web.dev/accessibility-focus-management/

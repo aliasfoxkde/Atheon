@@ -1,0 +1,34 @@
+name: chart-config
+match: 'Chart\.js.*type.*bar.*data.*1000\+|options.*responsive.*false|scale.*ticks.*display.*false'
+severity: low
+language: javascript
+category: data-visualization
+description: |
+  Chart configuration patterns that impact accessibility, performance,
+  and user experience in data visualizations.
+
+  Examples:
+  - Bar chart with 1000+ data points (wrong chart type)
+  - responsive: false in chart options
+  - Hiding axis ticks reduces readability
+
+  Issues:
+  - Wrong chart type for data volume
+  - Non-responsive charts break mobile UX
+  - Hidden axes reduce data comprehension
+  - Poor color choices affect accessibility
+
+  Better patterns:
+  - Use line/area charts for large datasets
+  - Always enable responsive design
+  - Keep ticks and labels for accessibility
+  - Use color-blind friendly palettes
+
+  Mitigation:
+  - Choose appropriate chart types
+  - Implement responsive design
+  - Maintain accessibility compliance
+  - Test with screen readers
+references:
+  - https://www.chartjs.org/docs/latest/
+  - https://web.dev/color-and-contrast-accessibility/

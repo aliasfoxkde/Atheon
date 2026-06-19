@@ -1,0 +1,38 @@
+name: color-contrast
+match: 'color.*#[fF]{3}[fF]{3}|background.*#[fF]{3}[fF]{3}|opacity.*0\.[1-4]'
+severity: medium
+language: css
+category: accessibility
+description: |
+  Color contrast patterns that impact readability and accessibility
+  for users with visual impairments.
+
+  Examples:
+  - color: #ffffff on background: #ffffcc (poor contrast)
+  - opacity: 0.3 reduces text readability
+  - Low contrast between text and background
+
+  Issues:
+  - Fails WCAG AA contrast requirements (4.5:1)
+  - Difficult to read for low-vision users
+  - Poor accessibility compliance
+  - Reduced user experience
+
+  Better patterns:
+  - Use high contrast colors (4.5:1 minimum for AA)
+  - Test contrast with accessibility tools
+  - Avoid opacity for critical text
+  - Provide high contrast mode option
+
+  Mitigation:
+  - Use color contrast checkers
+  - Follow WCAG guidelines
+  - Test with accessibility tools
+  - Provide theme alternatives
+
+  WCAG Criteria:
+  - 1.4.3 Contrast (Minimum) (Level AA)
+  - 1.4.6 Contrast (Enhanced) (Level AAA)
+references:
+  - https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html
+  - https://web.dev/color-and-contrast-accessibility/

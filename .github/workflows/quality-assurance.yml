@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [ main, dev/full-feature, stable/clean ]
 
+permissions:
+  contents: read
+  actions: read
+  security-events: read
+  statuses: read
+  pull-requests: read
+
 jobs:
   comprehensive-testing:
     name: Comprehensive Testing

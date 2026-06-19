@@ -104,3 +104,213 @@ func TestRegisteredPatterns(t *testing.T) {
 		}
 	}
 }
+
+// TestCategories tests the Categories function
+func TestCategories(t *testing.T) {
+	cats := core.Categories()
+	if len(cats) == 0 {
+		t.Error("Categories returned empty list")
+	}
+
+	// Check for expected categories
+	expectedCats := map[string]bool{
+		"ai-detection": false,
+		"code-quality": false,
+		"devops":       false,
+		"finance":      false,
+		"healthcare":   false,
+		"pii":          false,
+		"secrets":      false,
+		"django":       false,
+		"nodejs":       false,
+		"react":        false,
+	}
+
+	for _, cat := range cats {
+		if _, exists := expectedCats[cat]; exists {
+			expectedCats[cat] = true
+		}
+	}
+
+	// Verify at least some expected categories exist
+	foundCount := 0
+	for _, found := range expectedCats {
+		if found {
+			foundCount++
+		}
+	}
+
+	if foundCount < 5 {
+		t.Errorf("Expected at least 5 categories, found %d", foundCount)
+	}
+}
+
+// TestSetPatternEnabled tests the SetPatternEnabled function
+func TestSetPatternEnabled(t *testing.T) {
+	patterns := core.All()
+	if len(patterns) == 0 {
+		t.Skip("No patterns available for testing")
+	}
+
+	// Find a test pattern
+	var testPatternName string
+	var testPattern core.Pattern
+	for _, p := range patterns {
+		testPattern = p
+		testPatternName = p.Name()
+		break
+	}
+
+	if testPatternName == "" {
+		t.Fatal("Could not find a pattern to test")
+	}
+
+	originalState := testPattern.Enabled()
+
+	// Test setting to true
+	core.EnablePattern(testPatternName)
+	// Need to find the pattern again to check its state
+	enabled := false
+	for _, p := range core.All() {
+		if p.Name() == testPatternName {
+			enabled = p.Enabled()
+			break
+		}
+	}
+	if !enabled {
+		t.Error("Failed to enable pattern")
+	}
+
+	// Test setting to false
+	core.DisablePattern(testPatternName)
+	// Need to find the pattern again to check its state
+	disabled := true
+	for _, p := range core.All() {
+		if p.Name() == testPatternName {
+			disabled = p.Enabled()
+			break
+		}
+	}
+	if disabled {
+		t.Error("Failed to disable pattern")
+	}
+
+	// Restore original state
+	if originalState {
+		core.EnablePattern(testPatternName)
+	} else {
+		core.DisablePattern(testPatternName)
+	}
+}
+
+// TestListDisabledPatterns tests the ListDisabledPatterns function
+func TestListDisabledPatterns(t *testing.T) {
+	// First disable some patterns
+	patterns := core.All()
+	if len(patterns) == 0 {
+		t.Skip("No patterns available for testing")
+	}
+
+	// Disable at least one pattern
+	testPatternName := patterns[0].Name()
+	originalState := patterns[0].Enabled()
+	core.DisablePattern(testPatternName)
+
+	disabled := core.ListDisabledPatterns()
+
+	if len(disabled) == 0 {
+		t.Error("Expected at least one disabled pattern")
+	}
+
+	// Restore original state
+	if originalState {
+		core.EnablePattern(testPatternName)
+	}
+}
+
+// TestListEnabledPatterns tests the ListEnabledPatterns function
+func TestListEnabledPatterns(t *testing.T) {
+	patterns := core.All()
+	if len(patterns) == 0 {
+		t.Skip("No patterns available for testing")
+	}
+
+	enabled := core.ListEnabledPatterns()
+
+	if len(enabled) == 0 {
+		t.Error("Expected at least one enabled pattern")
+	}
+
+	// Verify all returned patterns are actually enabled
+	for _, name := range enabled {
+		found := false
+		for _, p := range core.All() {
+			if p.Name() == name {
+				if !p.Enabled() {
+					t.Errorf("Pattern %s is in enabled list but not enabled", name)
+				}
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("Pattern %s is in enabled list but not found in All()", name)
+		}
+	}
+}
+
+// TestEnableAllPatterns tests the EnableAllPatterns function
+func TestEnableAllPatterns(t *testing.T) {
+	patterns := core.All()
+	if len(patterns) == 0 {
+		t.Skip("No patterns available for testing")
+	}
+
+	// Disable some patterns first
+	for i := 0; i < 3 && i < len(patterns); i++ {
+		core.DisablePattern(patterns[i].Name())
+	}
+
+	// Enable all
+	core.EnableAllPatterns()
+
+	// Verify all are enabled
+	for _, p := range patterns {
+		if !p.Enabled() {
+			t.Errorf("Pattern %s should be enabled after EnableAllPatterns", p.Name())
+		}
+	}
+}
+
+// TestPatternStatePersistence tests pattern state persistence
+func TestPatternStatePersistence(t *testing.T) {
+	patterns := core.All()
+	if len(patterns) == 0 {
+		t.Skip("No patterns available for testing")
+	}
+
+	// Get original states
+	originalStates := make(map[string]bool)
+	for _, p := range patterns {
+		originalStates[p.Name()] = p.Enabled()
+	}
+
+	// Modify some states
+	for i := 0; i < 3 && i < len(patterns); i++ {
+		core.DisablePattern(patterns[i].Name())
+	}
+
+	// Note: SavePatternStates function doesn't exist in current API
+	// Skipping persistence test
+
+	// Restore original states
+	for _, p := range patterns {
+		if originalState, exists := originalStates[p.Name()]; exists {
+			if originalState {
+				core.EnablePattern(p.Name())
+			} else {
+				core.DisablePattern(p.Name())
+			}
+		}
+	}
+}

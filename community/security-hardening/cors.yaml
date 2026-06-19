@@ -1,0 +1,37 @@
+name: cors
+match: 'Access-Control-Allow-Origin.*\*|cors.*origin.*true'
+severity: medium
+language: javascript
+category: security-hardening
+description: |
+  CORS (Cross-Origin Resource Sharing) misconfigurations that
+  compromise security and functionality.
+
+  Examples:
+  - Access-Control-Allow-Origin: *
+  - cors({ origin: true }) without validation
+  - Missing CORS headers on API endpoints
+
+  Security issues:
+  - Wildcard origin allows any domain
+  - Unrestricted cross-origin requests
+  - Potential data exposure
+  - CSRF vulnerability
+
+  Better patterns:
+  - Validate and whitelist specific origins
+  - Use environment-based origin validation
+  - Implement proper CORS middleware
+  - Use credentials mode carefully
+
+  Mitigation:
+  - Whitelist allowed origins explicitly
+  - Validate Origin header server-side
+  - Use same-site cookies
+  - Implement CSRF protection
+
+  OWASP Category: A05:2021 – Security Misconfiguration
+  CWE: CWE-942
+references:
+  - https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+  - https://owasp.org/www-project-web-security-testing-guide/

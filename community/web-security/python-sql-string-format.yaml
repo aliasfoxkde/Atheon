@@ -1,0 +1,2 @@
+name: python-sql-format-injection
+match: '\.execute\(.*format\(.*\)'
