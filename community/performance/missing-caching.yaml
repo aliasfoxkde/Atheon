@@ -1,0 +1,37 @@
+name: missing-caching
+match: 'fetch.*headers.*cache.*no-cache|fetch.*cache.*no-store|cache.*false'
+severity: medium
+language: javascript
+category: performance
+description: |
+  Missing or disabled caching strategies that result in unnecessary
+  network requests and poor performance.
+
+  Examples:
+  - fetch(url, { headers: { 'Cache-Control': 'no-cache' } })
+  - Service worker cache strategies not implemented
+  - Response headers disabling browser caching
+  - Repeated requests for static resources
+
+  Performance impact:
+  - Increased network traffic
+  - Slower page loads and interactions
+  - Higher server load and costs
+  - Poor offline experience
+
+  Better patterns:
+  - Implement cache-first for static assets
+  - Use network-first for dynamic content
+  - Implement stale-while-revalidate strategies
+  - Set appropriate cache expiration times
+  - Use service workers for offline support
+
+  Mitigation:
+  - Implement proper HTTP caching headers
+  - Use service workers with caching strategies
+  - Cache API responses with appropriate TTL
+  - Implement browser storage for user data
+  - Use CDN for static asset caching
+references:
+  - https://web.dev/http-cache/
+  - https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
