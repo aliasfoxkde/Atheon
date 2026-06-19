@@ -1,0 +1,36 @@
+name: rate-limiting
+match: 'setInterval.*fetch.*1000|for.*fetch.*break|while.*fetch.*condition'
+severity: high
+language: javascript
+category: api-integration
+description: |
+  API calls without proper rate limiting can cause service disruption,
+  API blocking, and poor performance.
+
+  Examples:
+  - setInterval(() => fetch('/api/data'), 1000) (No rate limit consideration)
+  - for (let i = 0; i < items.length; i++) { await fetch(`/api/item/${i}`) }
+  - while (hasMore) { const data = await fetch('/api/data'); }
+
+  Problems:
+  - Can overwhelm API servers
+  - May get blocked or throttled
+  - Poor performance and resource usage
+  - Unnecessary network traffic
+
+  Better patterns:
+  - Implement exponential backoff
+  - Use proper rate limiting libraries
+  - Batch requests when possible
+  - Respect HTTP 429 (Too Many Requests) responses
+  - Use request queuing and throttling
+
+  Mitigation:
+  - Add delay between requests
+  - Implement retry logic with exponential backoff
+  - Use request batching and pagination
+  - Monitor rate limit headers
+  - Implement proper error handling
+references:
+  - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
+  - https://cloud.google.com/apis/design/concepts#rate_limiting

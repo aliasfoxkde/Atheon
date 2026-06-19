@@ -1,0 +1,38 @@
+name: weak-cryptography
+match: 'md5|sha1.*hash|crypto\.createCipher|Math\.random\(\).*password|Math\.random\(\).*token'
+severity: high
+language: javascript
+category: security-hardening
+description: |
+  Weak cryptographic algorithms and random number generation
+  that compromise security and privacy.
+
+  Examples:
+  - crypto.createHash('md5') (MD5 is cryptographically broken)
+  - sha1.update(data) (SHA-1 is deprecated for security)
+  - crypto.createCipher (Deprecated, uses weak encryption)
+  - Math.random() for security-sensitive operations
+
+  Security issues:
+  - MD5: Collision attacks, not collision-resistant
+  - SHA-1: Collision attacks possible
+  - createCipher: Uses weak key derivation
+  - Math.random(): Not cryptographically secure
+
+  Better alternatives:
+  - Use SHA-256 or higher for hashing
+  - Use crypto.createCipheriv() with proper IV
+  - Use crypto.randomBytes() for secure random
+  - Use Web Crypto API in browsers
+
+  Mitigation:
+  - Replace MD5/SHA-1 with SHA-256 or better
+  - Use modern encryption algorithms (AES-256-GCM)
+  - Use cryptographically secure random generators
+  - Follow current cryptographic best practices
+
+  OWASP Category: A02:2021 – Cryptographic Failures
+  CWE: CWE-327, CWE-338
+references:
+  - https://owasp.org/Top10/A02_2021-Cryptographic_Failures/
+  - https://csrc.nist.gov/projects/hash-functions

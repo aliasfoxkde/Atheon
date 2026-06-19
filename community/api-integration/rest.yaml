@@ -1,0 +1,32 @@
+name: rest
+match: 'fetch.*\.then.*\.then.*\.catch|await\s+fetch.*await\s+fetch'
+severity: medium
+language: javascript
+category: api-integration
+description: |
+  Poor REST API integration patterns that impact performance and error handling.
+
+  Examples:
+  - Sequential .then() chains instead of async/await
+  - Multiple await fetch calls that could be parallelized
+  - Missing error handling for failed requests
+  - Hardcoded API endpoints and tokens
+
+  Anti-patterns:
+  - fetch(url).then(r => r.json()).then(d => processData(d)).catch(console.error)
+  - const user = await fetch('/api/user'); const posts = await fetch('/api/posts');
+
+  Better patterns:
+  - Use async/await for better error handling
+  - Parallelize independent requests with Promise.all()
+  - Implement retry logic for failed requests
+  - Use proper HTTP methods and status codes
+
+  Mitigation:
+  - Replace nested .then() with async/await
+  - Use Promise.all() for parallel requests
+  - Add proper error boundaries and handling
+  - Implement request cancellation and timeouts
+references:
+  - https://restfulapi.net/
+  - https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API

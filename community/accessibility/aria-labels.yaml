@@ -1,0 +1,28 @@
+name: aria-labels
+match: '<button[^>]*>(?!\s*(?:<svg|<[a-z]+|[\w\s]{1,50}<))|<img[^>]*(?!alt=)'
+severity: high
+language: html
+category: accessibility
+description: |
+  Interactive elements and images without proper accessibility labels
+  create barriers for screen reader users and violate WCAG guidelines.
+
+  Examples:
+  - <button>Click me</button> (should have aria-label or clear text)
+  - <button><icon /></button> (icon-only buttons need aria-label)
+  - <img src="photo.jpg"> (missing alt attribute)
+  - <div onclick="action()">Should be button</div>
+
+  Mitigation:
+  - Add aria-label to icon-only buttons: <button aria-label="Close dialog">
+  - Provide alt text for images: <img alt="Product photo" src="...">
+  - Use semantic HTML elements (<button> instead of <div onclick>)
+  - Include aria-label for elements with role="button"
+
+  WCAG Criteria:
+  - 2.4.4 Link Purpose (In Context) (Level A)
+  - 1.1.1 Non-text Content (Level A)
+  - 4.1.2 Name, Role, Value (Level A)
+references:
+  - https://www.w3.org/WAI/WCAG21/Understanding/non-text-content.html
+  - https://www.w3.org/TR/WCAG20-TECHS/ARIA14.html
