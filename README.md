@@ -587,49 +587,9 @@ Thank you to all contributors who help make Atheon better every day!
 
 ---
 
-## 📧 **Contact & Support**
-
-<details>
-<summary><b>📮 Official Project Support</b></summary>
-
-- **Email**: [dommcpro@gmail.com](mailto:dommcpro@gmail.com)
-- **Issues**: [https://github.com/HoraDomu/Atheon/issues](https://github.com/HoraDomu/Atheon/issues)
-- **Documentation**: Official project documentation
-
-</details>
-
-<details>
-<summary><b>🔧 Enhanced Fork Support</b></summary>
-
-- **Issues**: [https://github.com/aliasfoxkde/Atheon/issues](https://github.com/aliasfoxkde/Atheon/issues)
-- **Documentation**: See comprehensive docs in `docs/` directory
-- **Branch Strategy**: [docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md)
-- **System Architecture**: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
-
-</details>
-
----
-
 ## 📄 **License**
 
-<details>
-<summary><b>⚖️ MIT License with Additional Terms</b></summary>
-
-MIT with Additional Terms Copyright © 2026 Dominick Yanez
-
-**You are free to**:
-- ✅ Fork, clone, study, and modify for personal/internal use
-- ✅ Contribute patterns and bug fixes back
-- ✅ Use in commercial and non-commercial projects
-
-**You may not**:
-- ❌ Ship this software as your own standalone product under a different name/brand
-- ❌ Remove or obscure author's name or copyright notice
-- ❌ Claim exclusive ownership of the core patterns
-
-**For permissions beyond this scope**: [dommcpro@gmail.com](mailto:dommcpro@gmail.com)
-
-</details>
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
