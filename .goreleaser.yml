@@ -22,6 +22,7 @@ builds:
     binary: atheon
     ldflags:
       - -s -w
+      - -X main.version={{.Version}}
 
   - id: atheon-mcp
     env:
