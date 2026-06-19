@@ -1,0 +1,34 @@
+name: inefficient-data-structures
+match: 'array\.find.*for.*length|\.concat.*push|\.indexOf.*for|\.includes.*for'
+severity: medium
+language: javascript
+category: performance
+description: |
+  Inefficient data structure usage that causes poor performance.
+
+  Examples:
+  - array.find(item => condition) inside for loop
+  - array.concat(otherArray).push(item)
+  - array.indexOf(item) inside loop
+  - array.includes(item) in loop
+
+  Performance issues:
+  - O(n²) complexity instead of O(n)
+  - Redundant array operations
+  - Missing data structure optimization
+  - Unnecessary iterations
+
+  Better patterns:
+  - Use Set/Map for lookups instead of arrays
+  - Use filter/map/reduce for transformations
+  - Use object keys for existence checks
+  - Consider appropriate data structures
+
+  Mitigation:
+  - Profile and identify bottlenecks
+  - Choose appropriate data structures
+  - Use built-in methods efficiently
+  - Consider algorithmic complexity
+references:
+  - https://en.wikipedia.org/wiki/Big_O_notation
+  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
