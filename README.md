@@ -29,7 +29,7 @@
 ### **Enhanced aliasfoxkde/Atheon** - Feature-Rich Testing Build
 - **Purpose**: Experimental "nightly build" testing the limits of pattern matching
 - **Focus**: Performance optimizations, advanced features, comprehensive pattern coverage
-- **Patterns**: 105+ patterns (including experimental and cutting-edge)
+- **Patterns**: 57 patterns (community-driven, battle-tested)
 - **Update cadence**: Frequent updates with latest features and enhancements
 - **Best for**: Power users, CI/CD integration, comprehensive security scanning
 
@@ -52,7 +52,7 @@
 <summary><b>📊 Enhanced Features vs Official Release</b></summary>
 
 ### **What's Enhanced in This Testing Build?**
-- **105+ patterns** (vs 57 upstream) - 84% more coverage including experimental patterns
+- **57 patterns** - comprehensive coverage across multiple categories
 - **2-3x faster** with streaming API and performance optimizations
 - **10x less memory** usage with chunked file scanning
 - **MCP integration** with enhanced configuration options
@@ -349,7 +349,7 @@ atheon --profile config/profiles/pipeline.json ./my-project
 - ✅ **Performance Benchmarks**: Track improvements over time
 
 ### **Expanded Pattern Library**
-- ✅ **105+ patterns** (vs 57 upstream) across 12+ categories
+- ✅ **57 patterns** across 6 categories
 - ✅ **New categories**: AI detection, DevOps, quality enforcement
 - ✅ **API Key Patterns**: Stripe, Slack, GitHub, Heroku, JWT, Google, Mailchimp, GitLab, Twilio, SendGrid, Firebase, Azure
 - ✅ **Quality Patterns**: Git --force detection, test skipping, insecure flags, AI shortcuts
@@ -372,7 +372,7 @@ atheon --profile config/profiles/pipeline.json ./my-project
 
 | Feature | Official HoraDomu/Atheon | Enhanced aliasfoxkde/Atheon |
 |---------|----------------------|---------------------------|
-| Pattern Count | 57 | 105+ |
+| Pattern Count | 57 | 57 |
 | Memory Usage | Full file loading | Chunked streaming (10x reduction) |
 | Performance | Baseline | 2-3x faster |
 | MCP Integration | ✅ Basic | ✅ Enhanced with streaming |
@@ -476,13 +476,13 @@ gh pr create --base main --head feat/my-feature
 ### **`main` Branch** (Production Build)
 - **Purpose**: Production-ready with all enhancements
 - **Usage**: User-facing installation, production deployment
-- **Patterns**: 105+ enhanced patterns
+- **Patterns**: 57 community-driven patterns
 - **Installation**: `go install github.com/aliasfoxkde/Atheon@latest`
 
 ### **`dev/full-feature` Branch** (Development/Testing)
 - **Purpose**: Comprehensive testing with all patterns enabled
 - **Usage**: Pattern development, performance validation, quality assurance
-- **Patterns**: All 105+ patterns enabled, experimental features active
+- **Patterns**: All 57 patterns enabled, full testing active
 - **Installation**: `go install github.com/aliasfoxkde/Atheon@dev/full-feature`
 
 </details>
@@ -585,7 +585,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Production-ready reliability
 
 ### **Use Enhanced aliasfoxkde/Atheon when you want**:
-- ✅ 105+ patterns (84% more coverage)
+- ✅ 57 patterns (comprehensive coverage)
 - ✅ 2-3x performance improvements
 - ✅ 10x memory reduction for large files
 - ✅ MCP integration with advanced features
