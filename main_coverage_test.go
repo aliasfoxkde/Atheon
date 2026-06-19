@@ -42,7 +42,7 @@ func TestParseCategories(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cats, remaining := parseCategories(tt.args)
+			cats, remaining, _ := parseCategories(tt.args)
 
 			// Check categories
 			if tt.expected == nil {
@@ -286,7 +286,7 @@ func TestParseCategoriesEdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cats, _ := parseCategories(tt.args)
+			cats, _, _ := parseCategories(tt.args)
 
 			if !tt.check(cats) {
 				t.Errorf("parseCategories(%v) = %v, expected different result", tt.args, cats)

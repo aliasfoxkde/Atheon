@@ -44,6 +44,17 @@ func isIgnored(path string, matchers []*ignoreMatcher) bool {
 
 func ScanFile(path string) ([]Finding, *Stats, error) {
 	start := time.Now()
+	// Respect .atheonignore and .gitignore for files under the working directory,
+	// so that `atheon file.go` and `atheon .` agree on what gets scanned.
+	if absPath, err := filepath.Abs(path); err == nil {
+		if root, err := os.Getwd(); err == nil {
+			if rel, err := filepath.Rel(root, absPath); err == nil && !strings.HasPrefix(rel, "..") {
+				if matchers := loadIgnorePatternsMatcher(root); isIgnored(filepath.ToSlash(rel), matchers) {
+					return []Finding{}, nil, nil
+				}
+			}
+		}
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, nil, err
@@ -67,9 +78,12 @@ func ScanDir(root string) ([]Finding, *Stats, error) {
 		}
 		rel, _ := filepath.Rel(root, path)
 		if d.IsDir() {
-			if skipDirs[d.Name()] || isIgnored(rel, ignoreMatcher) {
+			if skipDirs[d.Name()] {
 				return filepath.SkipDir
 			}
+			// Don't SkipDir for user ignore rules — walk the dir and check files
+			// individually so negation rules (e.g. !dist/keep.yaml) can un-ignore
+			// specific files inside an otherwise-ignored directory.
 			return nil
 		}
 		if isIgnored(rel, ignoreMatcher) {

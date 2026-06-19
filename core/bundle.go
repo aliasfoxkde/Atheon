@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 //go:embed patterns.bundle
@@ -44,8 +45,9 @@ type categoryScanner struct {
 }
 
 var (
-	allPatterns    []*bundlePattern
-	activeScanners []categoryScanner
+	allPatterns          []*bundlePattern
+	activeScanners       []categoryScanner
+	activeCategoryFilter []string // nil = all categories; preserved across rebuildActiveScanners
 )
 
 func init() {
@@ -105,6 +107,8 @@ func loadBundle(data []byte) error {
 }
 
 func SetActiveCategories(cats []string) {
+	activeCategoryFilter = cats
+
 	catSet := map[string]bool{}
 	for _, c := range cats {
 		catSet[strings.TrimSpace(c)] = true
@@ -112,28 +116,52 @@ func SetActiveCategories(cats []string) {
 
 	byCategory := map[string][]Pattern{}
 	for _, p := range allPatterns {
+		if !p.enabled {
+			continue
+		}
 		if len(cats) > 0 && !catSet[p.category] {
 			continue
 		}
 		byCategory[p.category] = append(byCategory[p.category], p)
 	}
+	// Include externally registered non-bundle patterns so Register() callers are scanned
+	for _, p := range registry {
+		if _, ok := p.(*bundlePattern); ok {
+			continue
+		}
+		cat := p.Category()
+		if len(cats) > 0 && !catSet[cat] {
+			continue
+		}
+		byCategory[cat] = append(byCategory[cat], p)
+	}
 
 	activeScanners = nil
 	for _, patterns := range byCategory {
-		parts := make([]string, 0, len(patterns))
+		// Split bundle patterns (have a match regex) from external patterns (don't)
+		var bundlePs, extPs []Pattern
 		for _, p := range patterns {
-			if bp, ok := p.(*bundlePattern); ok {
-				parts = append(parts, "(?:"+bp.match+")")
+			if _, ok := p.(*bundlePattern); ok {
+				bundlePs = append(bundlePs, p)
+			} else {
+				extPs = append(extPs, p)
 			}
 		}
-		combined, err := regexp.Compile(strings.Join(parts, "|"))
-		if err != nil {
-			continue
+		if len(bundlePs) > 0 {
+			parts := make([]string, 0, len(bundlePs))
+			for _, p := range bundlePs {
+				parts = append(parts, "(?:"+p.(*bundlePattern).match+")")
+			}
+			combined, err := regexp.Compile(strings.Join(parts, "|"))
+			if err == nil {
+				activeScanners = append(activeScanners, categoryScanner{combined: combined, patterns: bundlePs})
+			}
 		}
-		activeScanners = append(activeScanners, categoryScanner{
-			combined: combined,
-			patterns: patterns,
-		})
+		if len(extPs) > 0 {
+			// External patterns have no regex to pre-filter with; use empty (matches all)
+			combined := regexp.MustCompile("")
+			activeScanners = append(activeScanners, categoryScanner{combined: combined, patterns: extPs})
+		}
 	}
 }
 
@@ -160,7 +188,8 @@ func DownloadBundle() error {
 		oldPatterns = append(oldPatterns, p.name)
 	}
 
-	resp, err := http.Get(url) //nolint:gosec
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Get(url) //nolint:gosec
 	if err != nil {
 		return err
 	}
@@ -230,7 +259,15 @@ func DownloadBundle() error {
 		fmt.Println("No pattern changes detected")
 	}
 
-	return os.WriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o644)
+	if err := os.WriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o644); err != nil {
+		return err
+	}
+	// Reload in-memory patterns so the current process uses the new bundle immediately
+	if err := loadBundle(data); err != nil {
+		return err
+	}
+	SetActiveCategories(activeCategoryFilter)
+	return nil
 }
 
 func contains(slice []string, item string) bool {
@@ -296,15 +333,12 @@ func ListEnabledPatterns() []string {
 }
 
 func rebuildActiveScanners() {
-	var activeCats []string
-	catSeen := map[string]bool{}
-	for _, cs := range activeScanners {
-		for _, p := range cs.patterns {
-			if !catSeen[p.(*bundlePattern).category] {
-				activeCats = append(activeCats, p.(*bundlePattern).category)
-				catSeen[p.(*bundlePattern).category] = true
-			}
-		}
+	SetActiveCategories(activeCategoryFilter)
+}
+
+// EnableAllPatterns enables every pattern in the bundle, overriding any prior disable calls.
+func EnableAllPatterns() {
+	for _, p := range allPatterns {
+		p.enabled = true
 	}
-	SetActiveCategories(activeCats)
 }

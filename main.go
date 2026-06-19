@@ -27,7 +27,10 @@ func main() {
 		args = args[1:]
 	}
 
-	cats, args := parseCategories(args)
+	cats, args, enableAll := parseCategories(args)
+	if enableAll {
+		core.EnableAllPatterns()
+	}
 	core.SetActiveCategories(cats)
 
 	if len(args) == 0 {
@@ -131,10 +134,7 @@ func main() {
 	}
 }
 
-func parseCategories(args []string) ([]string, []string) {
-	var cats []string
-	var rest []string
-	all := false
+func parseCategories(args []string) (cats []string, rest []string, enableAll bool) {
 	for _, a := range args {
 		switch {
 		case strings.HasPrefix(a, "--categories="):
@@ -145,15 +145,12 @@ func parseCategories(args []string) ([]string, []string) {
 				}
 			}
 		case a == "--all":
-			all = true
+			enableAll = true
 		default:
 			rest = append(rest, a)
 		}
 	}
-	if all {
-		return nil, rest
-	}
-	return cats, rest
+	return
 }
 
 func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput bool) {
@@ -185,7 +182,7 @@ func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput bool) 
 func printJSONFindings(findings []core.Finding) {
 	items := make([]map[string]any, 0, len(findings))
 	for _, f := range findings {
-		items = append(items, map[string]any{"pattern": f.Pattern, "file": f.File, "line": f.Line, "match": f.Content})
+		items = append(items, map[string]any{"pattern": f.Pattern, "file": f.File, "line": f.Line, "match": redact(f.Content)})
 	}
 	if err := json.NewEncoder(os.Stdout).Encode(items); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
@@ -232,7 +229,7 @@ usage:
   atheon --env                       scan environment variables
   atheon --json <path>               print findings as JSON
   atheon --categories=<c1,c2> <path> scan specific categories
-  atheon --all <path>                scan all categories
+  atheon --all <path>                scan all patterns including disabled ones
   atheon list                        list loaded patterns
   atheon list categories             list available categories
   atheon enable <pattern>            enable a pattern

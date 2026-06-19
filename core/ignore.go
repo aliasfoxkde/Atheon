@@ -58,6 +58,7 @@ func (m *ignoreMatcher) matchesPath(path string) bool {
 }
 
 func ignorePatternToRegexp(pattern string) (*regexp.Regexp, error) {
+	trailingSlash := strings.HasSuffix(pattern, "/")
 	pattern = strings.TrimSuffix(pattern, "/")
 	if pattern == "" {
 		return nil, errors.New("empty pattern")
@@ -98,7 +99,13 @@ func ignorePatternToRegexp(pattern string) (*regexp.Regexp, error) {
 	if trailAll {
 		b.WriteString("/.*")
 	}
-	b.WriteString("$")
+	// A trailing-slash pattern (e.g. dist/) matches the directory and all its contents,
+	// allowing negation rules like !dist/keep.yaml to reach files inside.
+	if trailingSlash {
+		b.WriteString("(/.*)?$")
+	} else {
+		b.WriteString("$")
+	}
 	return regexp.Compile(b.String())
 }
 
