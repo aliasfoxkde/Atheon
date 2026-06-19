@@ -1,27 +1,2 @@
 name: typescript-any
 match: ':\s*any\b|as\s+any\b'
-severity: medium
-language: typescript
-category: web-development
-description: |
-  Using TypeScript 'any' type defeats the purpose of type checking
-  and can lead to runtime errors that TypeScript should catch.
-
-  Examples:
-  - function processData(data: any) { ... }
-  - const result = response as any
-  - let userData: any = getUserData()
-
-  Mitigation:
-  - Use specific types or interfaces
-  - Use 'unknown' for truly unknown data
-  - Use generics for type-safe reusable code
-  - Consider 'Record<string, unknown>' for object shapes
-
-  Better alternatives:
-  - any -> unknown (requires type guards)
-  - any -> Record<string, Type>
-  - any -> Specific interface or type
-references:
-  - https://www.typescriptlang.org/docs/handbook/2/basic-types.html
-  - https://www.typescriptlang.org/tsconfig#noImplicitAny

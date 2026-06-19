@@ -1,2 +1,2 @@
 name: missing-aria-label
-match: '<(?:button|a|div|span)[^>]*(?:onClick|onclick)[^>]*(?!aria-label)[^>]*(?!aria-labelledby)[^>]*>'
+match: '<(?:button|a|div|span)[^>]*(?:onClick|onclick)[^>]*>[^<]*$'
