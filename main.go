@@ -169,7 +169,7 @@ func cmdList(args []string) {
 		return
 	}
 	for _, p := range core.All() {
-		fmt.Println(p.Name())
+		fmt.Printf("%s [%s]\n", p.Name(), p.Category())
 	}
 	fmt.Printf("\n%d pattern(s) loaded\n", len(core.All()))
 }
