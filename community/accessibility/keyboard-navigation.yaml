@@ -1,5 +1,5 @@
 name: keyboard-navigation
-match: 'onClick(?=.*(?!\bonKeyDown))|onkeypress.*false'
+match: 'onClick.*onKeyPress.*false'
 severity: high
 language: javascript
 category: accessibility

@@ -1,5 +1,5 @@
 name: nextjs
-match: 'useEffect.*\[\].*fetch|export default.*function.*props(?!\s*React\.memo)|getStaticPaths.*fallback.*false'
+match: 'useEffect.*\[\].*fetch|export default.*function.*props|getStaticPaths.*fallback.*false'
 severity: medium
 language: javascript
 category: web-development

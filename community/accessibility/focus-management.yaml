@@ -1,5 +1,5 @@
 name: focus-management
-match: 'tabIndex.*-1(?=.*(?!\s*aria-label))|useEffect.*focus.*\[\]'
+match: 'tabIndex.*-1.*aria-label|useEffect.*focus.*\[\]'
 severity: medium
 language: javascript
 category: accessibility

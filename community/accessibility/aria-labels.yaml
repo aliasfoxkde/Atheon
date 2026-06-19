@@ -1,5 +1,5 @@
 name: aria-labels
-match: '<button[^>]*>(?!\s*(?:<svg|<[a-z]+|[\w\s]{1,50}<))|<img[^>]*(?!alt=)'
+match: '<button[^>]*>[^<]*$|<img[^>]*alt='
 severity: high
 language: html
 category: accessibility
