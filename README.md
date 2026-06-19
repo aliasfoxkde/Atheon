@@ -358,7 +358,15 @@ The folder name becomes the category. No engine changes, no recompile needed.
 ### **Enhanced Fork**
 - **Maintainer**: Micheal Kinney (aliasfoxkde)
 - **Repository**: [https://github.com/aliasfoxkde/Atheon](https://github.com/aliasfoxkde/Atheon)
+- **Portfolio**: [https://openportfolio.pages.dev](https://openportfolio.pages.dev)
 - **Enhancement Purpose**: Advanced features, performance optimizations, comprehensive testing
+
+### **Related Projects**
+- **Atheon-Benchmark**: [https://github.com/aliasfoxkde/Atheon-Benchmark](https://github.com/aliasfoxkde/Atheon-Benchmark) - Performance testing and benchmarking tools
+- **Atheon-GitHub-Scanner**: [https://github.com/aliasfoxkde/Atheon-GitHub-Scanner](https://github.com/aliasfoxkde/Atheon-GitHub-Scanner) - GitHub repository scanning automation
+
+### **Development Assistance**
+This enhanced version includes development support using TaskWizer technologies for systematic testing, documentation generation, and quality assurance.
 
 ### **Contributors**
 Both the upstream project and this enhanced fork are built by the community. Every pattern contributed benefits all users.
