@@ -215,7 +215,8 @@ jobs:
 
           if [ -f scan-results/security-findings.json ]; then
             echo "### Findings Overview" >> security-summary.md
-            jq -r '"- Total: \(.[]) | length" findings' scan-results/security-findings.json >> security-summary.md
+            TOTAL=$(jq 'length' scan-results/security-findings.json 2>/dev/null || echo "0")
+            echo "- Total: $TOTAL findings" >> security-summary.md
           fi
 
           cat security-summary.md
