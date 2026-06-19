@@ -6,7 +6,7 @@
 
 ![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Patterns](https://img.shields.io/badge/patterns-105%2B-blueviolet)
+![Patterns](https://img.shields.io/badge/patterns-152%2B-blueviolet)
 ![CI](https://github.com/aliasfoxkde/Atheon/actions/workflows/comprehensive-ci.yml/badge.svg)
 ![Stars](https://img.shields.io/github/stars/aliasfoxkde/Atheon?style=social)
 
@@ -31,7 +31,7 @@
 ### **Enhanced aliasfoxkde/Atheon (Atheon-Enhanced)** - Feature-Rich Testing Build
 - **Purpose**: Experimental "nightly build" testing the limits of pattern matching
 - **Focus**: Performance optimizations, advanced features, comprehensive pattern coverage
-- **Patterns**: 85 patterns (community-driven, battle-tested)
+- **Patterns**: 152 patterns (community-driven, comprehensive coverage)
 - **Update cadence**: Frequent updates with latest features and enhancements
 - **Best for**: Power users, CI/CD integration, comprehensive security scanning
 
@@ -351,10 +351,16 @@ atheon --profile config/profiles/pipeline.json ./my-project
 - ✅ **Performance Benchmarks**: Track improvements over time
 
 ### **Expanded Pattern Library**
-- ✅ **85 patterns** across 10 categories
-- ✅ **New categories**: AI detection, DevOps, quality enforcement
-- ✅ **API Key Patterns**: Stripe, Slack, GitHub, Heroku, JWT, Google, Mailchimp, GitLab, Twilio, SendGrid, Firebase, Azure
-- ✅ **Quality Patterns**: Git --force detection, test skipping, insecure flags, AI shortcuts
+- ✅ **152 patterns** across 19 categories
+- ✅ **New categories**: Accessibility, Performance, Web Development, API Integration, Security Hardening, Cloud-Native, PWA, Data Visualization
+- ✅ **Enhanced coverage**: Modern web development, security best practices, performance optimization
+- ✅ **AI Detection Patterns**: AI-generated code identification, template detection, safety bypasses
+- ✅ **DevOps Patterns**: CI/CD configurations, Docker, Kubernetes, GitHub workflows
+- ✅ **Quality Patterns**: Git --force detection, test skipping, insecure flags, placeholder code
+- ✅ **Security Patterns**: Injection prevention, CORS issues, authentication, CSRF, XSS protection
+- ✅ **Performance Patterns**: N+1 queries, memory leaks, caching strategies, blocking operations
+- ✅ **Accessibility Patterns**: WCAG compliance, keyboard navigation, ARIA labels, semantic HTML
+- ✅ **API Patterns**: REST/GraphQL best practices, rate limiting, error handling, versioning
 
 ### **Advanced Functionality**
 - ✅ **Pattern Persistence**: Remember enabled/disabled patterns across sessions
@@ -374,7 +380,7 @@ atheon --profile config/profiles/pipeline.json ./my-project
 
 | Feature | Official HoraDomu/Atheon | Enhanced aliasfoxkde/Atheon |
 |---------|----------------------|---------------------------|
-| Pattern Count | 57 | 57 |
+| Pattern Count | 57 | 152 |
 | Memory Usage | Full file loading | Chunked streaming (10x reduction) |
 | Performance | Baseline | 2-3x faster |
 | MCP Integration | ✅ Basic | ✅ Enhanced with streaming |
@@ -408,9 +414,12 @@ atheon --profile config/profiles/pipeline.json ./my-project
 - ✅ Integration tests for all features
 
 ### **Quality Metrics**
-- **Test Coverage**: 69.8% (upstream: ~45%)
+- **Test Coverage**: 60.1% (comprehensive testing)
 - **CI/CD Pass Rate**: >95%
-- **Pattern Validation**: All patterns tested and functional
+- **Pattern Validation**: All 152 patterns tested and functional
+- **Pattern Coverage**: 19 categories with modern development support
+
+**📖 Detailed Documentation**: See [PATTERN_CATEGORIES.md](docs/PATTERN_CATEGORIES.md) for comprehensive pattern documentation
 
 </details>
 
