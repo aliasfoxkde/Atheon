@@ -179,14 +179,14 @@ func TestPatternCoverageValidation(t *testing.T) {
 		"finance":            3,
 		"healthcare":         7,
 		"nodejs":             1,
-		"performance":       12,
+		"performance":        12,
 		"pii":                3,
 		"pwa":                5,
 		"react":              1,
 		"secrets":            32,
 		"security-hardening": 14,
-		"web-development":   12,
-		"web-security":      11,
+		"web-development":    12,
+		"web-security":       11,
 	}
 
 	categoryCounts := make(map[string]int)
