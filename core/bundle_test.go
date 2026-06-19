@@ -204,6 +204,70 @@ func TestSetPatternEnabled(t *testing.T) {
 	}
 }
 
+// TestSetPatternEnabledTrue tests the SetPatternEnabled(name, true) path
+func TestSetPatternEnabledTrue(t *testing.T) {
+	patterns := core.All()
+	if len(patterns) == 0 {
+		t.Skip("No patterns available for testing")
+	}
+	name := patterns[0].Name()
+
+	// Make sure it starts enabled
+	core.EnablePattern(name)
+
+	originalEnabled := false
+	for _, p := range core.All() {
+		if p.Name() == name {
+			originalEnabled = p.Enabled()
+			break
+		}
+	}
+
+	// Use SetPatternEnabled to toggle
+	if !core.SetPatternEnabled(name, false) {
+		t.Fatal("SetPatternEnabled(name, false) returned false")
+	}
+
+	// Verify it's now disabled (removed from registry)
+	for _, p := range core.All() {
+		if p.Name() == name && p.Enabled() {
+			t.Errorf("Pattern %s should be disabled", name)
+		}
+	}
+
+	// Set back to true
+	if !core.SetPatternEnabled(name, true) {
+		t.Fatal("SetPatternEnabled(name, true) returned false")
+	}
+
+	// Verify it's enabled
+	found := false
+	for _, p := range core.All() {
+		if p.Name() == name {
+			if !p.Enabled() {
+				t.Errorf("Pattern %s should be enabled", name)
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("Pattern %s not found after re-enable", name)
+	}
+
+	// Restore
+	if !originalEnabled {
+		core.DisablePattern(name)
+	}
+}
+
+// TestSetPatternEnabledNotFound tests SetPatternEnabled with an unknown name
+func TestSetPatternEnabledNotFound(t *testing.T) {
+	if core.SetPatternEnabled("nonexistent-pattern-xyz", true) {
+		t.Error("SetPatternEnabled should return false for unknown pattern")
+	}
+}
+
 // TestListDisabledPatterns tests the ListDisabledPatterns function
 func TestListDisabledPatterns(t *testing.T) {
 	// First disable some patterns

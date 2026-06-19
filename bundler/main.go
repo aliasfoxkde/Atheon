@@ -81,19 +81,27 @@ func bundle(communityDir, outPath string) (int, error) {
 }
 
 func main() {
+	os.Exit(run(os.Args[1:]))
+}
+
+// run executes the bundler with the given args and returns the exit code.
+// This is separated from main() so tests can call it without os.Exit
+// terminating the test process.
+func run(args []string) int {
 	communityDir := "community"
 	outPath := filepath.Join("core", "patterns.bundle")
-	if len(os.Args) > 1 {
-		communityDir = os.Args[1]
+	if len(args) > 0 {
+		communityDir = args[0]
 	}
-	if len(os.Args) > 2 {
-		outPath = os.Args[2]
+	if len(args) > 1 {
+		outPath = args[1]
 	}
 
 	n, err := bundle(communityDir, outPath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
+		return 1
 	}
 	fmt.Printf("bundled %d patterns → %s\n", n, outPath)
+	return 0
 }
