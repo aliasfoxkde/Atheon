@@ -197,27 +197,42 @@ func cmdList(args []string) {
 		return
 	}
 
-	// Check if category filter is specified
 	var categoryFilter string
-	if len(args) > 0 && strings.HasPrefix(args[0], "--category=") {
-		categoryFilter = strings.TrimPrefix(args[0], "--category=")
-	}
-
-	patterns := core.All()
-	if categoryFilter != "" {
-		filtered := make([]core.Pattern, 0)
-		for _, p := range patterns {
-			if p.Category() == categoryFilter {
-				filtered = append(filtered, p)
-			}
+	showEnabled := false
+	showDisabled := false
+	for _, a := range args {
+		switch {
+		case strings.HasPrefix(a, "--category="):
+			categoryFilter = strings.TrimPrefix(a, "--category=")
+		case a == "--enabled":
+			showEnabled = true
+		case a == "--disabled":
+			showDisabled = true
 		}
-		patterns = filtered
 	}
 
-	for _, p := range patterns {
-		fmt.Printf("%s [%s]\n", p.Name(), p.Category())
+	var filtered []core.Pattern
+	for _, p := range core.All() {
+		if categoryFilter != "" && p.Category() != categoryFilter {
+			continue
+		}
+		if showEnabled && !p.Enabled() {
+			continue
+		}
+		if showDisabled && p.Enabled() {
+			continue
+		}
+		filtered = append(filtered, p)
 	}
-	fmt.Printf("\n%d pattern(s) loaded\n", len(patterns))
+
+	for _, p := range filtered {
+		status := "enabled"
+		if !p.Enabled() {
+			status = "disabled"
+		}
+		fmt.Printf("%s [%s] [%s]\n", p.Name(), p.Category(), status)
+	}
+	fmt.Printf("\n%d pattern(s)\n", len(filtered))
 }
 
 func printHelp() {
@@ -230,7 +245,9 @@ usage:
   atheon --json <path>               print findings as JSON
   atheon --categories=<c1,c2> <path> scan specific categories
   atheon --all <path>                scan all patterns including disabled ones
-  atheon list                        list loaded patterns
+  atheon list                        list all patterns with enabled/disabled status
+  atheon list --enabled              list only enabled patterns
+  atheon list --disabled             list only disabled patterns
   atheon list categories             list available categories
   atheon enable <pattern>            enable a pattern
   atheon disable <pattern>           disable a pattern
