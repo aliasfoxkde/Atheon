@@ -155,24 +155,24 @@ func TestPatternCoverageValidation(t *testing.T) {
 
 	// Ensure we have all expected categories
 	expectedCategories := map[string]int{
-		"accessibility":      6,
+		"accessibility":      8,
 		"ai-detection":       6,
-		"api-integration":    4,
-		"cloud-native":       2,
+		"api-integration":    8,
+		"cloud-native":       6,
 		"code-quality":       25,
-		"data-visualization": 1,
+		"data-visualization": 5,
 		"devops":             6,
 		"django":             1,
 		"finance":            3,
 		"healthcare":         7,
 		"nodejs":             1,
-		"performance":        5,
+		"performance":        9,
 		"pii":                3,
-		"pwa":                1,
+		"pwa":                5,
 		"react":              1,
 		"secrets":            32,
-		"security-hardening": 4,
-		"web-development":    3,
+		"security-hardening": 8,
+		"web-development":    7,
 		"web-security":       7,
 	}
 
@@ -192,7 +192,7 @@ func TestPatternCoverageValidation(t *testing.T) {
 
 	// Total pattern count
 	totalPatterns := len(patterns)
-	expectedTotal := 118
+	expectedTotal := 148
 	if totalPatterns != expectedTotal {
 		t.Errorf("Expected %d total patterns, got %d", expectedTotal, totalPatterns)
 	}
