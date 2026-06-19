@@ -2,7 +2,7 @@ name: Security Scanning and Vulnerability Assessment
 
 on:
   push:
-    branches: [ main, dev/full-feature ]
+    branches: [ main, dev/full-feature, 'infra/**' ]
   pull_request:
     branches: [ main, dev/full-feature, stable/clean ]
   schedule:
