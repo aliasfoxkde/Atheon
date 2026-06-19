@@ -1,0 +1,2 @@
+name: form-validation
+match: 'form.*onSubmit.*preventDefault|input.*required.*false|pattern.*validation'
