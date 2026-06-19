@@ -381,7 +381,6 @@ func removePatternFromRegistry(p *bundlePattern) {
 	registry = newRegistry
 }
 
-
 // rebuildRegistry rebuilds the registry from allPatterns, respecting enabled state
 func rebuildRegistry() {
 	registry = nil
