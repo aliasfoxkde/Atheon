@@ -183,16 +183,17 @@ func TestSetPatternEnabled(t *testing.T) {
 
 	// Test setting to false
 	core.DisablePattern(testPatternName)
-	// Need to find the pattern again to check its state
-	disabled := true
+	// After disable, the pattern is removed from the registry
+	// (our implementation removes disabled patterns from All())
+	disabled := false
 	for _, p := range core.All() {
 		if p.Name() == testPatternName {
-			disabled = p.Enabled()
+			disabled = true
 			break
 		}
 	}
 	if disabled {
-		t.Error("Failed to disable pattern")
+		t.Error("Failed to disable pattern - pattern should be removed from registry")
 	}
 
 	// Restore original state
