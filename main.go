@@ -10,8 +10,17 @@ import (
 	"atheon/core"
 )
 
+// version is injected at build time via ldflags
+var version = "dev"
+
 func main() {
 	args := os.Args[1:]
+
+	// Handle --version flag
+	if len(args) > 0 && args[0] == "--version" {
+		fmt.Printf("atheon %s\n", version)
+		os.Exit(0)
+	}
 
 	jsonOutput := len(args) > 0 && args[0] == "--json"
 	if jsonOutput {
