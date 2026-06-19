@@ -300,14 +300,6 @@ jobs:
             coverage.html
           retention-days: 30
 
-      - name: Comment coverage on PR
-        if: github.event_name == 'pull_request'
-        uses: madrapps/lcov-comment-on-pr@v9
-        with:
-          lcov-file: ./coverage.out
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
-
   quality-dashboard:
     name: Quality Dashboard
     runs-on: ubuntu-latest
