@@ -39,6 +39,7 @@ jobs:
             exit 1
           fi
           echo "✅ Coverage $COVERAGE% meets threshold"
+        shell: bash
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
