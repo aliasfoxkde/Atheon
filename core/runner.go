@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -23,11 +24,10 @@ var binaryExts = map[string]bool{
 func loadIgnorePatternsMatcher(root string) []*ignoreMatcher {
 	var matchers []*ignoreMatcher
 	for _, name := range []string{".atheonignore", ".gitignore"} {
-		m, err := compileIgnoreFile(filepath.Join(root, name))
-		if err != nil {
-			continue
+		m, _ := compileIgnoreFile(filepath.Join(root, name))
+		if m != nil {
+			matchers = append(matchers, m)
 		}
-		matchers = append(matchers, m)
 	}
 	return matchers
 }
@@ -100,8 +100,10 @@ func ScanDir(root string) ([]Finding, *Stats, error) {
 
 	results := make([][]Finding, len(paths))
 	sizes := make([]int64, len(paths))
+	scanned := make([]bool, len(paths))
 	var wg sync.WaitGroup
-	sem := make(chan struct{}, 256)
+	workers := max(8, runtime.NumCPU()*8)
+	sem := make(chan struct{}, workers)
 
 	for i, p := range paths {
 		wg.Add(1)
@@ -115,19 +117,24 @@ func ScanDir(root string) ([]Finding, *Stats, error) {
 			}
 			results[i] = scanLines(string(data), p)
 			sizes[i] = int64(len(data))
+			scanned[i] = true
 		}(i, p)
 	}
 	wg.Wait()
 
 	var findings []Finding
 	var totalBytes int64
+	var filesScanned int
 	for i := range results {
+		if scanned[i] {
+			filesScanned++
+		}
 		findings = append(findings, results[i]...)
 		totalBytes += sizes[i]
 	}
 
 	return findings, &Stats{
-		Files:     len(paths),
+		Files:     filesScanned,
 		Bytes:     totalBytes,
 		ElapsedMs: time.Since(start).Milliseconds(),
 	}, nil
