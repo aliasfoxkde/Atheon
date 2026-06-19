@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -30,9 +31,16 @@ type rpcError struct {
 }
 
 func main() {
-	sc := bufio.NewScanner(os.Stdin)
+	os.Exit(run(os.Stdin, os.Stdout))
+}
+
+// run executes the JSON-RPC loop reading from r and writing to w, returning
+// the exit code. Separated from main() so tests can call it without os.Exit
+// terminating the test process.
+func run(r io.Reader, w io.Writer) int {
+	sc := bufio.NewScanner(r)
 	sc.Buffer(make([]byte, 1<<20), 1<<20)
-	enc := json.NewEncoder(os.Stdout)
+	enc := json.NewEncoder(w)
 
 	for sc.Scan() {
 		var req request
@@ -67,8 +75,9 @@ func main() {
 		} else {
 			resp.Result = result
 		}
-		enc.Encode(resp) //nolint:errcheck
+		_ = enc.Encode(resp)
 	}
+	return 0
 }
 
 func toolList() []map[string]any {
