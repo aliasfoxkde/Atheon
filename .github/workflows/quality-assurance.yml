@@ -302,10 +302,11 @@ jobs:
 
       - name: Comment coverage on PR
         if: github.event_name == 'pull_request'
-        uses: romeovs/lcov-comment-on-pr@v9
+        uses: madrapps/lcov-comment-on-pr@v9
         with:
           lcov-file: ./coverage.out
           github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
   quality-dashboard:
     name: Quality Dashboard
