@@ -29,7 +29,7 @@ jobs:
 
       - name: Scan codebase with Atheon
         run: |
-          ./atheon . --all --json > security-findings.json
+          ./atheon . --all --json > security-findings.json || echo "Security findings detected"
 
       - name: Analyze findings
         run: |
