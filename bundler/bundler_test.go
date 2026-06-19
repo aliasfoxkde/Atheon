@@ -1,150 +1,172 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
-func TestBundlerValidation(t *testing.T) {
-	// Create temporary directory structure
-	tmpDir := t.TempDir()
-	communityDir := filepath.Join(tmpDir, "community")
-	secretsDir := filepath.Join(communityDir, "secrets")
-
-	if err := os.MkdirAll(secretsDir, 0o755); err != nil {
+func setupCommunity(t *testing.T, files map[string]string) (communityDir string) {
+	t.Helper()
+	tmp := t.TempDir()
+	communityDir = filepath.Join(tmp, "community")
+	if err := os.MkdirAll(communityDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-
-	// Create test pattern file
-	patternContent := `name: test-api-key
-match: '\btest_[A-Z0-9]{32}\b'
-`
-	patternFile := filepath.Join(secretsDir, "test-key.yaml")
-	if err := os.WriteFile(patternFile, []byte(patternContent), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	// Test that pattern file can be read
-	data, err := os.ReadFile(patternFile)
-	if err != nil {
-		t.Fatalf("failed to read pattern file: %v", err)
-	}
-
-	if len(data) == 0 {
-		t.Error("pattern file is empty")
-	}
-
-	// Verify pattern content contains expected fields
-	content := string(data)
-	if !contains(content, "name:") {
-		t.Error("pattern file missing 'name' field")
-	}
-
-	if !contains(content, "match:") {
-		t.Error("pattern file missing 'match' field")
-	}
-}
-
-func TestBundlerEnabledField(t *testing.T) {
-	// Create temporary directory structure
-	tmpDir := t.TempDir()
-	communityDir := filepath.Join(tmpDir, "community")
-	secretsDir := filepath.Join(communityDir, "secrets")
-
-	if err := os.MkdirAll(secretsDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create pattern file with enabled=false
-	patternContent := `name: disabled-key
-match: '\bdisabled_[A-Z0-9]{32}\b'
-enabled: false
-`
-	patternFile := filepath.Join(secretsDir, "disabled-key.yaml")
-	if err := os.WriteFile(patternFile, []byte(patternContent), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	// Test that pattern file can be read
-	data, err := os.ReadFile(patternFile)
-	if err != nil {
-		t.Fatalf("failed to read pattern file: %v", err)
-	}
-
-	content := string(data)
-	if !contains(content, "enabled: false") {
-		t.Error("pattern file missing 'enabled: false' field")
-	}
-}
-
-func TestBundlerHandlesInvalidYAML(t *testing.T) {
-	// Create temporary directory structure
-	tmpDir := t.TempDir()
-	communityDir := filepath.Join(tmpDir, "community")
-	secretsDir := filepath.Join(communityDir, "secrets")
-
-	if err := os.MkdirAll(secretsDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create invalid YAML file
-	invalidPattern := `name: test-key
-match: [invalid yaml
-`
-	patternFile := filepath.Join(secretsDir, "invalid.yaml")
-	if err := os.WriteFile(patternFile, []byte(invalidPattern), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	// Test that file can be created (even if invalid)
-	_, err := os.ReadFile(patternFile)
-	if err != nil {
-		t.Fatalf("failed to read invalid pattern file: %v", err)
-	}
-
-	// If we got here without panic, the test passes
-}
-
-func TestBundlerHandlesMissingFields(t *testing.T) {
-	// Create temporary directory structure
-	tmpDir := t.TempDir()
-	communityDir := filepath.Join(tmpDir, "community")
-	secretsDir := filepath.Join(communityDir, "secrets")
-
-	if err := os.MkdirAll(secretsDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create pattern file missing required fields
-	incompletePattern := `name: incomplete-key
-`
-	patternFile := filepath.Join(secretsDir, "incomplete.yaml")
-	if err := os.WriteFile(patternFile, []byte(incompletePattern), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	// Test that file can be created (even if incomplete)
-	data, err := os.ReadFile(patternFile)
-	if err != nil {
-		t.Fatalf("failed to read incomplete pattern file: %v", err)
-	}
-
-	content := string(data)
-	if !contains(content, "name:") {
-		t.Error("pattern file should have 'name' field")
-	}
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) && (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr || containsMiddle(s, substr)))
-}
-
-func containsMiddle(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
+	for rel, content := range files {
+		path := filepath.Join(communityDir, rel)
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
 		}
 	}
-	return false
+	return communityDir
+}
+
+func readBundle(t *testing.T, path string) []patternDef {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read bundle: %v", err)
+	}
+	r, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("gzip open: %v", err)
+	}
+	defer r.Close()
+	var defs []patternDef
+	if err := json.NewDecoder(r).Decode(&defs); err != nil {
+		t.Fatalf("json decode: %v", err)
+	}
+	return defs
+}
+
+func TestBundleBasic(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/api-key.yaml": "name: test-api-key\nmatch: '\\bTEST_[A-Z0-9]{32}\\b'\n",
+	})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 1 {
+		t.Fatalf("expected 1 pattern, got %d", n)
+	}
+
+	defs := readBundle(t, out)
+	if len(defs) != 1 {
+		t.Fatalf("expected 1 def in bundle, got %d", len(defs))
+	}
+	d := defs[0]
+	if d.Name != "test-api-key" {
+		t.Errorf("name = %q, want test-api-key", d.Name)
+	}
+	if d.Category != "secrets" {
+		t.Errorf("category = %q, want secrets", d.Category)
+	}
+	if !d.Enabled {
+		t.Error("enabled should default to true")
+	}
+}
+
+func TestBundleEnabledFalse(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/disabled.yaml": "name: disabled-key\nmatch: '\\bDIS_[A-Z0-9]{32}\\b'\nenabled: false\n",
+	})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 1 {
+		t.Fatalf("expected 1 pattern, got %d", n)
+	}
+
+	defs := readBundle(t, out)
+	if defs[0].Enabled {
+		t.Error("enabled should be false")
+	}
+}
+
+func TestBundleMultipleCategories(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/key.yaml": "name: secret-key\nmatch: 'sk_[a-z0-9]{32}'\n",
+		"tokens/jwt.yaml":  "name: jwt-token\nmatch: 'eyJ[A-Za-z0-9_-]+\\.eyJ'\n",
+	})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 2 {
+		t.Fatalf("expected 2 patterns, got %d", n)
+	}
+}
+
+func TestBundleInvalidYAML(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/bad.yaml": "name: bad\nmatch: [unclosed\n",
+	})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	_, err := bundle(community, out)
+	if err == nil {
+		t.Error("expected error for invalid YAML, got nil")
+	}
+}
+
+func TestBundleMissingMatch(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/incomplete.yaml": "name: incomplete-key\n",
+	})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	_, err := bundle(community, out)
+	if err == nil {
+		t.Error("expected error for missing match field, got nil")
+	}
+}
+
+func TestBundleMissingName(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/noname.yaml": "match: 'something'\n",
+	})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	_, err := bundle(community, out)
+	if err == nil {
+		t.Error("expected error for missing name field, got nil")
+	}
+}
+
+func TestBundleEmptyDirectory(t *testing.T) {
+	community := setupCommunity(t, map[string]string{})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 0 {
+		t.Errorf("expected 0 patterns, got %d", n)
+	}
+}
+
+func TestBundleBadOutputPath(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/key.yaml": "name: k\nmatch: 'x'\n",
+	})
+	_, err := bundle(community, "/nonexistent/dir/out.bundle")
+	if err == nil {
+		t.Error("expected error for bad output path, got nil")
+	}
 }

@@ -26,16 +26,7 @@ type patternDef struct {
 	Enabled  bool   `json:"enabled"`
 }
 
-func main() {
-	communityDir := "community"
-	outPath := filepath.Join("core", "patterns.bundle")
-	if len(os.Args) > 1 {
-		communityDir = os.Args[1]
-	}
-	if len(os.Args) > 2 {
-		outPath = os.Args[2]
-	}
-
+func bundle(communityDir, outPath string) (int, error) {
 	var defs []patternDef
 	err := filepath.WalkDir(communityDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || !strings.HasSuffix(path, ".yaml") {
@@ -66,30 +57,43 @@ func main() {
 		return nil
 	})
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
+		return 0, err
 	}
 
 	jsonBytes, err := json.Marshal(defs)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
+		return 0, err
 	}
 
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 	if _, err := gz.Write(jsonBytes); err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
+		return 0, err
 	}
 	if err := gz.Close(); err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
+		return 0, err
 	}
 
 	if err := os.WriteFile(outPath, buf.Bytes(), 0o644); err != nil {
+		return 0, err
+	}
+	return len(defs), nil
+}
+
+func main() {
+	communityDir := "community"
+	outPath := filepath.Join("core", "patterns.bundle")
+	if len(os.Args) > 1 {
+		communityDir = os.Args[1]
+	}
+	if len(os.Args) > 2 {
+		outPath = os.Args[2]
+	}
+
+	n, err := bundle(communityDir, outPath)
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
-	fmt.Printf("bundled %d patterns → %s\n", len(defs), outPath)
+	fmt.Printf("bundled %d patterns → %s\n", n, outPath)
 }

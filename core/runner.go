@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -101,7 +102,8 @@ func ScanDir(root string) ([]Finding, *Stats, error) {
 	results := make([][]Finding, len(paths))
 	sizes := make([]int64, len(paths))
 	var wg sync.WaitGroup
-	sem := make(chan struct{}, 256)
+	workers := max(8, runtime.NumCPU()*8)
+	sem := make(chan struct{}, workers)
 
 	for i, p := range paths {
 		wg.Add(1)
