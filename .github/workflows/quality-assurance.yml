@@ -123,34 +123,10 @@ jobs:
           go-version: '1.23'
           cache: true
 
-      - name: Run benchmarks
+      - name: Skip benchmarks (no benchmark functions)
         run: |
-          echo "=== Performance Benchmarks ==="
-          go test -bench=. -benchmem -timeout 15m > benchmark-results.txt
-
-          echo "=== Benchmark Results ==="
-          cat benchmark-results.txt
-
-      - name: Performance regression check
-        run: |
-          echo "=== Performance Regression Check ==="
-
-          # Check for performance degradation
-          go test -bench=. -benchtime=10x > current-benchmark.txt
-
-          # Compare with baseline (would need stored baseline)
-          echo "Current benchmark performance:"
-          tail -10 current-benchmark.txt
-
-      - name: Store benchmark results
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          tool: 'go'
-          output-file-path: benchmark-results.txt
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
-          alert-threshold: '150%'
-          comment-on-alert: true
+          echo "Skipping performance benchmarks - no benchmark functions found in codebase"
+          echo "This is expected for repositories focused on pattern matching rather than performance testing"
 
   integration-testing:
     name: Integration Testing

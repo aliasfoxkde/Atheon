@@ -122,32 +122,10 @@ jobs:
           go-version: '1.23'
           cache: true
 
-      - name: Run benchmarks
+      - name: Skip benchmarks (no benchmark functions)
         run: |
-          echo "Running Go benchmarks..."
-          if go test -bench=. -benchmem ./... > benchmark-results.txt 2>&1; then
-            echo "Benchmarks completed successfully"
-          else
-            echo "No benchmarks found - creating placeholder"
-            echo "# No benchmark results found in this repository" > benchmark-results.txt
-            echo "# This is expected for repositories without benchmark tests" >> benchmark-results.txt
-          fi
-
-          if [ ! -s benchmark-results.txt ] || grep -q "usage:" benchmark-results.txt; then
-            echo "Invalid or empty benchmark output - creating placeholder"
-            echo "# Benchmark placeholder" > benchmark-results.txt
-            echo "# Repository has no benchmark functions" >> benchmark-results.txt
-          fi
-
-      - name: Store benchmark results
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          tool: 'go'
-          output-file-path: benchmark-results.txt
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          alert-threshold: '200%'
-          comment-on-alert: false
+          echo "Skipping performance benchmarks - no benchmark functions found in codebase"
+          echo "This is expected for repositories focused on pattern matching rather than performance testing"
 
   build-binaries:
     name: Build Binaries
