@@ -366,27 +366,6 @@ func EnableAllPatterns() {
 	rebuildActiveScanners()
 }
 
-// isPatternInRegistry checks if a pattern is currently in the registry
-func isPatternInRegistry(p *bundlePattern) bool {
-	for _, regPattern := range registry {
-		if regPattern.Name() == p.name {
-			return true
-		}
-	}
-	return false
-}
-
-// removePatternFromRegistry removes a pattern from the registry
-func removePatternFromRegistry(p *bundlePattern) {
-	var newRegistry []Pattern
-	for _, regPattern := range registry {
-		if regPattern.Name() != p.name {
-			newRegistry = append(newRegistry, regPattern)
-		}
-	}
-	registry = newRegistry
-}
-
 // rebuildRegistry rebuilds the registry from allPatterns, respecting enabled state
 func rebuildRegistry() {
 	registry = nil
