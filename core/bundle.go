@@ -60,6 +60,12 @@ func init() {
 		fmt.Fprintf(os.Stderr, "atheon: bundle load failed: %v\n", err)
 	}
 	SetActiveCategories(nil)
+
+	// Load pattern state after bundle is loaded
+	if err := InitializePatternState(); err != nil {
+		// Non-fatal error, just log warning
+		fmt.Fprintf(os.Stderr, "atheon: pattern state initialization failed: %v\n", err)
+	}
 }
 
 func loadBundle(data []byte) error {
@@ -120,6 +126,9 @@ func SetActiveCategories(cats []string) {
 			continue
 		}
 		if len(cats) > 0 && !catSet[p.category] {
+			continue
+		}
+		if !p.enabled {
 			continue
 		}
 		byCategory[p.category] = append(byCategory[p.category], p)
@@ -283,7 +292,11 @@ func EnablePattern(name string) bool {
 	for _, p := range allPatterns {
 		if p.name == name {
 			p.enabled = true
+			rebuildRegistry()
 			rebuildActiveScanners()
+			if err := syncPatternState(); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to save pattern state: %v\n", err)
+			}
 			return true
 		}
 	}
@@ -294,7 +307,11 @@ func DisablePattern(name string) bool {
 	for _, p := range allPatterns {
 		if p.name == name {
 			p.enabled = false
+			rebuildRegistry()
 			rebuildActiveScanners()
+			if err := syncPatternState(); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to save pattern state: %v\n", err)
+			}
 			return true
 		}
 	}
@@ -340,5 +357,37 @@ func rebuildActiveScanners() {
 func EnableAllPatterns() {
 	for _, p := range allPatterns {
 		p.enabled = true
+	}
+}
+
+// isPatternInRegistry checks if a pattern is currently in the registry
+func isPatternInRegistry(p *bundlePattern) bool {
+	for _, regPattern := range registry {
+		if regPattern.Name() == p.name {
+			return true
+		}
+	}
+	return false
+}
+
+// removePatternFromRegistry removes a pattern from the registry
+func removePatternFromRegistry(p *bundlePattern) {
+	var newRegistry []Pattern
+	for _, regPattern := range registry {
+		if regPattern.Name() != p.name {
+			newRegistry = append(newRegistry, regPattern)
+		}
+	}
+	registry = newRegistry
+}
+
+
+// rebuildRegistry rebuilds the registry from allPatterns, respecting enabled state
+func rebuildRegistry() {
+	registry = nil
+	for _, p := range allPatterns {
+		if p.enabled {
+			Register(p)
+		}
 	}
 }
