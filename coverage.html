@@ -55,17 +55,21 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">atheon/bundler/main.go (0.0%)</option>
+				<option value="file0">atheon/bundler/main.go (65.1%)</option>
 				
-				<option value="file1">atheon/cmd/mcp/main.go (0.0%)</option>
+				<option value="file1">atheon/cmd/mcp/main.go (60.3%)</option>
 				
-				<option value="file2">atheon/core/bundle.go (53.6%)</option>
+				<option value="file2">atheon/core/bundle.go (54.4%)</option>
 				
-				<option value="file3">atheon/core/pattern.go (100.0%)</option>
+				<option value="file3">atheon/core/ignore.go (70.8%)</option>
 				
-				<option value="file4">atheon/core/runner.go (91.0%)</option>
+				<option value="file4">atheon/core/pattern.go (100.0%)</option>
 				
-				<option value="file5">atheon/main.go (0.0%)</option>
+				<option value="file5">atheon/core/pattern_state.go (78.4%)</option>
+				
+				<option value="file6">atheon/core/runner.go (91.1%)</option>
+				
+				<option value="file7">atheon/main.go (43.9%)</option>
 				
 				</select>
 			</div>
@@ -95,14 +99,70 @@ import (
 )
 
 type patternFile struct {
-        Name  string `yaml:"name"`
-        Match string `yaml:"match"`
+        Name    string `yaml:"name"`
+        Match   string `yaml:"match"`
+        Enabled *bool  `yaml:"enabled,omitempty"`
 }
 
 type patternDef struct {
         Name     string `json:"name"`
         Category string `json:"category"`
         Match    string `json:"match"`
+        Enabled  bool   `json:"enabled"`
+}
+
+func bundle(communityDir, outPath string) (int, error) <span class="cov8" title="1">{
+        var defs []patternDef
+        err := filepath.WalkDir(communityDir, func(path string, d fs.DirEntry, err error) error </span><span class="cov8" title="1">{
+                if err != nil || d.IsDir() || !strings.HasSuffix(path, ".yaml") </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">data, err := os.ReadFile(path)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">var pf patternFile
+                if err := yaml.Unmarshal(data, &amp;pf); err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("%s: %w", path, err)
+                }</span>
+                <span class="cov8" title="1">if pf.Name == "" || pf.Match == "" </span><span class="cov8" title="1">{
+                        return fmt.Errorf("%s: missing name or match", path)
+                }</span>
+                <span class="cov8" title="1">category := filepath.Base(filepath.Dir(path))
+                enabled := true
+                if pf.Enabled != nil </span><span class="cov8" title="1">{
+                        enabled = *pf.Enabled
+                }</span>
+                <span class="cov8" title="1">defs = append(defs, patternDef{
+                        Name:     pf.Name,
+                        Category: category,
+                        Match:    pf.Match,
+                        Enabled:  enabled,
+                })
+                return nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">jsonBytes, err := json.Marshal(defs)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">var buf bytes.Buffer
+        gz := gzip.NewWriter(&amp;buf)
+        if _, err := gz.Write(jsonBytes); err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">if err := gz.Close(); err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">if err := os.WriteFile(outPath, buf.Bytes(), 0o644); err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">return len(defs), nil</span>
 }
 
 func main() <span class="cov0" title="0">{
@@ -115,51 +175,12 @@ func main() <span class="cov0" title="0">{
                 outPath = os.Args[2]
         }</span>
 
-        <span class="cov0" title="0">var defs []patternDef
-        err := filepath.WalkDir(communityDir, func(path string, d fs.DirEntry, err error) error </span><span class="cov0" title="0">{
-                if err != nil || d.IsDir() || !strings.HasSuffix(path, ".yaml") </span><span class="cov0" title="0">{
-                        return err
-                }</span>
-                <span class="cov0" title="0">data, err := os.ReadFile(path)
-                if err != nil </span><span class="cov0" title="0">{
-                        return err
-                }</span>
-                <span class="cov0" title="0">var pf patternFile
-                if err := yaml.Unmarshal(data, &amp;pf); err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("%s: %w", path, err)
-                }</span>
-                <span class="cov0" title="0">if pf.Name == "" || pf.Match == "" </span><span class="cov0" title="0">{
-                        return fmt.Errorf("%s: missing name or match", path)
-                }</span>
-                <span class="cov0" title="0">category := filepath.Base(filepath.Dir(path))
-                defs = append(defs, patternDef{
-                        Name:     pf.Name,
-                        Category: category,
-                        Match:    pf.Match,
-                })
-                return nil</span>
-        })
-        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
-                fmt.Fprintln(os.Stderr, "error:", err)
-                os.Exit(1)
-        }</span>
-
-        <span class="cov0" title="0">jsonBytes, err := json.Marshal(defs)
+        <span class="cov0" title="0">n, err := bundle(communityDir, outPath)
         if err != nil </span><span class="cov0" title="0">{
                 fmt.Fprintln(os.Stderr, "error:", err)
                 os.Exit(1)
         }</span>
-
-        <span class="cov0" title="0">var buf bytes.Buffer
-        gz := gzip.NewWriter(&amp;buf)
-        gz.Write(jsonBytes)
-        gz.Close()
-
-        if err := os.WriteFile(outPath, buf.Bytes(), 0o644); err != nil </span><span class="cov0" title="0">{
-                fmt.Fprintln(os.Stderr, "error:", err)
-                os.Exit(1)
-        }</span>
-        <span class="cov0" title="0">fmt.Printf("bundled %d patterns → %s\n", len(defs), outPath)</span>
+        <span class="cov0" title="0">fmt.Printf("bundled %d patterns → %s\n", n, outPath)</span>
 }
 </pre>
 		
@@ -236,11 +257,11 @@ func main() <span class="cov0" title="0">{
         }
 }
 
-func toolList() []map[string]any <span class="cov0" title="0">{
-        schema := func(required []string, props map[string]any) map[string]any </span><span class="cov0" title="0">{
+func toolList() []map[string]any <span class="cov8" title="1">{
+        schema := func(required []string, props map[string]any) map[string]any </span><span class="cov8" title="1">{
                 return map[string]any{"type": "object", "properties": props, "required": required}
         }</span>
-        <span class="cov0" title="0">str := map[string]any{"type": "string"}
+        <span class="cov8" title="1">str := map[string]any{"type": "string"}
         cats := map[string]any{"type": "array", "items": str, "description": "categories to scan (omit for all)"}
 
         return []map[string]any{
@@ -272,30 +293,30 @@ func toolList() []map[string]any <span class="cov0" title="0">{
         }</span>
 }
 
-func handleCall(params json.RawMessage) (any, *rpcError) <span class="cov0" title="0">{
+func handleCall(params json.RawMessage) (any, *rpcError) <span class="cov8" title="1">{
         var p struct {
                 Name      string          `json:"name"`
                 Arguments json.RawMessage `json:"arguments"`
         }
-        if err := json.Unmarshal(params, &amp;p); err != nil </span><span class="cov0" title="0">{
+        if err := json.Unmarshal(params, &amp;p); err != nil </span><span class="cov8" title="1">{
                 return nil, &amp;rpcError{Code: -32602, Message: "invalid params"}
         }</span>
 
-        <span class="cov0" title="0">switch p.Name </span>{
-        case "scan_string":<span class="cov0" title="0">
+        <span class="cov8" title="1">switch p.Name </span>{
+        case "scan_string":<span class="cov8" title="1">
                 var args struct {
                         Content    string   `json:"content"`
                         Source     string   `json:"source"`
                         Categories []string `json:"categories"`
                 }
                 json.Unmarshal(p.Arguments, &amp;args) //nolint:errcheck
-                if args.Source == "" </span><span class="cov0" title="0">{
+                if args.Source == "" </span><span class="cov8" title="1">{
                         args.Source = "stdin"
                 }</span>
-                <span class="cov0" title="0">core.SetActiveCategories(args.Categories)
+                <span class="cov8" title="1">core.SetActiveCategories(args.Categories)
                 return textResult(core.ScanString(args.Content, args.Source)), nil</span>
 
-        case "scan_file":<span class="cov0" title="0">
+        case "scan_file":<span class="cov8" title="1">
                 var args struct {
                         Path       string   `json:"path"`
                         Categories []string `json:"categories"`
@@ -303,12 +324,12 @@ func handleCall(params json.RawMessage) (any, *rpcError) <span class="cov0" titl
                 json.Unmarshal(p.Arguments, &amp;args) //nolint:errcheck
                 core.SetActiveCategories(args.Categories)
                 findings, _, err := core.ScanFile(args.Path)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         return nil, &amp;rpcError{Code: -32603, Message: err.Error()}
                 }</span>
                 <span class="cov0" title="0">return textResult(findings), nil</span>
 
-        case "scan_dir":<span class="cov0" title="0">
+        case "scan_dir":<span class="cov8" title="1">
                 var args struct {
                         Path       string   `json:"path"`
                         Categories []string `json:"categories"`
@@ -319,24 +340,24 @@ func handleCall(params json.RawMessage) (any, *rpcError) <span class="cov0" titl
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, &amp;rpcError{Code: -32603, Message: err.Error()}
                 }</span>
-                <span class="cov0" title="0">return textResult(findings), nil</span>
+                <span class="cov8" title="1">return textResult(findings), nil</span>
 
-        default:<span class="cov0" title="0">
+        default:<span class="cov8" title="1">
                 return nil, &amp;rpcError{Code: -32601, Message: "unknown tool: " + p.Name}</span>
         }
 }
 
-func textResult(findings []core.Finding) map[string]any <span class="cov0" title="0">{
+func textResult(findings []core.Finding) map[string]any <span class="cov8" title="1">{
         var sb strings.Builder
-        if len(findings) == 0 </span><span class="cov0" title="0">{
+        if len(findings) == 0 </span><span class="cov8" title="1">{
                 sb.WriteString("no findings")
-        }</span> else<span class="cov0" title="0"> {
-                for _, f := range findings </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> {
+                for _, f := range findings </span><span class="cov8" title="1">{
                         fmt.Fprintf(&amp;sb, "%s  %s:%d\n", f.Pattern, f.File, f.Line)
                 }</span>
-                <span class="cov0" title="0">fmt.Fprintf(&amp;sb, "\n%d finding(s)", len(findings))</span>
+                <span class="cov8" title="1">fmt.Fprintf(&amp;sb, "\n%d finding(s)", len(findings))</span>
         }
-        <span class="cov0" title="0">return map[string]any{
+        <span class="cov8" title="1">return map[string]any{
                 "content": []map[string]any{{"type": "text", "text": sb.String()}},
         }</span>
 }
@@ -356,6 +377,7 @@ import (
         "path/filepath"
         "regexp"
         "strings"
+        "time"
 )
 
 //go:embed patterns.bundle
@@ -365,17 +387,22 @@ type PatternDef struct {
         Name     string `json:"name"`
         Category string `json:"category"`
         Match    string `json:"match"`
+        Enabled  bool   `json:"enabled"`
 }
 
 type bundlePattern struct {
         name     string
         category string
         match    string
+        enabled  bool
         re       *regexp.Regexp
 }
 
 func (p *bundlePattern) Name() string             <span class="cov8" title="1">{ return p.name }</span>
-func (p *bundlePattern) Matches(line string) bool <span class="cov8" title="1">{ return p.re.MatchString(line) }</span>
+func (p *bundlePattern) Category() string         <span class="cov8" title="1">{ return p.category }</span>
+func (p *bundlePattern) Matches(line string) bool <span class="cov8" title="1">{ return p.enabled &amp;&amp; p.re.MatchString(line) }</span>
+func (p *bundlePattern) Enabled() bool            <span class="cov0" title="0">{ return p.enabled }</span>
+func (p *bundlePattern) SetEnabled(enabled bool)  <span class="cov0" title="0">{ p.enabled = enabled }</span>
 
 type categoryScanner struct {
         combined *regexp.Regexp
@@ -383,8 +410,9 @@ type categoryScanner struct {
 }
 
 var (
-        allPatterns    []*bundlePattern
-        activeScanners []categoryScanner
+        allPatterns          []*bundlePattern
+        activeScanners       []categoryScanner
+        activeCategoryFilter []string // nil = all categories; preserved across rebuildActiveScanners
 )
 
 func init() <span class="cov8" title="1">{
@@ -396,7 +424,13 @@ func init() <span class="cov8" title="1">{
         <span class="cov8" title="1">if err := loadBundle(data); err != nil </span><span class="cov0" title="0">{
                 fmt.Fprintf(os.Stderr, "atheon: bundle load failed: %v\n", err)
         }</span>
-        <span class="cov8" title="1">SetActiveCategories(nil)</span>
+        <span class="cov8" title="1">SetActiveCategories(nil)
+
+        // Load pattern state after bundle is loaded
+        if err := InitializePatternState(); err != nil </span><span class="cov0" title="0">{
+                // Non-fatal error, just log warning
+                fmt.Fprintf(os.Stderr, "atheon: pattern state initialization failed: %v\n", err)
+        }</span>
 }
 
 func loadBundle(data []byte) error <span class="cov8" title="1">{
@@ -420,61 +454,116 @@ func loadBundle(data []byte) error <span class="cov8" title="1">{
                         fmt.Fprintf(os.Stderr, "atheon: skipping %q: %v\n", def.Name, err)
                         continue</span>
                 }
-                <span class="cov8" title="1">bp := &amp;bundlePattern{name: def.Name, category: def.Category, match: def.Match, re: re}
+                <span class="cov8" title="1">bp := &amp;bundlePattern{name: def.Name, category: def.Category, match: def.Match, enabled: def.Enabled, re: re}
                 allPatterns = append(allPatterns, bp)
                 Register(bp)</span>
         }
+
+        // Old bundles predate the enabled field; JSON zero-value false means all appear
+        // disabled. Detect this and default everything to enabled.
+        <span class="cov8" title="1">anyEnabled := false
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                if p.enabled </span><span class="cov8" title="1">{
+                        anyEnabled = true
+                        break</span>
+                }
+        }
+        <span class="cov8" title="1">if !anyEnabled </span><span class="cov0" title="0">{
+                for _, p := range allPatterns </span><span class="cov0" title="0">{
+                        p.enabled = true
+                }</span>
+        }
+
         <span class="cov8" title="1">return nil</span>
 }
 
 func SetActiveCategories(cats []string) <span class="cov8" title="1">{
+        activeCategoryFilter = cats
+
         catSet := map[string]bool{}
-        for _, c := range cats </span><span class="cov0" title="0">{
+        for _, c := range cats </span><span class="cov8" title="1">{
                 catSet[strings.TrimSpace(c)] = true
         }</span>
 
         <span class="cov8" title="1">byCategory := map[string][]Pattern{}
         for _, p := range allPatterns </span><span class="cov8" title="1">{
-                if len(cats) &gt; 0 &amp;&amp; !catSet[p.category] </span><span class="cov0" title="0">{
+                if !p.enabled </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">if len(cats) &gt; 0 &amp;&amp; !catSet[p.category] </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">if !p.enabled </span><span class="cov0" title="0">{
                         continue</span>
                 }
                 <span class="cov8" title="1">byCategory[p.category] = append(byCategory[p.category], p)</span>
         }
+        // Include externally registered non-bundle patterns so Register() callers are scanned
+        <span class="cov8" title="1">for _, p := range registry </span><span class="cov8" title="1">{
+                if _, ok := p.(*bundlePattern); ok </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">cat := p.Category()
+                if len(cats) &gt; 0 &amp;&amp; !catSet[cat] </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">byCategory[cat] = append(byCategory[cat], p)</span>
+        }
 
         <span class="cov8" title="1">activeScanners = nil
         for _, patterns := range byCategory </span><span class="cov8" title="1">{
-                parts := make([]string, 0, len(patterns))
+                // Split bundle patterns (have a match regex) from external patterns (don't)
+                var bundlePs, extPs []Pattern
                 for _, p := range patterns </span><span class="cov8" title="1">{
-                        if bp, ok := p.(*bundlePattern); ok </span><span class="cov8" title="1">{
-                                parts = append(parts, "(?:"+bp.match+")")
+                        if _, ok := p.(*bundlePattern); ok </span><span class="cov8" title="1">{
+                                bundlePs = append(bundlePs, p)
+                        }</span> else<span class="cov0" title="0"> {
+                                extPs = append(extPs, p)
                         }</span>
                 }
-                <span class="cov8" title="1">combined, err := regexp.Compile(strings.Join(parts, "|"))
-                if err != nil </span><span class="cov0" title="0">{
-                        continue</span>
+                <span class="cov8" title="1">if len(bundlePs) &gt; 0 </span><span class="cov8" title="1">{
+                        parts := make([]string, 0, len(bundlePs))
+                        for _, p := range bundlePs </span><span class="cov8" title="1">{
+                                parts = append(parts, "(?:"+p.(*bundlePattern).match+")")
+                        }</span>
+                        <span class="cov8" title="1">combined, err := regexp.Compile(strings.Join(parts, "|"))
+                        if err == nil </span><span class="cov8" title="1">{
+                                activeScanners = append(activeScanners, categoryScanner{combined: combined, patterns: bundlePs})
+                        }</span>
                 }
-                <span class="cov8" title="1">activeScanners = append(activeScanners, categoryScanner{
-                        combined: combined,
-                        patterns: patterns,
-                })</span>
+                <span class="cov8" title="1">if len(extPs) &gt; 0 </span><span class="cov0" title="0">{
+                        // External patterns have no regex to pre-filter with; use empty (matches all)
+                        combined := regexp.MustCompile("")
+                        activeScanners = append(activeScanners, categoryScanner{combined: combined, patterns: extPs})
+                }</span>
         }
 }
 
-func Categories() []string <span class="cov0" title="0">{
+func Categories() []string <span class="cov8" title="1">{
         seen := map[string]bool{}
         var cats []string
-        for _, p := range allPatterns </span><span class="cov0" title="0">{
-                if !seen[p.category] </span><span class="cov0" title="0">{
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                if !seen[p.category] </span><span class="cov8" title="1">{
                         seen[p.category] = true
                         cats = append(cats, p.category)
                 }</span>
         }
-        <span class="cov0" title="0">return cats</span>
+        <span class="cov8" title="1">return cats</span>
 }
 
 func DownloadBundle() error <span class="cov0" title="0">{
         const url = "https://github.com/HoraDomu/Atheon/releases/latest/download/patterns.bundle"
-        resp, err := http.Get(url) //nolint:gosec
+
+        // Get current bundle info for comparison
+        var oldPatternCount int
+        var oldPatterns []string
+        for _, p := range allPatterns </span><span class="cov0" title="0">{
+                oldPatternCount++
+                oldPatterns = append(oldPatterns, p.name)
+        }</span>
+
+        <span class="cov0" title="0">client := &amp;http.Client{Timeout: 30 * time.Second}
+        resp, err := client.Get(url) //nolint:gosec
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
@@ -494,16 +583,336 @@ func DownloadBundle() error <span class="cov0" title="0">{
         if err := os.MkdirAll(dir, 0o755); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov0" title="0">return os.WriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o644)</span>
+
+        // Parse new bundle to compare
+        <span class="cov0" title="0">var newDefs []PatternDef
+        r, err := gzip.NewReader(bytes.NewReader(data))
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to parse new bundle: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer r.Close()
+        if err := json.NewDecoder(r).Decode(&amp;newDefs); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to decode new bundle: %w", err)
+        }</span>
+
+        // Report changes
+        <span class="cov0" title="0">newPatterns := make(map[string]bool)
+        for _, def := range newDefs </span><span class="cov0" title="0">{
+                newPatterns[def.Name] = true
+        }</span>
+
+        <span class="cov0" title="0">added := []string{}
+        removed := []string{}
+
+        for _, name := range oldPatterns </span><span class="cov0" title="0">{
+                if !newPatterns[name] </span><span class="cov0" title="0">{
+                        removed = append(removed, name)
+                }</span>
+        }
+        <span class="cov0" title="0">for _, def := range newDefs </span><span class="cov0" title="0">{
+                if !contains(oldPatterns, def.Name) </span><span class="cov0" title="0">{
+                        added = append(added, def.Name)
+                }</span>
+        }
+
+        // Print summary
+        <span class="cov0" title="0">fmt.Printf("Patterns updated: %d → %d\n", oldPatternCount, len(newDefs))
+        if len(added) &gt; 0 </span><span class="cov0" title="0">{
+                fmt.Printf("Added: %d patterns\n", len(added))
+                for _, p := range added </span><span class="cov0" title="0">{
+                        fmt.Printf("  + %s\n", p)
+                }</span>
+        }
+        <span class="cov0" title="0">if len(removed) &gt; 0 </span><span class="cov0" title="0">{
+                fmt.Printf("Removed: %d patterns\n", len(removed))
+                for _, p := range removed </span><span class="cov0" title="0">{
+                        fmt.Printf("  - %s\n", p)
+                }</span>
+        }
+        <span class="cov0" title="0">if len(added) == 0 &amp;&amp; len(removed) == 0 </span><span class="cov0" title="0">{
+                fmt.Println("No pattern changes detected")
+        }</span>
+
+        <span class="cov0" title="0">if err := os.WriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o644); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        // Reload in-memory patterns so the current process uses the new bundle immediately
+        <span class="cov0" title="0">if err := loadBundle(data); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">SetActiveCategories(activeCategoryFilter)
+        return nil</span>
+}
+
+func contains(slice []string, item string) bool <span class="cov8" title="1">{
+        for _, s := range slice </span><span class="cov8" title="1">{
+                if s == item </span><span class="cov8" title="1">{
+                        return true
+                }</span>
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
+func EnablePattern(name string) bool <span class="cov8" title="1">{
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                if p.name == name </span><span class="cov8" title="1">{
+                        p.enabled = true
+                        rebuildRegistry()
+                        rebuildActiveScanners()
+                        if err := syncPatternState(); err != nil </span><span class="cov0" title="0">{
+                                fmt.Fprintf(os.Stderr, "warning: failed to save pattern state: %v\n", err)
+                        }</span>
+                        <span class="cov8" title="1">return true</span>
+                }
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+func DisablePattern(name string) bool <span class="cov8" title="1">{
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                if p.name == name </span><span class="cov8" title="1">{
+                        p.enabled = false
+                        rebuildRegistry()
+                        rebuildActiveScanners()
+                        if err := syncPatternState(); err != nil </span><span class="cov0" title="0">{
+                                fmt.Fprintf(os.Stderr, "warning: failed to save pattern state: %v\n", err)
+                        }</span>
+                        <span class="cov8" title="1">return true</span>
+                }
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+func SetPatternEnabled(name string, enabled bool) bool <span class="cov8" title="1">{
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                if p.name == name </span><span class="cov8" title="1">{
+                        p.enabled = enabled
+                        rebuildActiveScanners()
+                        return true
+                }</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+func ListDisabledPatterns() []string <span class="cov8" title="1">{
+        var disabled []string
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                if !p.enabled </span><span class="cov8" title="1">{
+                        disabled = append(disabled, p.name)
+                }</span>
+        }
+        <span class="cov8" title="1">return disabled</span>
+}
+
+func ListEnabledPatterns() []string <span class="cov8" title="1">{
+        var enabled []string
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                if p.enabled </span><span class="cov8" title="1">{
+                        enabled = append(enabled, p.name)
+                }</span>
+        }
+        <span class="cov8" title="1">return enabled</span>
+}
+
+func rebuildActiveScanners() <span class="cov8" title="1">{
+        SetActiveCategories(activeCategoryFilter)
+}</span>
+
+// EnableAllPatterns enables every pattern in the bundle, overriding any prior disable calls.
+func EnableAllPatterns() <span class="cov8" title="1">{
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                p.enabled = true
+        }</span>
+}
+
+// isPatternInRegistry checks if a pattern is currently in the registry
+func isPatternInRegistry(p *bundlePattern) bool <span class="cov0" title="0">{
+        for _, regPattern := range registry </span><span class="cov0" title="0">{
+                if regPattern.Name() == p.name </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+// removePatternFromRegistry removes a pattern from the registry
+func removePatternFromRegistry(p *bundlePattern) <span class="cov0" title="0">{
+        var newRegistry []Pattern
+        for _, regPattern := range registry </span><span class="cov0" title="0">{
+                if regPattern.Name() != p.name </span><span class="cov0" title="0">{
+                        newRegistry = append(newRegistry, regPattern)
+                }</span>
+        }
+        <span class="cov0" title="0">registry = newRegistry</span>
+}
+
+// rebuildRegistry rebuilds the registry from allPatterns, respecting enabled state
+func rebuildRegistry() <span class="cov8" title="1">{
+        registry = nil
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                if p.enabled </span><span class="cov8" title="1">{
+                        Register(p)
+                }</span>
+        }
 }
 </pre>
 		
 		<pre class="file" id="file3" style="display: none">package core
 
+import (
+        "bufio"
+        "errors"
+        "os"
+        "path/filepath"
+        "regexp"
+        "strings"
+)
+
+type ignoreRule struct {
+        re      *regexp.Regexp
+        negated bool
+}
+
+type ignoreMatcher struct {
+        rules []ignoreRule
+}
+
+func compileIgnoreFile(path string) (*ignoreMatcher, error) <span class="cov8" title="1">{
+        f, err := os.Open(path)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer f.Close()
+
+        var rules []ignoreRule
+        sc := bufio.NewScanner(f)
+        for sc.Scan() </span><span class="cov8" title="1">{
+                line := strings.TrimRight(sc.Text(), " \t")
+                if line == "" || strings.HasPrefix(line, "#") </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">negated := false
+                if strings.HasPrefix(line, "!") </span><span class="cov8" title="1">{
+                        negated = true
+                        line = line[1:]
+                }</span>
+                <span class="cov8" title="1">re, err := ignorePatternToRegexp(line)
+                if err != nil </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">rules = append(rules, ignoreRule{re: re, negated: negated})</span>
+        }
+        <span class="cov8" title="1">return &amp;ignoreMatcher{rules: rules}, sc.Err()</span>
+}
+
+func (m *ignoreMatcher) matchesPath(path string) bool <span class="cov8" title="1">{
+        path = filepath.ToSlash(path)
+        ignored := false
+        for _, r := range m.rules </span><span class="cov8" title="1">{
+                if r.re.MatchString(path) </span><span class="cov8" title="1">{
+                        ignored = !r.negated
+                }</span>
+        }
+        <span class="cov8" title="1">return ignored</span>
+}
+
+func ignorePatternToRegexp(pattern string) (*regexp.Regexp, error) <span class="cov8" title="1">{
+        trailingSlash := strings.HasSuffix(pattern, "/")
+        pattern = strings.TrimSuffix(pattern, "/")
+        if pattern == "" </span><span class="cov0" title="0">{
+                return nil, errors.New("empty pattern")
+        }</span>
+
+        // anchored to root if pattern contains a slash
+        <span class="cov8" title="1">anchored := strings.Contains(pattern, "/")
+        pattern = strings.TrimPrefix(pattern, "/")
+
+        var b strings.Builder
+        switch </span>{
+        case strings.HasPrefix(pattern, "**/"):<span class="cov8" title="1">
+                // **/foo matches foo at any depth — treat as unanchored
+                b.WriteString("(?:^|.*/)")
+                pattern = pattern[3:]</span>
+        case anchored:<span class="cov0" title="0">
+                b.WriteString("^")</span>
+        default:<span class="cov8" title="1">
+                b.WriteString("(?:^|.*/)")</span>
+        }
+
+        // /**/  in the middle means zero or more intermediate directories
+        <span class="cov8" title="1">pattern = strings.ReplaceAll(pattern, "/**/", "\x00")
+
+        trailAll := strings.HasSuffix(pattern, "/**")
+        if trailAll </span><span class="cov0" title="0">{
+                pattern = pattern[:len(pattern)-3]
+        }</span>
+
+        <span class="cov8" title="1">parts := strings.Split(pattern, "\x00")
+        for i, part := range parts </span><span class="cov8" title="1">{
+                if i &gt; 0 </span><span class="cov0" title="0">{
+                        b.WriteString("/(?:.*/)?")
+                }</span>
+                <span class="cov8" title="1">writeIgnoreSegment(part, &amp;b)</span>
+        }
+
+        <span class="cov8" title="1">if trailAll </span><span class="cov0" title="0">{
+                b.WriteString("/.*")
+        }</span>
+        // A trailing-slash pattern (e.g. dist/) matches the directory and all its contents,
+        // allowing negation rules like !dist/keep.yaml to reach files inside.
+        <span class="cov8" title="1">if trailingSlash </span><span class="cov0" title="0">{
+                b.WriteString("(/.*)?$")
+        }</span> else<span class="cov8" title="1"> {
+                b.WriteString("$")
+        }</span>
+        <span class="cov8" title="1">return regexp.Compile(b.String())</span>
+}
+
+func writeIgnoreSegment(seg string, b *strings.Builder) <span class="cov8" title="1">{
+        for i := 0; i &lt; len(seg); i++ </span><span class="cov8" title="1">{
+                switch </span>{
+                case seg[i] == '*' &amp;&amp; i+1 &lt; len(seg) &amp;&amp; seg[i+1] == '*':<span class="cov0" title="0">
+                        b.WriteString(".*")
+                        i++</span>
+                case seg[i] == '*':<span class="cov8" title="1">
+                        b.WriteString("[^/]*")</span>
+                case seg[i] == '?':<span class="cov0" title="0">
+                        b.WriteString("[^/]")</span>
+                case seg[i] == '[':<span class="cov0" title="0">
+                        j := i + 1
+                        if j &lt; len(seg) &amp;&amp; seg[j] == '!' </span><span class="cov0" title="0">{
+                                j++
+                        }</span>
+                        <span class="cov0" title="0">if j &lt; len(seg) &amp;&amp; seg[j] == ']' </span><span class="cov0" title="0">{
+                                j++
+                        }</span>
+                        <span class="cov0" title="0">for j &lt; len(seg) &amp;&amp; seg[j] != ']' </span><span class="cov0" title="0">{
+                                j++
+                        }</span>
+                        <span class="cov0" title="0">if j &lt; len(seg) </span><span class="cov0" title="0">{
+                                b.WriteString(seg[i : j+1])
+                                i = j
+                        }</span> else<span class="cov0" title="0"> {
+                                b.WriteString(`\[`)
+                        }</span>
+                default:<span class="cov8" title="1">
+                        if strings.ContainsRune(`\.+^${}()|`, rune(seg[i])) </span><span class="cov8" title="1">{
+                                b.WriteByte('\\')
+                        }</span>
+                        <span class="cov8" title="1">b.WriteByte(seg[i])</span>
+                }
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package core
+
 import "sort"
 
 type Pattern interface {
         Name() string
+        Category() string
+        Enabled() bool
         Matches(line string) bool
 }
 
@@ -523,10 +932,109 @@ func All() []Pattern <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package core
+		<pre class="file" id="file5" style="display: none">package core
 
 import (
-        "bufio"
+        "encoding/json"
+        "fmt"
+        "os"
+        "path/filepath"
+)
+
+// PatternState stores the enabled/disabled state of patterns
+type PatternState struct {
+        Patterns map[string]bool `json:"patterns"` // pattern name -&gt; enabled state
+}
+
+// stateFile returns the path to the pattern state file
+func stateFile() string <span class="cov8" title="1">{
+        home, _ := os.UserHomeDir()
+        return filepath.Join(home, ".atheon", "pattern_state.json")
+}</span>
+
+// loadPatternState loads the pattern state from disk
+func loadPatternState() (*PatternState, error) <span class="cov8" title="1">{
+        path := stateFile()
+        data, err := os.ReadFile(path)
+        if err != nil </span><span class="cov8" title="1">{
+                if os.IsNotExist(err) </span><span class="cov8" title="1">{
+                        // No state file exists, return empty state
+                        return &amp;PatternState{Patterns: make(map[string]bool)}, nil
+                }</span>
+                <span class="cov0" title="0">return nil, err</span>
+        }
+
+        <span class="cov8" title="1">var state PatternState
+        if err := json.Unmarshal(data, &amp;state); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to parse pattern state: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if state.Patterns == nil </span><span class="cov0" title="0">{
+                state.Patterns = make(map[string]bool)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;state, nil</span>
+}
+
+// savePatternState saves the pattern state to disk
+func savePatternState(state *PatternState) error <span class="cov8" title="1">{
+        path := stateFile()
+        dir := filepath.Dir(path)
+
+        // Create directory if it doesn't exist
+        if err := os.MkdirAll(dir, 0o755); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create state directory: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">data, err := json.MarshalIndent(state, "", "  ")
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal pattern state: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if err := os.WriteFile(path, data, 0o644); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to write pattern state: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// applyPatternState applies the loaded state to allPatterns
+func applyPatternState(state *PatternState) <span class="cov8" title="1">{
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                if enabled, exists := state.Patterns[p.name]; exists </span><span class="cov8" title="1">{
+                        p.enabled = enabled
+                }</span>
+        }
+}
+
+// syncPatternState syncs the current pattern state to disk
+func syncPatternState() error <span class="cov8" title="1">{
+        state := &amp;PatternState{Patterns: make(map[string]bool)}
+
+        // Collect current state from allPatterns
+        for _, p := range allPatterns </span><span class="cov8" title="1">{
+                state.Patterns[p.name] = p.enabled
+        }</span>
+
+        <span class="cov8" title="1">return savePatternState(state)</span>
+}
+
+// InitializePatternState loads and applies pattern state on startup
+func InitializePatternState() error <span class="cov8" title="1">{
+        state, err := loadPatternState()
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Fprintf(os.Stderr, "warning: failed to load pattern state: %v\n", err)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">applyPatternState(state)
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package core
+
+import (
         "io/fs"
         "os"
         "path/filepath"
@@ -546,43 +1054,22 @@ var binaryExts = map[string]bool{
         ".exe": true, ".bin": true, ".so": true, ".dylib": true,
 }
 
-func loadIgnorePatterns(root string) []string <span class="cov8" title="1">{
-        var patterns []string
+func loadIgnorePatternsMatcher(root string) []*ignoreMatcher <span class="cov8" title="1">{
+        var matchers []*ignoreMatcher
         for _, name := range []string{".atheonignore", ".gitignore"} </span><span class="cov8" title="1">{
-                f, err := os.Open(filepath.Join(root, name))
+                m, err := compileIgnoreFile(filepath.Join(root, name))
                 if err != nil </span><span class="cov8" title="1">{
                         continue</span>
                 }
-                <span class="cov8" title="1">sc := bufio.NewScanner(f)
-                for sc.Scan() </span><span class="cov8" title="1">{
-                        line := strings.TrimSpace(sc.Text())
-                        if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "!") </span><span class="cov8" title="1">{
-                                continue</span>
-                        }
-                        <span class="cov8" title="1">line = strings.TrimPrefix(line, "/")
-                        if line != "" </span><span class="cov8" title="1">{
-                                patterns = append(patterns, line)
-                        }</span>
-                }
-                <span class="cov8" title="1">f.Close()</span>
+                <span class="cov8" title="1">matchers = append(matchers, m)</span>
         }
-        <span class="cov8" title="1">return patterns</span>
+        <span class="cov8" title="1">return matchers</span>
 }
 
-func isIgnored(path string, patterns []string) bool <span class="cov8" title="1">{
+func isIgnored(path string, matchers []*ignoreMatcher) bool <span class="cov8" title="1">{
         clean := filepath.ToSlash(path)
-        for _, pat := range patterns </span><span class="cov8" title="1">{
-                pat = filepath.ToSlash(pat)
-                if matched, _ := filepath.Match(pat, clean); matched </span><span class="cov8" title="1">{
-                        return true
-                }</span>
-                <span class="cov8" title="1">if matched, _ := filepath.Match(pat, filepath.Base(clean)); matched </span><span class="cov0" title="0">{
-                        return true
-                }</span>
-                <span class="cov8" title="1">if strings.HasSuffix(pat, "/") &amp;&amp; strings.HasPrefix(clean+"/", pat) </span><span class="cov0" title="0">{
-                        return true
-                }</span>
-                <span class="cov8" title="1">if strings.HasPrefix(clean+"/", pat+"/") </span><span class="cov0" title="0">{
+        for _, m := range matchers </span><span class="cov8" title="1">{
+                if m.matchesPath(clean) </span><span class="cov8" title="1">{
                         return true
                 }</span>
         }
@@ -591,7 +1078,18 @@ func isIgnored(path string, patterns []string) bool <span class="cov8" title="1"
 
 func ScanFile(path string) ([]Finding, *Stats, error) <span class="cov8" title="1">{
         start := time.Now()
-        data, err := os.ReadFile(path)
+        // Respect .atheonignore and .gitignore for files under the working directory,
+        // so that `atheon file.go` and `atheon .` agree on what gets scanned.
+        if absPath, err := filepath.Abs(path); err == nil </span><span class="cov8" title="1">{
+                if root, err := os.Getwd(); err == nil </span><span class="cov8" title="1">{
+                        if rel, err := filepath.Rel(root, absPath); err == nil &amp;&amp; !strings.HasPrefix(rel, "..") </span><span class="cov0" title="0">{
+                                if matchers := loadIgnorePatternsMatcher(root); isIgnored(filepath.ToSlash(rel), matchers) </span><span class="cov0" title="0">{
+                                        return []Finding{}, nil, nil
+                                }</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">data, err := os.ReadFile(path)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, nil, err
         }</span>
@@ -605,7 +1103,7 @@ func ScanFile(path string) ([]Finding, *Stats, error) <span class="cov8" title="
 
 func ScanDir(root string) ([]Finding, *Stats, error) <span class="cov8" title="1">{
         start := time.Now()
-        ignorePatterns := loadIgnorePatterns(root)
+        ignoreMatcher := loadIgnorePatternsMatcher(root)
         var paths []string
 
         if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error </span><span class="cov8" title="1">{
@@ -614,12 +1112,15 @@ func ScanDir(root string) ([]Finding, *Stats, error) <span class="cov8" title="1
                 }</span>
                 <span class="cov8" title="1">rel, _ := filepath.Rel(root, path)
                 if d.IsDir() </span><span class="cov8" title="1">{
-                        if skipDirs[d.Name()] || isIgnored(rel, ignorePatterns) </span><span class="cov8" title="1">{
+                        if skipDirs[d.Name()] </span><span class="cov8" title="1">{
                                 return filepath.SkipDir
                         }</span>
+                        // Don't SkipDir for user ignore rules — walk the dir and check files
+                        // individually so negation rules (e.g. !dist/keep.yaml) can un-ignore
+                        // specific files inside an otherwise-ignored directory.
                         <span class="cov8" title="1">return nil</span>
                 }
-                <span class="cov8" title="1">if isIgnored(rel, ignorePatterns) </span><span class="cov8" title="1">{
+                <span class="cov8" title="1">if isIgnored(rel, ignoreMatcher) </span><span class="cov8" title="1">{
                         return nil
                 }</span>
                 <span class="cov8" title="1">ext := strings.ToLower(filepath.Ext(path))
@@ -723,7 +1224,7 @@ func scanLines(content, file string) []Finding <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package main
+		<pre class="file" id="file7" style="display: none">package main
 
 import (
         "encoding/json"
@@ -735,16 +1236,28 @@ import (
         "atheon/core"
 )
 
-func main() <span class="cov0" title="0">{
+// version is injected at build time via ldflags
+var version = "dev"
+
+func main() <span class="cov8" title="1">{
         args := os.Args[1:]
 
-        jsonOutput := len(args) &gt; 0 &amp;&amp; args[0] == "--json"
+        // Handle --version flag
+        if len(args) &gt; 0 &amp;&amp; args[0] == "--version" </span><span class="cov8" title="1">{
+                fmt.Printf("atheon %s\n", version)
+                os.Exit(0)
+        }</span>
+
+        <span class="cov0" title="0">jsonOutput := len(args) &gt; 0 &amp;&amp; args[0] == "--json"
         if jsonOutput </span><span class="cov0" title="0">{
                 args = args[1:]
         }</span>
 
-        <span class="cov0" title="0">cats, args := parseCategories(args)
-        core.SetActiveCategories(cats)
+        <span class="cov0" title="0">cats, args, enableAll := parseCategories(args)
+        if enableAll </span><span class="cov0" title="0">{
+                core.EnableAllPatterns()
+        }</span>
+        <span class="cov0" title="0">core.SetActiveCategories(cats)
 
         if len(args) == 0 </span><span class="cov0" title="0">{
                 printHelp()
@@ -759,6 +1272,28 @@ func main() <span class="cov0" title="0">{
                         os.Exit(1)
                 }</span>
                 <span class="cov0" title="0">fmt.Println("patterns updated.")</span>
+
+        case "enable":<span class="cov0" title="0">
+                if len(args) &lt; 2 </span><span class="cov0" title="0">{
+                        fmt.Fprintln(os.Stderr, "error: enable requires a pattern name")
+                        os.Exit(1)
+                }</span>
+                <span class="cov0" title="0">if !core.EnablePattern(args[1]) </span><span class="cov0" title="0">{
+                        fmt.Fprintf(os.Stderr, "error: pattern '%s' not found\n", args[1])
+                        os.Exit(1)
+                }</span>
+                <span class="cov0" title="0">fmt.Printf("enabled pattern: %s\n", args[1])</span>
+
+        case "disable":<span class="cov0" title="0">
+                if len(args) &lt; 2 </span><span class="cov0" title="0">{
+                        fmt.Fprintln(os.Stderr, "error: disable requires a pattern name")
+                        os.Exit(1)
+                }</span>
+                <span class="cov0" title="0">if !core.DisablePattern(args[1]) </span><span class="cov0" title="0">{
+                        fmt.Fprintf(os.Stderr, "error: pattern '%s' not found\n", args[1])
+                        os.Exit(1)
+                }</span>
+                <span class="cov0" title="0">fmt.Printf("disabled pattern: %s\n", args[1])</span>
 
         case "list":<span class="cov0" title="0">
                 cmdList(args[1:])</span>
@@ -825,81 +1360,108 @@ func main() <span class="cov0" title="0">{
         }
 }
 
-func parseCategories(args []string) ([]string, []string) <span class="cov0" title="0">{
-        var cats []string
-        var rest []string
-        all := false
-        for _, a := range args </span><span class="cov0" title="0">{
+func parseCategories(args []string) (cats []string, rest []string, enableAll bool) <span class="cov8" title="1">{
+        for _, a := range args </span><span class="cov8" title="1">{
                 switch </span>{
-                case strings.HasPrefix(a, "--categories="):<span class="cov0" title="0">
+                case strings.HasPrefix(a, "--categories="):<span class="cov8" title="1">
                         val := strings.TrimPrefix(a, "--categories=")
-                        for _, c := range strings.Split(val, ",") </span><span class="cov0" title="0">{
-                                if c = strings.TrimSpace(c); c != "" </span><span class="cov0" title="0">{
+                        for _, c := range strings.Split(val, ",") </span><span class="cov8" title="1">{
+                                if c = strings.TrimSpace(c); c != "" </span><span class="cov8" title="1">{
                                         cats = append(cats, c)
                                 }</span>
                         }
-                case a == "--all":<span class="cov0" title="0">
-                        all = true</span>
-                default:<span class="cov0" title="0">
+                case a == "--all":<span class="cov8" title="1">
+                        enableAll = true</span>
+                default:<span class="cov8" title="1">
                         rest = append(rest, a)</span>
                 }
         }
-        <span class="cov0" title="0">if all </span><span class="cov0" title="0">{
-                return nil, rest
-        }</span>
-        <span class="cov0" title="0">return cats, rest</span>
+        <span class="cov8" title="1">return</span>
 }
 
-func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput bool) <span class="cov0" title="0">{
+func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput bool) <span class="cov8" title="1">{
         if jsonOutput </span><span class="cov0" title="0">{
                 printJSONFindings(findings)
                 return
         }</span>
-        <span class="cov0" title="0">if len(findings) == 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if len(findings) == 0 </span><span class="cov8" title="1">{
                 fmt.Println("no findings.")
-        }</span> else<span class="cov0" title="0"> {
-                for _, f := range findings </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> {
+                for _, f := range findings </span><span class="cov8" title="1">{
                         loc := f.File
-                        if f.Line &gt; 0 </span><span class="cov0" title="0">{
+                        if f.Line &gt; 0 </span><span class="cov8" title="1">{
                                 loc = fmt.Sprintf("%s:%d", f.File, f.Line)
                         }</span>
-                        <span class="cov0" title="0">fmt.Printf("%s  %s\n", f.Pattern, loc)
-                        if f.Content != "" </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">fmt.Printf("%s  %s\n", f.Pattern, loc)
+                        if f.Content != "" </span><span class="cov8" title="1">{
                                 fmt.Println(" ", redact(f.Content))
                         }</span>
                 }
-                <span class="cov0" title="0">fmt.Printf("\n%d finding(s)\n", len(findings))</span>
+                <span class="cov8" title="1">fmt.Printf("\n%d finding(s)\n", len(findings))</span>
         }
-        <span class="cov0" title="0">if stats != nil &amp;&amp; stats.Files &gt; 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if stats != nil &amp;&amp; stats.Files &gt; 0 </span><span class="cov8" title="1">{
                 fmt.Printf("scanned %d file(s)  %s  %dms\n",
                         stats.Files, formatBytes(stats.Bytes), stats.ElapsedMs)
         }</span>
 }
 
-func printJSONFindings(findings []core.Finding) <span class="cov0" title="0">{
+func printJSONFindings(findings []core.Finding) <span class="cov8" title="1">{
         items := make([]map[string]any, 0, len(findings))
-        for _, f := range findings </span><span class="cov0" title="0">{
-                items = append(items, map[string]any{"pattern": f.Pattern, "file": f.File, "line": f.Line, "match": f.Content})
+        for _, f := range findings </span><span class="cov8" title="1">{
+                items = append(items, map[string]any{"pattern": f.Pattern, "file": f.File, "line": f.Line, "match": redact(f.Content)})
         }</span>
-        <span class="cov0" title="0">if err := json.NewEncoder(os.Stdout).Encode(items); err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if err := json.NewEncoder(os.Stdout).Encode(items); err != nil </span><span class="cov0" title="0">{
                 fmt.Fprintln(os.Stderr, "error:", err)
         }</span>
 }
 
-func cmdList(args []string) <span class="cov0" title="0">{
-        if len(args) &gt; 0 &amp;&amp; args[0] == "categories" </span><span class="cov0" title="0">{
-                for _, c := range core.Categories() </span><span class="cov0" title="0">{
+func cmdList(args []string) <span class="cov8" title="1">{
+        if len(args) &gt; 0 &amp;&amp; args[0] == "categories" </span><span class="cov8" title="1">{
+                for _, c := range core.Categories() </span><span class="cov8" title="1">{
                         fmt.Println(c)
                 }</span>
-                <span class="cov0" title="0">return</span>
+                <span class="cov8" title="1">return</span>
         }
-        <span class="cov0" title="0">for _, p := range core.All() </span><span class="cov0" title="0">{
-                fmt.Println(p.Name())
-        }</span>
-        <span class="cov0" title="0">fmt.Printf("\n%d pattern(s) loaded\n", len(core.All()))</span>
+
+        <span class="cov8" title="1">var categoryFilter string
+        showEnabled := false
+        showDisabled := false
+        for _, a := range args </span><span class="cov8" title="1">{
+                switch </span>{
+                case strings.HasPrefix(a, "--category="):<span class="cov8" title="1">
+                        categoryFilter = strings.TrimPrefix(a, "--category=")</span>
+                case a == "--enabled":<span class="cov0" title="0">
+                        showEnabled = true</span>
+                case a == "--disabled":<span class="cov0" title="0">
+                        showDisabled = true</span>
+                }
+        }
+
+        <span class="cov8" title="1">var filtered []core.Pattern
+        for _, p := range core.All() </span><span class="cov8" title="1">{
+                if categoryFilter != "" &amp;&amp; p.Category() != categoryFilter </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">if showEnabled &amp;&amp; !p.Enabled() </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">if showDisabled &amp;&amp; p.Enabled() </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">filtered = append(filtered, p)</span>
+        }
+
+        <span class="cov8" title="1">for _, p := range filtered </span><span class="cov8" title="1">{
+                status := "enabled"
+                if !p.Enabled() </span><span class="cov0" title="0">{
+                        status = "disabled"
+                }</span>
+                <span class="cov8" title="1">fmt.Printf("%s [%s] [%s]\n", p.Name(), p.Category(), status)</span>
+        }
+        <span class="cov8" title="1">fmt.Printf("\n%d pattern(s)\n", len(filtered))</span>
 }
 
-func printHelp() <span class="cov0" title="0">{
+func printHelp() <span class="cov8" title="1">{
         fmt.Print(`atheon - pattern matching engine
 
 usage:
@@ -908,29 +1470,33 @@ usage:
   atheon --env                       scan environment variables
   atheon --json &lt;path&gt;               print findings as JSON
   atheon --categories=&lt;c1,c2&gt; &lt;path&gt; scan specific categories
-  atheon --all &lt;path&gt;                scan all categories
-  atheon list                        list loaded patterns
+  atheon --all &lt;path&gt;                scan all patterns including disabled ones
+  atheon list                        list all patterns with enabled/disabled status
+  atheon list --enabled              list only enabled patterns
+  atheon list --disabled             list only disabled patterns
   atheon list categories             list available categories
+  atheon enable &lt;pattern&gt;            enable a pattern
+  atheon disable &lt;pattern&gt;           disable a pattern
   atheon update                      download latest patterns bundle
   atheon --help                      show this message
 `)
 }</span>
 
-func redact(s string) string <span class="cov0" title="0">{
-        if len(s) &lt;= 8 </span><span class="cov0" title="0">{
+func redact(s string) string <span class="cov8" title="1">{
+        if len(s) &lt;= 8 </span><span class="cov8" title="1">{
                 return "***"
         }</span>
-        <span class="cov0" title="0">return s[:4] + "****" + s[len(s)-4:]</span>
+        <span class="cov8" title="1">return s[:4] + "****" + s[len(s)-4:]</span>
 }
 
-func formatBytes(b int64) string <span class="cov0" title="0">{
-        if b &gt;= 1&lt;&lt;20 </span><span class="cov0" title="0">{
+func formatBytes(b int64) string <span class="cov8" title="1">{
+        if b &gt;= 1&lt;&lt;20 </span><span class="cov8" title="1">{
                 return fmt.Sprintf("%.1f MB", float64(b)/(1&lt;&lt;20))
         }</span>
-        <span class="cov0" title="0">if b &gt;= 1&lt;&lt;10 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if b &gt;= 1&lt;&lt;10 </span><span class="cov8" title="1">{
                 return fmt.Sprintf("%.1f KB", float64(b)/(1&lt;&lt;10))
         }</span>
-        <span class="cov0" title="0">return fmt.Sprintf("%d B", b)</span>
+        <span class="cov8" title="1">return fmt.Sprintf("%d B", b)</span>
 }
 </pre>
 		
