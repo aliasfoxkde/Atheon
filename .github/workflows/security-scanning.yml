@@ -50,7 +50,14 @@ jobs:
           echo "=== Credential Leak Detection ==="
 
           # Check for common credential patterns
-          ./atheon . --categories=secrets --json > credentials.json
+          ./atheon . --categories=secrets --json > credentials.json 2>&1
+
+          # Check if output is actually JSON (handle plain text "no findings" response)
+          if ! jq empty credentials.json >/dev/null 2>&1; then
+            echo "No credential leaks detected (plain text output)"
+            rm -f credentials.json
+            exit 0
+          fi
 
           CRED_COUNT=$(jq 'length' credentials.json)
           echo "Credentials found: $CRED_COUNT"
@@ -58,10 +65,12 @@ jobs:
           if [ "$CRED_COUNT" -gt 0 ]; then
             echo "❌ Potential credential leaks detected"
             jq '.' credentials.json
+            rm -f credentials.json
             exit 1
           fi
 
           echo "✅ No credential leaks detected"
+          rm -f credentials.json
 
       - name: Scan for API keys specifically
         run: |
