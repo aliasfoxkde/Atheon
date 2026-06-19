@@ -15,6 +15,7 @@ bundler/bundler.exe
 *.iml
 .pr-notes/
 
+<<<<<<< HEAD
 # AI / assistant config (protected — never commit)
 /.claude
 /.claude/
@@ -62,3 +63,8 @@ outdated.txt
 # build artifacts
 dist/
 build/
+=======
+# generated
+*.out
+/coverage.html
+>>>>>>> 881ac6e (chore: remove committed artifacts and dev session notes)
