@@ -8,12 +8,10 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	// Force bundle reload from current bundle file
+	// Clear local cache to ensure tests use embedded bundle
 	home, _ := os.UserHomeDir()
 	bundlePath := filepath.Join(home, ".atheon", "patterns.bundle")
-	if data, err := os.ReadFile(bundlePath); err == nil {
-		_ = loadBundle(data) // Ignore error in test setup
-	}
+	os.Remove(bundlePath) // Clear cache to force embedded bundle load
 	os.Exit(m.Run())
 }
 
