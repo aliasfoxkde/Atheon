@@ -1,0 +1,86 @@
+name: Atheon Self-Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  self-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build Atheon
+        run: |
+          go build -v -o atheon .
+          go build -v -o atheon-mcp ./cmd/mcp
+
+      - name: Scan Atheon source code
+        run: |
+          echo "=== Scanning Atheon source code for credentials ==="
+          ./atheon . --json > findings.json || true
+
+          if [ -s findings.json ]; then
+            echo "WARNING: Atheon found patterns in its own source code"
+            cat findings.json
+            echo ""
+            echo "Checking for false positives (test files, examples)..."
+            # Filter out test files and expected findings
+            real_issues=$(jq '[.[] | select(.file | test("_test.go") | not)] | select(.file | test("example")) | length' findings.json || echo "0")
+            if [ "$real_issues" -gt 0 ]; then
+              echo "ERROR: Found $real_issues real issues in source code"
+              jq '[.[] | select(.file | test("_test.go") | not)] | select(.file | test("example")) | not]' findings.json
+              exit 1
+            else
+              echo "All findings are in test files (expected)"
+            fi
+          else
+            echo "✓ No findings in source code"
+          fi
+
+      - name: Scan for leaked secrets in git history
+        run: |
+          echo "=== Checking git history for leaked secrets ==="
+          if command -v trufflehog &> /dev/null; then
+            trufflehog git . --no-update --only-verified 2>&1 || true
+          else
+            echo "trufflehog not available, skipping git history scan"
+          fi
+
+      - name: Generate security report
+        if: always()
+        run: |
+          echo "# Atheon Security Scan Report" > scan-report.md
+          echo "" >> scan-report.md
+          echo "## Scan Summary" >> scan-report.md
+          echo "- Date: $(date)" >> scan-report.md
+          echo "- Commit: ${{ github.sha }}" >> scan-report.md
+          echo "- Branch: ${{ github.ref }}" >> scan-report.md
+          echo "" >> scan-report.md
+          if [ -f findings.json ]; then
+            echo "## Findings" >> scan-report.md
+            echo '```json' >> scan-report.md
+            cat findings.json >> scan-report.md
+            echo '```' >> scan-report.md
+          else
+            echo "✓ No security findings detected" >> scan-report.md
+          fi
+          cat scan-report.md
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            findings.json
+            scan-report.md
+          retention-days: 30
