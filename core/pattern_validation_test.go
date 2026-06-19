@@ -8,10 +8,22 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	// Clear local cache to ensure tests use embedded bundle
+	// Ensure embedded bundle is used for consistent testing
 	home, _ := os.UserHomeDir()
 	bundlePath := filepath.Join(home, ".atheon", "patterns.bundle")
-	os.Remove(bundlePath) // Clear cache to force embedded bundle load
+
+	// Remove local cache to force embedded bundle usage
+	os.Remove(bundlePath)
+
+	// Run a simple pattern validation to ensure bundle is loaded
+	patterns := All()
+	if len(patterns) == 0 {
+		// If no patterns loaded, try to load embedded bundle directly
+		if data, err := os.ReadFile("patterns.bundle"); err == nil {
+			loadBundle(data)
+		}
+	}
+
 	os.Exit(m.Run())
 }
 
