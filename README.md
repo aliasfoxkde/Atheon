@@ -79,9 +79,9 @@
 | Repository | Purpose | Status |
 |------------|---------|--------|
 | **[Official Project](https://github.com/HoraDomu/Atheon)** | Stable production release | ✅ Recommended for production |
-| **[Enhanced Version](https://github.com/aliasfoxkde/Atheon-Enhanced)** | Feature-rich testing build | 🧪 Experimental features |
-| **[Project Pulse](https://github.com/aliasfoxkde/Atheon-Enhanced/pulse)** | Activity & updates overview | 📊 Live stats |
-| **[Contributors](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)** | Project contributors | 👥 Community |
+| **[Enhanced Version](https://github.com/aliasfoxkde/Atheon)** | Feature-rich testing build | 🧪 Experimental features |
+| **[Project Pulse](https://github.com/aliasfoxkde/Atheon/pulse)** | Activity & updates overview | 📊 Live stats |
+| **[Contributors](https://github.com/aliasfoxkde/Atheon/graphs/contributors)** | Project contributors | 👥 Community |
 
 ---
 
@@ -93,7 +93,7 @@
 ### **Recommended: Build from Source**
 ```bash
 # Clone the repository
-git clone https://github.com/aliasfoxkde/Atheon-Enhanced.git
+git clone https://github.com/aliasfoxkde/Atheon.git
 cd Atheon
 
 # Build the main binary
@@ -114,7 +114,7 @@ atheon --version
 ### **Alternative: Development Version**
 ```bash
 # Clone and checkout development branch
-git clone https://github.com/aliasfoxkde/Atheon-Enhanced.git
+git clone https://github.com/aliasfoxkde/Atheon.git
 cd Atheon
 git checkout dev/full-feature
 
@@ -234,7 +234,7 @@ chmod +x .git/hooks/pre-commit
 <summary><b>🔗 Project Ecosystem</b></summary>
 
 ### **Core Projects**
-- **[Atheon](https://github.com/aliasfoxkde/Atheon-Enhanced)** - Main pattern matching engine (this repository)
+- **[Atheon](https://github.com/aliasfoxkde/Atheon)** - Main pattern matching engine (this repository)
 - **[Atheon-Benchmark](https://github.com/aliasfoxkde/Atheon-Enhanced-Benchmark)** - Performance testing and benchmarking tools
 - **[Atheon-GitHub-Scanner](https://github.com/aliasfoxkde/Atheon-Enhanced-GitHub-Scanner)** - GitHub repository scanning automation
 
@@ -519,7 +519,7 @@ The folder name becomes the category. No engine changes, no recompile needed.
 
 ### **Community Contributors**
 - **[Upstream Contributors](CONTRIBUTORS.md)** - Contributors to the official project
-- **[Enhanced Contributors](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)** - Contributors to this enhanced version
+- **[Enhanced Contributors](https://github.com/aliasfoxkde/Atheon/graphs/contributors)** - Contributors to this enhanced version
 
 > **📖 See detailed system architecture**: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
 
@@ -544,7 +544,7 @@ The folder name becomes the category. No engine changes, no recompile needed.
 
 ### **Maintainer & Enhancement**
 - **Maintainer**: Micheal Kinney (aliasfoxkde)
-- **Repository**: [https://github.com/aliasfoxkde/Atheon-Enhanced](https://github.com/aliasfoxkde/Atheon-Enhanced)
+- **Repository**: [https://github.com/aliasfoxkde/Atheon](https://github.com/aliasfoxkde/Atheon)
 - **Portfolio**: [https://openportfolio.pages.dev](https://openportfolio.pages.dev)
 - **Enhancement Purpose**: Advanced features, performance optimizations, comprehensive testing
 
@@ -563,7 +563,7 @@ This enhanced version includes development support using TaskWizer technologies 
 Both the upstream project and this enhanced fork are built by the community. Every pattern contributed benefits all users.
 
 - **[Upstream Contributors](CONTRIBUTORS.md)** - Contributors to the official project
-- **[Enhanced Contributors](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)** - Contributors to this enhanced version
+- **[Enhanced Contributors](https://github.com/aliasfoxkde/Atheon/graphs/contributors)** - Contributors to this enhanced version
 
 Thank you to all contributors who help make Atheon better every day!
 
@@ -604,12 +604,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 | Resource | Link | Purpose |
 |----------|------|---------|
 | **Official Project** | [https://github.com/HoraDomu/Atheon](https://github.com/HoraDomu/Atheon) | Stable production release |
-| **Enhanced Version** | [https://github.com/aliasfoxkde/Atheon-Enhanced](https://github.com/aliasfoxkde/Atheon-Enhanced) | Feature-rich testing build |
+| **Enhanced Version** | [https://github.com/aliasfoxkde/Atheon](https://github.com/aliasfoxkde/Atheon) | Feature-rich testing build |
 | **Feature Comparison** | [docs/FEATURE_COMPARISON.md](docs/FEATURE_COMPARISON.md) | Detailed feature comparison |
 | **System Architecture** | [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) | Technical architecture |
 | **Branch Strategy** | [docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md) | Development workflow |
-| **Project Pulse** | [https://github.com/aliasfoxkde/Atheon-Enhanced/pulse](https://github.com/aliasfoxkde/Atheon-Enhanced/pulse) | Activity overview |
-| **Contributors** | [https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors) | Project contributors |
+| **Project Pulse** | [https://github.com/aliasfoxkde/Atheon/pulse](https://github.com/aliasfoxkde/Atheon/pulse) | Activity overview |
+| **Contributors** | [https://github.com/aliasfoxkde/Atheon/graphs/contributors](https://github.com/aliasfoxkde/Atheon/graphs/contributors) | Project contributors |
 | **Scanner Demo** | [https://atheon-scanner.pages.dev/](https://atheon-scanner.pages.dev/) | Live scanning demo |
 | **Benchmark Demo** | [https://atheon-benchmark.pages.dev](https://atheon-benchmark.pages.dev) | Performance benchmarking |
 
