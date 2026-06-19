@@ -30,6 +30,8 @@ func TestWriteIgnoreSegment(t *testing.T) {
 		{"char class", "[abc]", `[abc]`},
 		{"negated char class", "[!abc]", `[^abc]`},
 		{"unterminated char class", "[abc", `\[abc`},
+		{"empty char class", "[]a]", `[]a]`},
+		{"char class with leading ]", "[]]", `[]]`},
 		{"mixed", "*.go", `[^/]*\.go`},
 	}
 
@@ -65,6 +67,15 @@ func TestIgnorePatternToRegexpExhaustive(t *testing.T) {
 		{"/root-only", "a/root-only", false},
 		{"file?.txt", "file1.txt", true},
 		{"file?.txt", "file12.txt", false},
+		// /**/ in the middle exercises the multi-part branch
+		{"a/**/b", "a/b", true},
+		{"a/**/b", "a/x/b", true},
+		{"a/**/b", "a/x/y/b", true},
+		// pure /** at end after replacement
+		{"docs/**", "docs/x/y/z", true},
+		// trailing slash pattern (already covered but ensures trailing branch)
+		{"dist/", "dist", true},
+		{"dist/", "dist/file", true},
 	}
 
 	for _, tc := range cases {

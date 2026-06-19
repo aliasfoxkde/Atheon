@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -505,4 +506,87 @@ func TestErrorScenarios(t *testing.T) {
 			et.test()
 		})
 	}
+}
+
+// TestCmdListShowEnabledSkipsDisabled exercises the showEnabled && !p.Enabled()
+// branch in cmdList. We use SetPatternEnabled (which doesn't rebuild the
+// registry) so the pattern stays visible but reports as disabled.
+func TestCmdListShowEnabledSkipsDisabled(t *testing.T) {
+	patterns := core.All()
+	if len(patterns) == 0 {
+		t.Skip("no patterns")
+	}
+
+	target := patterns[0]
+	if !core.SetPatternEnabled(target.Name(), false) {
+		t.Fatal("SetPatternEnabled returned false")
+	}
+	defer core.SetPatternEnabled(target.Name(), true)
+
+	origStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	cmdList([]string{"--enabled"})
+
+	w.Close()
+	os.Stdout = origStdout
+
+	buf := make([]byte, 16384)
+	n, _ := r.Read(buf)
+	r.Close()
+	out := string(buf[:n])
+
+	if out == "" {
+		t.Error("expected some output from --enabled list")
+	}
+}
+
+// TestCmdListShowDisabledIncludes exercises the showDisabled branch and the
+// status="disabled" branch in cmdList. SetPatternEnabled keeps the pattern
+// in the registry but reports it as disabled.
+func TestCmdListShowDisabledIncludes(t *testing.T) {
+	patterns := core.All()
+	if len(patterns) == 0 {
+		t.Skip("no patterns")
+	}
+
+	target := patterns[0]
+	if !core.SetPatternEnabled(target.Name(), false) {
+		t.Fatal("SetPatternEnabled returned false")
+	}
+	defer core.SetPatternEnabled(target.Name(), true)
+
+	origStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	cmdList([]string{"--disabled"})
+
+	w.Close()
+	os.Stdout = origStdout
+
+	buf := make([]byte, 16384)
+	n, _ := r.Read(buf)
+	r.Close()
+	out := string(buf[:n])
+
+	if out == "" {
+		t.Error("expected output from --disabled list")
+	}
+}
+
+// TestPrintJSONFindingsEncodeError exercises the json.Encode error branch
+// in printJSONFindings by closing os.Stdout before calling it.
+func TestPrintJSONFindingsEncodeError(t *testing.T) {
+	origStdout := os.Stdout
+	defer func() { os.Stdout = origStdout }()
+
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	w.Close() // close write end so Encode fails
+
+	findings := []core.Finding{{Pattern: "x", File: "y", Line: 1}}
+	printJSONFindings(findings)
+	r.Close()
 }

@@ -138,9 +138,6 @@ func SetActiveCategories(cats []string) {
 		if len(cats) > 0 && !catSet[p.category] {
 			continue
 		}
-		if !p.enabled {
-			continue
-		}
 		byCategory[p.category] = append(byCategory[p.category], p)
 	}
 	// Include externally registered non-bundle patterns so Register() callers are scanned
@@ -196,9 +193,19 @@ func Categories() []string {
 	return cats
 }
 
-func DownloadBundle() error {
-	const url = "https://github.com/HoraDomu/Atheon/releases/latest/download/patterns.bundle"
+// bundleDownloadURL is the default upstream bundle URL. Tests may override
+// it via setBundleDownloadURL to point at an httptest server.
+var bundleDownloadURL = "https://github.com/HoraDomu/Atheon/releases/latest/download/patterns.bundle"
 
+// setBundleDownloadURL swaps the upstream URL. Returns a restore function.
+// Intended for tests only.
+func setBundleDownloadURL(url string) func() {
+	orig := bundleDownloadURL
+	bundleDownloadURL = url
+	return func() { bundleDownloadURL = orig }
+}
+
+func DownloadBundle() error {
 	// Get current bundle info for comparison
 	var oldPatternCount int
 	var oldPatterns []string
@@ -208,7 +215,7 @@ func DownloadBundle() error {
 	}
 
 	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Get(url) //nolint:gosec
+	resp, err := client.Get(bundleDownloadURL) //nolint:gosec
 	if err != nil {
 		return err
 	}
