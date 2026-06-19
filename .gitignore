@@ -9,6 +9,30 @@
 *.iml
 .pr-notes/
 
-# generated
+# generated files
 coverage.html
 coverage.out
+*_coverage.out
+*.test
+
+# temporary files
+move
+temp
+tmp
+
+# internal documentation (excluded from upstream)
+docs/reports/
+docs/planning/
+docs/temp/
+docs/memories/
+
+# test artifacts
+benchmark-results.txt
+current-benchmark.txt
+security-findings.json
+credentials.json
+outdated.txt
+
+# build artifacts
+dist/
+build/

@@ -6,51 +6,150 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Patterns](https://img.shields.io/badge/patterns-105%2B-blueviolet)
 ![CI](https://github.com/aliasfoxkde/Atheon/actions/workflows/comprehensive-ci.yml/badge.svg)
+![Stars](https://img.shields.io/github/stars/aliasfoxkde/Atheon?style=social)
 
 > **One tool. All patterns. Any input.**
 
-# ⚠️ **IMPORTANT: This is an Enhanced Fork**
+# ⚠️ **IMPORTANT: This is an Enhanced Testing Fork**
 
-**This repository (aliasfoxkde/Atheon) is an enhanced fork of [HoraDomu/Atheon](https://github.com/HoraDomu/Atheon) and is NOT the official upstream project.**
+**This repository (aliasfoxkde/Atheon) is an enhanced testing fork of [HoraDomu/Atheon](https://github.com/HoraDomu/Atheon) and is NOT a competing project.**
 
-## 🎯 **Purpose & Differentiation**
+## 🎯 **Project Philosophy & Relationship to Official Project**
 
-The **official HoraDomu/Atheon** provides a stable, community-driven pattern matching engine with 57 patterns.
+<details>
+<summary><b>📖 Understanding the Relationship Between Projects</b></summary>
 
-This **enhanced aliasfoxkde/Atheon** version builds upon the official project with advanced features for power users, CI/CD integration, and comprehensive security scanning.
+### **Official HoraDomu/Atheon** - Stable Production Release
+- **Purpose**: Community-driven, stable pattern matching engine
+- **Focus**: Reliability, conservative feature additions, thorough testing
+- **Patterns**: 57 battle-tested patterns
+- **Update cadence**: Scheduled releases with comprehensive validation
+- **Best for**: Production use cases requiring stability
 
-### **📊 What's Enhanced?**
-- **105+ patterns** (vs 57 upstream) - 84% more coverage
+### **Enhanced aliasfoxkde/Atheon** - Feature-Rich Testing Build
+- **Purpose**: Experimental "nightly build" testing the limits of pattern matching
+- **Focus**: Performance optimizations, advanced features, comprehensive pattern coverage
+- **Patterns**: 105+ patterns (including experimental and cutting-edge)
+- **Update cadence**: Frequent updates with latest features and enhancements
+- **Best for**: Power users, CI/CD integration, comprehensive security scanning
+
+### **🔄 Feature Parity & Synchronization**
+- **We maintain feature parity** with the official project through PR submissions
+- **This fork includes** all official features plus experimental enhancements
+- **Timing difference**: This enhanced version may be slightly behind official releases
+- **Contribution flow**: Features tested here → refined → submitted upstream → official release
+- **Two-way benefit**: Community gets stable features, we get to experiment with innovations
+
+### **🎯 When to Use Each Version**
+- **Use Official HoraDomu/Atheon** for: Production environments, stability-critical deployments, conservative pattern selection
+- **Use Enhanced aliasfoxkde/Atheon** for: Development testing, CI/CD pipelines, comprehensive scanning, performance evaluation
+
+**Both projects benefit the community.** This fork serves as a testing ground for innovations that may eventually make their way upstream.
+
+</details>
+
+<details>
+<summary><b>📊 Enhanced Features vs Official Release</b></summary>
+
+### **What's Enhanced in This Testing Build?**
+- **105+ patterns** (vs 57 upstream) - 84% more coverage including experimental patterns
 - **2-3x faster** with streaming API and performance optimizations
 - **10x less memory** usage with chunked file scanning
 - **MCP integration** with enhanced configuration options
 - **Pattern state persistence** across sessions
 - **Quality enforcement** patterns for AI/developer shortcuts
 - **Configuration profiles** for different use cases
+- **Comprehensive CI/CD** with multi-version testing
 
-### **🔗 Choose Your Version**
-- **Official Project**: [https://github.com/HoraDomu/Atheon](https://github.com/HoraDomu/Atheon) ← Stability & Community
-- **Enhanced Version**: [https://github.com/aliasfoxkde/Atheon](https://github.com/aliasfoxkde/Atheon) ← Features & Performance
+### **Trade-offs to Consider**
+- ✅ **More features** - Latest capabilities and experimental patterns
+- ✅ **Faster updates** - Frequent enhancements and optimizations
+- ⚠️ **Less stable** - Experimental features may have issues
+- ⚠️ **May lag behind** - Official releases may have newer stable features
+- ✅ **More testing** - Comprehensive test suite and validation
 
 > **See detailed comparison**: [docs/FEATURE_COMPARISON.md](docs/FEATURE_COMPARISON.md)
+
+</details>
+
+### **🔗 Quick Links**
+
+| Repository | Purpose | Status |
+|------------|---------|--------|
+| **[Official Project](https://github.com/HoraDomu/Atheon)** | Stable production release | ✅ Recommended for production |
+| **[Enhanced Version](https://github.com/aliasfoxkde/Atheon)** | Feature-rich testing build | 🧪 Experimental features |
+| **[Project Pulse](https://github.com/aliasfoxkde/Atheon/pulse)** | Activity & updates overview | 📊 Live stats |
+| **[Contributors](https://github.com/aliasfoxkde/Atheon/graphs/contributors)** | Project contributors | 👥 Community |
+
+---
+
+## 📈 **Project Growth & Activity**
+
+### **Repository Activity**
+![GitHub Stars](https://img.shields.io/github/stars/aliasfoxkde/Atheon?style=for-the-badge&logo=github)
+![GitHub Forks](https://img.shields.io/github/forks/aliasfoxkde/Atheon?style=for-the-badge&logo=github)
+![GitHub Issues](https://img.shields.io/github/issues/aliasfoxkde/Atheon?style=for-the-badge)
+![GitHub Closed PRs](https://img.shields.io/github/issues-pr-closed/aliasfoxkde/Atheon?style=for-the-badge)
+
+### **Stars Over Time**
+[![Star History Chart](https://api.star-history.com/svg?repos=aliasfoxkde/Atheon&type=Date)](https://star-history.com/#aliasfoxkde/Atheon&Date)
+
+### **Recent Activity**
+- ![Latest Commit](https://img.shields.io/github/last-commit/aliasfoxkde/Atheon?style=flat-square)
+- ![Commit Activity](https://img.shields.io/github/commit-activity/y/aliasfoxkde/Atheon?style=flat-square)
+- ![Release](https://img.shields.io/github/release/aliasfoxkde/Atheon?style=flat-square)
 
 ---
 
 ## 🚀 **Quick Start**
 
-### **Installation**
-```bash
-# Install enhanced version (recommended)
-go install github.com/aliasfoxkde/Atheon@latest
+<details>
+<summary><b>📦 Installation Methods</b></summary>
 
-# Or install development version with all features
-go install github.com/aliasfoxkde/Atheon@dev/full-feature
+### **Recommended: Build from Source**
+```bash
+# Clone the repository
+git clone https://github.com/aliasfoxkde/Atheon.git
+cd Atheon
+
+# Build the main binary
+go build -o atheon .
+
+# Build the MCP server (optional)
+go build -o atheon-mcp ./cmd/mcp
+
+# Install to your PATH
+sudo mv atheon /usr/local/bin/  # Linux/macOS
+# OR add to PATH manually
+export PATH=$PATH:$(pwd)
 
 # Verify installation
 atheon --version
 ```
 
-### **Basic Usage**
+### **Alternative: Development Version**
+```bash
+# Clone and checkout development branch
+git clone https://github.com/aliasfoxkde/Atheon.git
+cd Atheon
+git checkout dev/full-feature
+
+# Build with all features enabled
+go build -o atheon .
+
+# Verify installation
+atheon --version
+```
+go build -o atheon .
+go build -o atheon-mcp ./cmd/mcp
+```
+
+</details>
+
+<details>
+<summary><b>⚡ Basic Usage Examples</b></summary>
+
+### **Basic Scanning**
 ```bash
 # Scan current directory
 atheon ./my-project
@@ -63,86 +162,6 @@ atheon --profile config/profiles/pipeline.json ./my-project
 
 # List all patterns with status
 atheon list
-```
-
-### **Pre-commit Hook Setup**
-```bash
-# Create pre-commit hook
-echo '#!/bin/sh
-atheon ./' > .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-```
-
----
-
-## 📚 **Documentation Navigation**
-
-### **📖 Core Documentation**
-- **[docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)** - Complete system architecture and workflow
-- **[docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md)** - Branch structure and development workflow
-- **[docs/FEATURE_COMPARISON.md](docs/FEATURE_COMPARISON.md)** - Upstream vs enhanced feature comparison
-
-### **🔧 Configuration & Usage**
-- **[config/profiles/](config/profiles/)** - Ready-to-use configuration profiles
-  - `production.json` - General use (default)
-  - `pipeline.json` - CI/CD optimized
-  - `mcp-integration.json` - MCP server settings
-  - `development.json` - Full feature testing
-
-### **🛠️ Advanced Features**
-- **Pattern State Persistence** - Remember enabled/disabled patterns
-- **Streaming API** - Memory-efficient large file scanning
-- **MCP Integration** - AI assistant code scanning
-- **Quality Enforcement** - Detect dangerous shortcuts and AI-generated code
-
----
-
-## ✨ **Key Features**
-
-### **🎯 Core Atheon Features** (from upstream)
-- ✅ Pattern matching engine supporting any regex pattern
-- ✅ Community-driven pattern library
-- ✅ Cross-platform binaries (Windows, macOS, Linux)
-- ✅ MCP server integration for AI assistants
-- ✅ JSON and human-readable output formats
-- ✅ Pre-commit/pre-push hook integration
-- ✅ Gitignore and custom ignore file support
-
-### **🚀 Enhanced Features** (this fork)
-
-#### **Performance Optimizations**
-- ✅ **Streaming API**: Process large files without loading into memory
-- ✅ **Chunked Scanning**: 90% memory reduction for large files
-- ✅ **Parallel Processing**: 2-3x faster directory scanning
-- ✅ **Performance Benchmarks**: Track improvements over time
-
-#### **Expanded Pattern Library**
-- ✅ **105+ patterns** (vs 57 upstream) across 12+ categories
-- ✅ **New categories**: AI detection, DevOps, quality enforcement
-- ✅ **API Key Patterns**: Stripe, Slack, GitHub, Heroku, JWT, Google, Mailchimp, GitLab, Twilio, SendGrid, Firebase, Azure
-- ✅ **Quality Patterns**: Git --force detection, test skipping, insecure flags, AI shortcuts
-
-#### **Advanced Functionality**
-- ✅ **Pattern Persistence**: Remember enabled/disabled patterns across sessions
-- ✅ **Configuration Profiles**: Pre-configured settings for different use cases
-- ✅ **Enhanced MCP Server**: Streaming results, category filtering, state persistence
-- ✅ **Self-Scanning**: Atheon scans itself for security issues
-- ✅ **Comprehensive Testing**: Multi-version Go testing, integration tests
-
----
-
-## 🔍 **Usage Examples**
-
-### **Basic Scanning**
-```bash
-# Scan directory
-atheon ./my-project
-
-# Scan specific file
-atheon --file config/app.yaml
-
-# Scan environment variables
-atheon --env
 ```
 
 ### **Pattern Management**
@@ -178,18 +197,196 @@ cat file.txt | atheon -
 git diff | atheon -
 ```
 
-### **MCP Integration**
-```bash
-# Build MCP server
-go build -o atheon-mcp ./cmd/mcp
+</details>
 
-# Run with configuration
-./atheon-mcp --profile config/profiles/mcp-integration.json
+<details>
+<summary><b>🔧 Pre-commit Hook Setup</b></summary>
+
+```bash
+# Create pre-commit hook
+echo '#!/bin/sh
+atheon ./' > .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
 ```
+
+</details>
 
 ---
 
-## 🌟 **Feature Comparison: Upstream vs Enhanced**
+## 🛠️ **Live Demos & Related Projects**
+
+<details>
+<summary><b>🎬 Live Application Demos</b></summary>
+
+### **[🔍 Atheon-GitHub-Scanner Demo](https://atheon-scanner.pages.dev/)**
+**Live GitHub repository scanning automation**
+- Real-time repository scanning
+- Pattern matching visualization
+- Security findings dashboard
+- Performance metrics
+
+**Features:**
+- Multi-repository batch scanning
+- Pattern category filtering
+- Historical tracking and trends
+- Export capabilities
+
+### **[⚡ Atheon-Benchmark Demo](https://atheon-benchmark.pages.dev)**
+**Performance testing and benchmarking tools**
+- Live performance comparisons
+- Pattern matching benchmarks
+- Memory usage analysis
+- Speed optimization tracking
+
+**Features:**
+- Real-time benchmarking
+- Multi-version comparison
+- Performance regression detection
+- Optimization recommendations
+
+</details>
+
+<details>
+<summary><b>🔗 Project Ecosystem</b></summary>
+
+### **Core Projects**
+- **[Atheon](https://github.com/aliasfoxkde/Atheon)** - Main pattern matching engine (this repository)
+- **[Atheon-Benchmark](https://github.com/aliasfoxkde/Atheon-Benchmark)** - Performance testing and benchmarking tools
+- **[Atheon-GitHub-Scanner](https://github.com/aliasfoxkde/Atheon-GitHub-Scanner)** - GitHub repository scanning automation
+
+### **Official Upstream**
+- **[HoraDomu/Atheon](https://github.com/HoraDomu/Atheon)** - Official stable release
+
+### **Supporting Infrastructure**
+- **[Portfolio](https://openportfolio.pages.dev)** - Project maintainer's portfolio
+- **[Documentation](docs/)** - Comprehensive documentation
+- **[GitHub Wiki](.github/wiki/)** - Community guides and tutorials
+
+</details>
+
+---
+
+## 📚 **Documentation Navigation**
+
+<details>
+<summary><b>📖 Core Documentation</b></summary>
+
+### **System Architecture & Workflow**
+- **[docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)** - Complete system architecture and workflow
+- **[docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md)** - Branch structure and development workflow
+- **[docs/FEATURE_COMPARISON.md](docs/FEATURE_COMPARISON.md)** - Upstream vs enhanced feature comparison
+- **[docs/ROADMAP.md](docs/ROADMAP.md)** - Development roadmap and milestones
+
+### **Key Documentation Files**
+- `SYSTEM_ARCHITECTURE.md` - Technical architecture, decision making framework
+- `BRANCH_STRATEGY.md` - Git workflow, branch purposes, development process
+- `FEATURE_COMPARISON.md` - Detailed feature comparison between versions
+- `ROADMAP.md` - Future development plans and timeline
+
+</details>
+
+<details>
+<summary><b>🔧 Configuration & Usage</b></summary>
+
+### **Configuration Profiles**
+- **[config/profiles/production.json](config/profiles/production.json)** - General use (default)
+  - Standard pattern set
+  - Balanced performance
+  - Production-ready settings
+
+- **[config/profiles/pipeline.json](config/profiles/pipeline.json)** - CI/CD optimized
+  - Automated scanning
+  - JSON output format
+  - Fast execution mode
+
+- **[config/profiles/mcp-integration.json](config/profiles/mcp-integration.json)** - MCP server settings
+  - AI assistant integration
+  - Streaming results
+  - Enhanced configuration
+
+- **[config/profiles/development.json](config/profiles/development.json)** - Full feature testing
+  - All patterns enabled
+  - Comprehensive testing
+  - Debug mode active
+
+### **Using Configuration Profiles**
+```bash
+# Copy profile to config directory
+cp config/profiles/production.json ~/.atheon/config.json
+
+# Or use per-scan
+atheon --profile config/profiles/pipeline.json ./my-project
+```
+
+</details>
+
+<details>
+<summary><b>🛠️ Advanced Features</b></summary>
+
+### **Enhanced Capabilities**
+- **Pattern State Persistence** - Remember enabled/disabled patterns
+- **Streaming API** - Memory-efficient large file scanning
+- **MCP Integration** - AI assistant code scanning
+- **Quality Enforcement** - Detect dangerous shortcuts and AI-generated code
+- **Performance Optimization** - 2-3x faster with parallel processing
+- **Memory Efficiency** - 10x reduction with chunked scanning
+
+### **Technical Features**
+- Multi-version Go support (1.21, 1.22, 1.23, 1.24)
+- Cross-platform binaries (Windows, macOS, Linux)
+- JSON and human-readable output formats
+- Pre-commit/pre-push hook integration
+- Gitignore and custom ignore file support
+
+</details>
+
+---
+
+## ✨ **Key Features**
+
+<details>
+<summary><b>🎯 Core Atheon Features (from upstream)</b></summary>
+
+- ✅ Pattern matching engine supporting any regex pattern
+- ✅ Community-driven pattern library
+- ✅ Cross-platform binaries (Windows, macOS, Linux)
+- ✅ MCP server integration for AI assistants
+- ✅ JSON and human-readable output formats
+- ✅ Pre-commit/pre-push hook integration
+- ✅ Gitignore and custom ignore file support
+
+</details>
+
+<details>
+<summary><b>🚀 Enhanced Features (this testing fork)</b></summary>
+
+### **Performance Optimizations**
+- ✅ **Streaming API**: Process large files without loading into memory
+- ✅ **Chunked Scanning**: 90% memory reduction for large files
+- ✅ **Parallel Processing**: 2-3x faster directory scanning
+- ✅ **Performance Benchmarks**: Track improvements over time
+
+### **Expanded Pattern Library**
+- ✅ **105+ patterns** (vs 57 upstream) across 12+ categories
+- ✅ **New categories**: AI detection, DevOps, quality enforcement
+- ✅ **API Key Patterns**: Stripe, Slack, GitHub, Heroku, JWT, Google, Mailchimp, GitLab, Twilio, SendGrid, Firebase, Azure
+- ✅ **Quality Patterns**: Git --force detection, test skipping, insecure flags, AI shortcuts
+
+### **Advanced Functionality**
+- ✅ **Pattern Persistence**: Remember enabled/disabled patterns across sessions
+- ✅ **Configuration Profiles**: Pre-configured settings for different use cases
+- ✅ **Enhanced MCP Server**: Streaming results, category filtering, state persistence
+- ✅ **Self-Scanning**: Atheon scans itself for security issues
+- ✅ **Comprehensive Testing**: Multi-version Go testing, integration tests
+
+</details>
+
+---
+
+## 🌟 **Feature Comparison: Official vs Enhanced**
+
+<details>
+<summary><b>📊 Detailed Comparison Table</b></summary>
 
 | Feature | Official HoraDomu/Atheon | Enhanced aliasfoxkde/Atheon |
 |---------|----------------------|---------------------------|
@@ -204,67 +401,22 @@ go build -o atheon-mcp ./cmd/mcp
 | Self-Scanning | ❌ | ✅ |
 | Streaming API | ❌ | ✅ |
 | DevOps Patterns | ❌ | ✅ 6 patterns |
+| Stability | Production-ready | Testing/Experimental |
+| Update Frequency | Scheduled releases | Frequent updates |
+| Feature Parity | N/A (upstream) | Maintained via PRs |
 
 > **📖 See detailed comparison**: [docs/FEATURE_COMPARISON.md](docs/FEATURE_COMPARISON.md)
 
----
-
-## 🛠️ **Installation Methods**
-
-### **Recommended: Go Install**
-```bash
-# Production build
-go install github.com/aliasfoxkde/Atheon@latest
-
-# Development build (all features)
-go install github.com/aliasfoxkde/Atheon@dev/full-feature
-```
-
-### **Build from Source**
-```bash
-git clone https://github.com/aliasfoxkde/Atheon.git
-cd Atheon
-go build -o atheon .
-go build -o atheon-mcp ./cmd/mcp
-```
-
-### **Configuration Profiles**
-```bash
-# Copy profile to config directory
-cp config/profiles/production.json ~/.atheon/config.json
-
-# Or use per-scan
-atheon --profile config/profiles/pipeline.json ./my-project
-```
-
----
-
-## 🏗️ **Branch Strategy & Development**
-
-### **🌳 Core Branches**
-- **`stable/clean`** - Tracks upstream HoraDomu/Atheon:main (source of truth)
-- **`main`** - Production build with enhanced features (user-facing)
-- **`dev/full-feature`** - Development branch with all patterns enabled (testing)
-
-### **🔄 Development Workflow**
-```bash
-# Start new feature from stable baseline
-git checkout -b feat/my-feature stable/clean
-
-# Develop and test
-# ... development work ...
-
-# Create PR to main
-gh pr create --base main --head feat/my-feature
-```
-
-> **📖 See detailed branch strategy**: [docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md)
+</details>
 
 ---
 
 ## 🧪 **Testing & Validation**
 
-### **Enhanced Test Coverage**
+<details>
+<summary><b>🔬 Enhanced Test Coverage</b></summary>
+
+### **Testing Infrastructure**
 - ✅ Multi-version Go testing (1.21, 1.22, 1.23, 1.24)
 - ✅ Static analysis (golangci-lint, staticcheck)
 - ✅ Security scanning (Atheon self-scan)
@@ -276,9 +428,10 @@ gh pr create --base main --head feat/my-feature
 - **CI/CD Pass Rate**: >95%
 - **Pattern Validation**: All patterns tested and functional
 
----
+</details>
 
-## 🔒 **Security & Quality**
+<details>
+<summary><b>🔒 Security & Quality</b></summary>
 
 ### **Self-Scanning**
 The enhanced Atheon scans itself to catch security issues:
@@ -299,32 +452,38 @@ atheon . --pattern skip-tests
 atheon . --pattern ai-safety-bypass
 ```
 
+</details>
+
 ---
 
-## 🤝 **Contributing**
+## 🏗️ **Branch Strategy & Development**
 
-### **Pattern Contributions**
-Adding a new pattern is one YAML file:
-```yaml
-# community/secrets/my-service.yaml
-name: my-service-api-key
-match: '\bmsvc_[A-Za-z0-9]{32}\b'
+<details>
+<summary><b>🌳 Core Branches & Workflow</b></summary>
+
+### **Branch Structure**
+- **`stable/clean`** - Tracks upstream HoraDomu/Atheon:main (source of truth)
+- **`main`** - Production build with enhanced features (user-facing)
+- **`dev/full-feature`** - Development branch with all patterns enabled (testing)
+
+### **Development Workflow**
+```bash
+# Start new feature from stable baseline
+git checkout -b feat/my-feature stable/clean
+
+# Develop and test
+# ... development work ...
+
+# Create PR to main
+gh pr create --base main --head feat/my-feature
 ```
 
-The folder name becomes the category. No engine changes, no recompile needed.
+> **📖 See detailed branch strategy**: [docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md)
 
-### **Development Contributions**
-1. Follow branch strategy documentation
-2. Ensure all tests pass (multi-version Go)
-3. Update documentation for user-facing changes
-4. Use conventional commit format
-5. Create PR with clear description
+</details>
 
-> **📖 See detailed system architecture**: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
-
----
-
-## 📊 **Branch-Specific Usage**
+<details>
+<summary><b>📊 Branch-Specific Usage</b></summary>
 
 ### **`stable/clean` Branch** (Upstream Tracking)
 - **Purpose**: Tracks upstream HoraDomu/Atheon:main exactly
@@ -344,52 +503,117 @@ The folder name becomes the category. No engine changes, no recompile needed.
 - **Patterns**: All 105+ patterns enabled, experimental features active
 - **Installation**: `go install github.com/aliasfoxkde/Atheon@dev/full-feature`
 
-> **📖 See detailed branch documentation**: [docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md)
+</details>
+
+---
+
+## 🤝 **Contributing**
+
+<details>
+<summary><b>📝 Pattern Contributions</b></summary>
+
+Adding a new pattern is one YAML file:
+```yaml
+# community/secrets/my-service.yaml
+name: my-service-api-key
+match: '\bmsvc_[A-Za-z0-9]{32}\b'
+```
+
+The folder name becomes the category. No engine changes, no recompile needed.
+
+</details>
+
+<details>
+<summary><b>🛠️ Development Contributions</b></summary>
+
+### **Contribution Guidelines**
+1. Follow branch strategy documentation
+2. Ensure all tests pass (multi-version Go)
+3. Update documentation for user-facing changes
+4. Use conventional commit format
+5. Create PR with clear description
+
+### **Community Contributors**
+- **[Upstream Contributors](CONTRIBUTORS.md)** - Contributors to the official project
+- **[Enhanced Contributors](https://github.com/aliasfoxkde/Atheon/graphs/contributors)** - Contributors to this enhanced version
+
+> **📖 See detailed system architecture**: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
+
+</details>
 
 ---
 
 ## 🙏 **Credits & Attribution**
 
-### **Original Project**
+<details>
+<summary><b>🎯 Original Project</b></summary>
+
 - **Creator**: Dominick Yanez (HoraDomu)
 - **Official Repository**: [https://github.com/HoraDomu/Atheon](https://github.com/HoraDomu/Atheon)
 - **License**: MIT with Additional Terms Copyright © 2026 Dominick Yanez
+- **Purpose**: Stable, community-driven pattern matching engine
 
-### **Enhanced Fork**
+</details>
+
+<details>
+<summary><b>🚀 Enhanced Fork</b></summary>
+
+### **Maintainer & Enhancement**
 - **Maintainer**: Micheal Kinney (aliasfoxkde)
 - **Repository**: [https://github.com/aliasfoxkde/Atheon](https://github.com/aliasfoxkde/Atheon)
 - **Portfolio**: [https://openportfolio.pages.dev](https://openportfolio.pages.dev)
 - **Enhancement Purpose**: Advanced features, performance optimizations, comprehensive testing
 
 ### **Related Projects**
-- **Atheon-Benchmark**: [https://github.com/aliasfoxkde/Atheon-Benchmark](https://github.com/aliasfoxkde/Atheon-Benchmark) - Performance testing and benchmarking tools
-- **Atheon-GitHub-Scanner**: [https://github.com/aliasfoxkde/Atheon-GitHub-Scanner](https://github.com/aliasfoxkde/Atheon-GitHub-Scanner) - GitHub repository scanning automation
+- **[Atheon-Benchmark](https://github.com/aliasfoxkde/Atheon-Benchmark)** - Performance testing and benchmarking tools
+- **[Atheon-GitHub-Scanner](https://github.com/aliasfoxkde/Atheon-GitHub-Scanner)** - GitHub repository scanning automation
 
 ### **Development Assistance**
 This enhanced version includes development support using TaskWizer technologies for systematic testing, documentation generation, and quality assurance.
 
-### **Contributors**
+</details>
+
+<details>
+<summary><b>👥 Contributors</b></summary>
+
 Both the upstream project and this enhanced fork are built by the community. Every pattern contributed benefits all users.
 
-**Upstream Contributors**: [CONTRIBUTORS.md](CONTRIBUTORS.md)
-**Enhanced Contributors**: See GitHub contributor graph
+- **[Upstream Contributors](CONTRIBUTORS.md)** - Contributors to the official project
+- **[Enhanced Contributors](https://github.com/aliasfoxkde/Atheon/graphs/contributors)** - Contributors to this enhanced version
+
+Thank you to all contributors who help make Atheon better every day!
+
+</details>
 
 ---
 
 ## 📧 **Contact & Support**
 
-### **Official Project**
+<details>
+<summary><b>📮 Official Project Support</b></summary>
+
 - **Email**: [dommcpro@gmail.com](mailto:dommcpro@gmail.com)
 - **Issues**: [https://github.com/HoraDomu/Atheon/issues](https://github.com/HoraDomu/Atheon/issues)
+- **Documentation**: Official project documentation
 
-### **Enhanced Fork**
+</details>
+
+<details>
+<summary><b>🔧 Enhanced Fork Support</b></summary>
+
 - **Issues**: [https://github.com/aliasfoxkde/Atheon/issues](https://github.com/aliasfoxkde/Atheon/issues)
 - **Documentation**: See comprehensive docs in `docs/` directory
 - **Branch Strategy**: [docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md)
+- **System Architecture**: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
+
+</details>
 
 ---
 
 ## 📄 **License**
+
+<details>
+<summary><b>⚖️ MIT License with Additional Terms</b></summary>
 
 MIT with Additional Terms Copyright © 2026 Dominick Yanez
 
@@ -405,6 +629,8 @@ MIT with Additional Terms Copyright © 2026 Dominick Yanez
 
 **For permissions beyond this scope**: [dommcpro@gmail.com](mailto:dommcpro@gmail.com)
 
+</details>
+
 ---
 
 ## 🎯 **Quick Decision Guide**
@@ -414,6 +640,7 @@ MIT with Additional Terms Copyright © 2026 Dominick Yanez
 - ✅ Minimal dependencies and footprint
 - ✅ Official support and issue tracking
 - ✅ Conservative pattern selection
+- ✅ Production-ready reliability
 
 ### **Use Enhanced aliasfoxkde/Atheon when you want**:
 - ✅ 105+ patterns (84% more coverage)
@@ -424,12 +651,30 @@ MIT with Additional Terms Copyright © 2026 Dominick Yanez
 - ✅ Quality enforcement patterns
 - ✅ Configuration profiles for different use cases
 - ✅ Comprehensive testing and validation
+- ✅ Experimental feature testing
 
 ---
 
-**🔗 Quick Links**:
-- **Official Project**: [https://github.com/HoraDomu/Atheon](https://github.com/HoraDomu/Atheon)
-- **Enhanced Version**: [https://github.com/aliasfoxkde/Atheon](https://github.com/aliasfoxkde/Atheon)
-- **Feature Comparison**: [docs/FEATURE_COMPARISON.md](docs/FEATURE_COMPARISON.md)
-- **System Architecture**: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
-- **Branch Strategy**: [docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md)
+## 🔗 **Quick Links**
+
+| Resource | Link | Purpose |
+|----------|------|---------|
+| **Official Project** | [https://github.com/HoraDomu/Atheon](https://github.com/HoraDomu/Atheon) | Stable production release |
+| **Enhanced Version** | [https://github.com/aliasfoxkde/Atheon](https://github.com/aliasfoxkde/Atheon) | Feature-rich testing build |
+| **Feature Comparison** | [docs/FEATURE_COMPARISON.md](docs/FEATURE_COMPARISON.md) | Detailed feature comparison |
+| **System Architecture** | [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) | Technical architecture |
+| **Branch Strategy** | [docs/BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md) | Development workflow |
+| **Project Pulse** | [https://github.com/aliasfoxkde/Atheon/pulse](https://github.com/aliasfoxkde/Atheon/pulse) | Activity overview |
+| **Contributors** | [https://github.com/aliasfoxkde/Atheon/graphs/contributors](https://github.com/aliasfoxkde/Atheon/graphs/contributors) | Project contributors |
+| **Scanner Demo** | [https://atheon-scanner.pages.dev/](https://atheon-scanner.pages.dev/) | Live scanning demo |
+| **Benchmark Demo** | [https://atheon-benchmark.pages.dev](https://atheon-benchmark.pages.dev) | Performance benchmarking |
+
+---
+
+<p align="center">
+  <b>Both projects serve the community. This fork tests boundaries while maintaining upstream compatibility.</b>
+</p>
+
+<p align="center">
+  <i>For production stability, use the official project. For cutting-edge features, use this enhanced version.</i>
+</p>
