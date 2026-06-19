@@ -44,7 +44,7 @@ Comprehensive troubleshooting guide for common issues and their solutions.
 ### Patterns Not Loading
 
 **Symptoms:**
-- Only 57 patterns shown instead of 87
+- Only 57 patterns shown instead of 85
 - Missing AI detection, DevOps, or framework categories
 - Stale pattern results
 

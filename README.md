@@ -7,14 +7,14 @@
 ![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Patterns](https://img.shields.io/badge/patterns-105%2B-blueviolet)
-![CI](https://github.com/aliasfoxkde/Atheon-Enhanced/actions/workflows/comprehensive-ci.yml/badge.svg)
+![CI](https://github.com/aliasfoxkde/Atheon/actions/workflows/comprehensive-ci.yml/badge.svg)
 ![Stars](https://img.shields.io/github/stars/aliasfoxkde/Atheon?style=social)
 
 > **One tool. All patterns. Any input.**
 
 # ⚠️ **IMPORTANT: This is an Enhanced Testing Fork**
 
-**This repository (aliasfoxkde/Atheon-Enhanced) is an enhanced testing fork of [HoraDomu/Atheon](https://github.com/HoraDomu/Atheon) and is NOT a competing project.**
+**This repository (aliasfoxkde/Atheon) is an enhanced testing fork of [HoraDomu/Atheon](https://github.com/HoraDomu/Atheon) and is NOT a competing project.**
 
 ## 🎯 **Project Philosophy & Relationship to Official Project**
 
@@ -28,10 +28,10 @@
 - **Update cadence**: Scheduled releases with comprehensive validation
 - **Best for**: Production use cases requiring stability
 
-### **Enhanced aliasfoxkde/Atheon-Enhanced** - Feature-Rich Testing Build
+### **Enhanced aliasfoxkde/Atheon (Atheon-Enhanced)** - Feature-Rich Testing Build
 - **Purpose**: Experimental "nightly build" testing the limits of pattern matching
 - **Focus**: Performance optimizations, advanced features, comprehensive pattern coverage
-- **Patterns**: 57 patterns (community-driven, battle-tested)
+- **Patterns**: 85 patterns (community-driven, battle-tested)
 - **Update cadence**: Frequent updates with latest features and enhancements
 - **Best for**: Power users, CI/CD integration, comprehensive security scanning
 
@@ -54,7 +54,7 @@
 <summary><b>📊 Enhanced Features vs Official Release</b></summary>
 
 ### **What's Enhanced in This Testing Build?**
-- **57 patterns** - comprehensive coverage across multiple categories
+- **85 patterns** - comprehensive coverage across multiple categories
 - **2-3x faster** with streaming API and performance optimizations
 - **10x less memory** usage with chunked file scanning
 - **MCP integration** with enhanced configuration options
@@ -351,7 +351,7 @@ atheon --profile config/profiles/pipeline.json ./my-project
 - ✅ **Performance Benchmarks**: Track improvements over time
 
 ### **Expanded Pattern Library**
-- ✅ **57 patterns** across 6 categories
+- ✅ **85 patterns** across 10 categories
 - ✅ **New categories**: AI detection, DevOps, quality enforcement
 - ✅ **API Key Patterns**: Stripe, Slack, GitHub, Heroku, JWT, Google, Mailchimp, GitLab, Twilio, SendGrid, Firebase, Azure
 - ✅ **Quality Patterns**: Git --force detection, test skipping, insecure flags, AI shortcuts
@@ -484,7 +484,7 @@ gh pr create --base main --head feat/my-feature
 ### **`dev/full-feature` Branch** (Development/Testing)
 - **Purpose**: Comprehensive testing with all patterns enabled
 - **Usage**: Pattern development, performance validation, quality assurance
-- **Patterns**: All 57 patterns enabled, full testing active
+- **Patterns**: All 85 patterns enabled, full testing active
 - **Installation**: `go install github.com/aliasfoxkde/Atheon@dev/full-feature`
 
 </details>
@@ -586,8 +586,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Conservative pattern selection
 - ✅ Production-ready reliability
 
-### **Use Enhanced aliasfoxkde/Atheon when you want**:
-- ✅ 57 patterns (comprehensive coverage)
+### **Use Enhanced aliasfoxkde/Atheon (Atheon-Enhanced) when you want**:
+- ✅ 85 patterns (comprehensive coverage)
 - ✅ 2-3x performance improvements
 - ✅ 10x memory reduction for large files
 - ✅ MCP integration with advanced features

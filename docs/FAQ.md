@@ -54,7 +54,7 @@ go version  # Should be 1.21 or higher
 ## 🎯 Project Understanding
 
 ### **Q: What's the difference between official and enhanced Atheon?**
-**A:** The official HoraDomu/Atheon is a stable production release with 57 patterns, while the enhanced aliasfoxkde/Atheon is a feature-rich testing build with 105+ patterns, performance optimizations, and experimental features. See [FEATURE_COMPARISON.md](FEATURE_COMPARISON.md) for details.
+**A:** The official HoraDomu/Atheon is a stable production release with 57 patterns, while the enhanced aliasfoxkde/Atheon (Atheon-Enhanced) is a feature-rich testing build with 85 patterns, performance optimizations, and experimental features. See [FEATURE_COMPARISON.md](FEATURE_COMPARISON.md) for details.
 
 ### **Q: Is this a competing project?**
 **A:** No! This is an enhanced testing fork that:
@@ -128,7 +128,7 @@ atheon --env
 ### **Q: How many patterns does Atheon have?**
 **A:**
 - **Official HoraDomu/Atheon**: 57 patterns
-- **Enhanced aliasfoxkde/Atheon**: 105+ patterns
+- **Enhanced aliasfoxkde/Atheon (Atheon-Enhanced)**: 85 patterns
 
 ### **Q: Can I add my own patterns?**
 **A:** Yes! Create a YAML file in the appropriate category:
