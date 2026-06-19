@@ -83,24 +83,6 @@
 
 ---
 
-## 📈 **Project Growth & Activity**
-
-### **Repository Activity**
-![GitHub Stars](https://img.shields.io/github/stars/aliasfoxkde/Atheon?style=for-the-badge&logo=github)
-![GitHub Forks](https://img.shields.io/github/forks/aliasfoxkde/Atheon?style=for-the-badge&logo=github)
-![GitHub Issues](https://img.shields.io/github/issues/aliasfoxkde/Atheon?style=for-the-badge)
-![GitHub Closed PRs](https://img.shields.io/github/issues-pr-closed/aliasfoxkde/Atheon?style=for-the-badge)
-
-### **Stars Over Time**
-[![Star History Chart](https://api.star-history.com/svg?repos=aliasfoxkde/Atheon&type=Date)](https://star-history.com/#aliasfoxkde/Atheon&Date)
-
-### **Recent Activity**
-- ![Latest Commit](https://img.shields.io/github/last-commit/aliasfoxkde/Atheon?style=flat-square)
-- ![Commit Activity](https://img.shields.io/github/commit-activity/y/aliasfoxkde/Atheon?style=flat-square)
-- ![Release](https://img.shields.io/github/release/aliasfoxkde/Atheon?style=flat-square)
-
----
-
 ## 🚀 **Quick Start**
 
 <details>
@@ -628,6 +610,32 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 | **Contributors** | [https://github.com/aliasfoxkde/Atheon/graphs/contributors](https://github.com/aliasfoxkde/Atheon/graphs/contributors) | Project contributors |
 | **Scanner Demo** | [https://atheon-scanner.pages.dev/](https://atheon-scanner.pages.dev/) | Live scanning demo |
 | **Benchmark Demo** | [https://atheon-benchmark.pages.dev](https://atheon-benchmark.pages.dev) | Performance benchmarking |
+
+---
+
+## 📈 **Project Growth & Activity**
+
+### **Repository Activity**
+![GitHub Stars](https://img.shields.io/github/stars/aliasfoxkde/Atheon?style=for-the-badge&logo=github)
+![GitHub Forks](https://img.shields.io/github/forks/aliasfoxkde/Atheon?style=for-the-badge&logo=github)
+![GitHub Issues](https://img.shields.io/github/issues/aliasfoxkde/Atheon?style=for-the-badge)
+![GitHub Closed PRs](https://img.shields.io/github/issues-pr-closed/aliasfoxkde/Atheon?style=for-the-badge)
+
+### **Stars Over Time**
+[![Star History Chart](https://api.star-history.com/svg?repos=aliasfoxkde/Atheon&type=Date)](https://star-history.com/#aliasfoxkde/Atheon&Date)
+
+### **Recent Activity**
+- ![Latest Commit](https://img.shields.io/github/last-commit/aliasfoxkde/Atheon?style=flat-square)
+- ![Commit Activity](https://img.shields.io/github/commit-activity/y/aliasfoxkde/Atheon?style=flat-square)
+- ![Release](https://img.shields.io/github/release/aliasfoxkde/Atheon?style=flat-square)
+
+### **⚠️ Important Disclaimers**
+
+> **Please Note**: The statistics and badges shown above reflect activity on this enhanced testing fork only. These metrics do not represent the official HoraDomu/Atheon project.
+>
+> **For official project statistics**, please visit: [https://github.com/HoraDomu/Atheon](https://github.com/HoraDomu/Atheon)
+>
+> **Fork Attribution**: This repository maintains feature parity with upstream through PR submissions. Stars, forks, and other metrics shown here are specific to this enhanced version and do not imply ownership or endorsement of the original project.
 
 ---
 
