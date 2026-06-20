@@ -2,6 +2,8 @@
 /atheon
 /atheon.exe
 /atheon-*
+/Atheon
+/Atheon.exe
 
 # IDE
 .vs/
@@ -9,11 +11,31 @@
 *.iml
 .pr-notes/
 
-# generated files
-coverage.html
-coverage.out
-*_coverage.out
+# AI / assistant config (protected — never commit)
+/.claude
+/.claude/
+/.claude.wrong/
+CLAUDE.md
+
+# generated coverage files (kept out of repo; redirect to tmp/ for tooling)
+/coverage.out
+/*_coverage.out
+/*-coverage.out
+/coverage.html
+/coverage-push.out
+/coverage_new.out
+/coverage-*.out
 *.test
+/validation_coverage.out
+/main_coverage.out
+/final_coverage.out
+/full_coverage.out
+/regression_check.out
+/test_results.log
+
+# local temp dir for coverage output (see scripts/coverage.sh)
+/tmp-cov/
+/.tmp-cov/
 
 # temporary files
 move
