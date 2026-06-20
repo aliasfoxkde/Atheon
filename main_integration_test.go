@@ -20,12 +20,15 @@ func testBinaryName() string {
 func buildTestBinary(t *testing.T) (string, func()) {
 	t.Helper()
 	name := testBinaryName()
-	buildCmd := exec.Command("go", "build", "-o", name, ".")
+	bin, err := filepath.Abs(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	buildCmd := exec.Command("go", "build", "-o", bin, ".")
 	if err := buildCmd.Run(); err != nil {
 		t.Skip("Failed to build binary, skipping test")
 	}
-	bin := filepath.Join(".", name)
-	return bin, func() { os.Remove(name) }
+	return bin, func() { os.Remove(bin) }
 }
 
 // TestMainVersionFlag tests main() with --version flag
