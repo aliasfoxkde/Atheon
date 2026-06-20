@@ -240,7 +240,8 @@ func TestRunJSONFlagAfterPath(t *testing.T) {
 	if !json.Valid(out) {
 		t.Errorf("output is not valid JSON: %s", out)
 	}
-	if !bytes.Contains(out, []byte(`"pattern":"openai-api-key"`)) {
+	// The pretty-printed JSON contains the pattern name (space after colon).
+	if !bytes.Contains(out, []byte(`"pattern": "openai-api-key"`)) {
 		t.Errorf("expected openai-api-key pattern in JSON output, got: %s", out)
 	}
 }

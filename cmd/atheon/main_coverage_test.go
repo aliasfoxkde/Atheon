@@ -195,7 +195,7 @@ func TestPrintFindings(t *testing.T) {
 		}
 	}()
 
-	printFindings(findings, stats, false)
+	printFindings(findings, stats, core.FormatText)
 }
 
 func TestPrintJSONFindings(t *testing.T) {
@@ -215,7 +215,7 @@ func TestPrintJSONFindings(t *testing.T) {
 		}
 	}()
 
-	printJSONFindings(findings)
+	printFindings(findings, nil, core.FormatJSON)
 }
 
 func TestPrintFindingsWithNilStats(t *testing.T) {
@@ -235,7 +235,7 @@ func TestPrintFindingsWithNilStats(t *testing.T) {
 		}
 	}()
 
-	printFindings(findings, nil, false)
+	printFindings(findings, nil, core.FormatText)
 }
 
 func TestPrintFindingsWithEmptyFindings(t *testing.T) {
@@ -253,7 +253,7 @@ func TestPrintFindingsWithEmptyFindings(t *testing.T) {
 		}
 	}()
 
-	printFindings(findings, stats, false)
+	printFindings(findings, stats, core.FormatText)
 }
 
 func TestParseCategoriesEdgeCases(t *testing.T) {
@@ -330,7 +330,7 @@ func TestMainIntegration(t *testing.T) {
 		// Test with empty findings
 		findings := []core.Finding{}
 		stats := &core.Stats{}
-		printFindings(findings, stats, false)
+		printFindings(findings, stats, core.FormatText)
 	})
 
 	// Test 4: Format bytes functionality
@@ -366,7 +366,7 @@ func TestMainIntegration(t *testing.T) {
 		}()
 		// Test with empty findings
 		findings := []core.Finding{}
-		printJSONFindings(findings)
+		printFindings(findings, nil, core.FormatJSON)
 	})
 
 	// Test 6: Redaction functionality
@@ -576,17 +576,11 @@ func TestCmdListShowDisabledIncludes(t *testing.T) {
 	}
 }
 
-// TestPrintJSONFindingsEncodeError exercises the json.Encode error branch
-// in printJSONFindings by closing os.Stdout before calling it.
+// TestPrintJSONFindingsEncodeError: fmt.Print (used by the new Render
+// path) silently ignores stdout write errors, unlike json.Encoder.Encode
+// which returns them. This test is retained as a no-op smoke test to
+// ensure the call does not panic.
 func TestPrintJSONFindingsEncodeError(t *testing.T) {
-	origStdout := os.Stdout
-	defer func() { os.Stdout = origStdout }()
-
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	w.Close() // close write end so Encode fails
-
 	findings := []core.Finding{{Pattern: "x", File: "y", Line: 1}}
-	printJSONFindings(findings)
-	r.Close()
+	printFindings(findings, nil, core.FormatJSON) // must not panic
 }

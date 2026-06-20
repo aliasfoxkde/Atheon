@@ -20,17 +20,17 @@ func TestPrintFindingsFull(t *testing.T) {
 
 	// Just verify the function doesn't panic
 	// Output testing would require proper synchronization
-	printFindings(findings, stats, false)
+	printFindings(findings, stats, core.FormatText)
 }
 
-// TestPrintJSONFindingsFull tests printJSONFindings
+// TestPrintJSONFindingsFull tests JSON format output
 func TestPrintJSONFindingsFull(t *testing.T) {
 	findings := []core.Finding{
 		{Pattern: "test-pattern", File: "test.txt", Line: 1, Content: "test content"},
 	}
 
 	// Just verify the function doesn't panic
-	printJSONFindings(findings)
+	printFindings(findings, nil, core.FormatJSON)
 }
 
 // TestCmdListFull tests cmdList with various arguments

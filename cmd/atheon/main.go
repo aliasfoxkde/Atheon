@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/aliasfoxkde/Atheon/core"
 )
@@ -37,6 +37,10 @@ func run(ctx context.Context, args []string) int {
 	}
 
 	jsonOutput, args := extractJSONFlag(args)
+	reportFormat, args := extractFormatFlag(args)
+	if jsonOutput {
+		reportFormat = core.FormatJSON
+	}
 
 	cats, args, enableAll := parseCategories(args)
 	if enableAll {
@@ -92,7 +96,7 @@ func run(ctx context.Context, args []string) int {
 
 	case "--env":
 		findings := core.ScanEnv(ctx)
-		printFindings(findings, nil, jsonOutput)
+		printFindings(findings, nil, reportFormat)
 		if len(findings) > 0 {
 			return 1
 		}
@@ -105,7 +109,7 @@ func run(ctx context.Context, args []string) int {
 			return 1
 		}
 		findings := core.ScanString(ctx, string(data), "stdin")
-		printFindings(findings, nil, jsonOutput)
+		printFindings(findings, nil, reportFormat)
 		if len(findings) > 0 {
 			return 1
 		}
@@ -121,7 +125,7 @@ func run(ctx context.Context, args []string) int {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			return 1
 		}
-		printFindings(findings, stats, jsonOutput)
+		printFindings(findings, stats, reportFormat)
 		if len(findings) > 0 {
 			return 1
 		}
@@ -150,7 +154,7 @@ func run(ctx context.Context, args []string) int {
 				fmt.Fprintf(os.Stderr, "warning: skipped file: %v\n", werr)
 			}
 		}
-		printFindings(findings, stats, jsonOutput)
+		printFindings(findings, stats, reportFormat)
 		if len(findings) > 0 {
 			return 1
 		}
@@ -178,6 +182,27 @@ func extractJSONFlag(args []string) (bool, []string) {
 	return false, args
 }
 
+// extractFormatFlag scans args for a `--format=<value>` token and returns
+// the corresponding core.Format. Supported values: text, json, sarif, html.
+// If absent or unknown, returns core.FormatText. The flag is stripped from
+// the returned args slice so downstream parsers don't see it.
+func extractFormatFlag(args []string) (core.Format, []string) {
+	for i, a := range args {
+		if strings.HasPrefix(a, "--format=") {
+			val := strings.TrimPrefix(a, "--format=")
+			format := core.Format(val)
+			switch format {
+			case core.FormatJSON, core.FormatSARIF, core.FormatHTML:
+				rest := make([]string, 0, len(args)-1)
+				rest = append(rest, args[:i]...)
+				rest = append(rest, args[i+1:]...)
+				return format, rest
+			}
+		}
+	}
+	return core.FormatText, args
+}
+
 func parseCategories(args []string) (cats, rest []string, enableAll bool) {
 	for _, a := range args {
 		switch {
@@ -197,40 +222,18 @@ func parseCategories(args []string) (cats, rest []string, enableAll bool) {
 	return
 }
 
-func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput bool) {
-	if jsonOutput {
-		printJSONFindings(findings)
-		return
+func printFindings(findings []core.Finding, stats *core.Stats, reportFormat core.Format) {
+	var s core.Stats
+	if stats != nil {
+		s = *stats
 	}
-	if len(findings) == 0 {
-		fmt.Println("no findings.")
-	} else {
-		for _, f := range findings {
-			loc := f.File
-			if f.Line > 0 {
-				loc = fmt.Sprintf("%s:%d", f.File, f.Line)
-			}
-			fmt.Printf("%s  %s\n", f.Pattern, loc)
-			if f.Content != "" {
-				fmt.Println(" ", redact(f.Content))
-			}
-		}
-		fmt.Printf("\n%d finding(s)\n", len(findings))
+	rep := core.Report{
+		Version:     version,
+		GeneratedAt: time.Now(),
+		Findings:    findings,
+		Stats:       s,
 	}
-	if stats != nil && stats.Files > 0 {
-		fmt.Printf("scanned %d file(s)  %s  %dms\n",
-			stats.Files, formatBytes(stats.Bytes), stats.ElapsedMs)
-	}
-}
-
-func printJSONFindings(findings []core.Finding) {
-	items := make([]map[string]any, 0, len(findings))
-	for _, f := range findings {
-		items = append(items, map[string]any{"pattern": f.Pattern, "file": f.File, "line": f.Line, "match": redact(f.Content)})
-	}
-	if err := json.NewEncoder(os.Stdout).Encode(items); err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-	}
+	fmt.Print(core.Render(rep, reportFormat))
 }
 
 func cmdList(args []string) {
@@ -286,7 +289,8 @@ usage:
   atheon <path>                      scan a directory
   atheon --file <path>               scan a single file
   atheon --env                       scan environment variables
-  atheon --json <path>               print findings as JSON
+  atheon --json <path>               print findings as JSON (same as --format=json)
+  atheon --format=<fmt> <path>       output format: text (default), json, sarif, html
   atheon --categories=<c1,c2> <path> scan specific categories
   atheon --all <path>                scan all patterns including disabled ones
   atheon list                        list all patterns with enabled/disabled status

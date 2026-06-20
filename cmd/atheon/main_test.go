@@ -14,7 +14,7 @@ func TestJSONFlagPrintsFindings(t *testing.T) {
 		t.Fatal(err)
 	}
 	out, err := exec.Command("go", "run", ".", "--json", "--file", file).Output()
-	if err == nil || !json.Valid(out) || !bytes.Contains(out, []byte(`"pattern":"openai-api-key"`)) {
+	if err == nil || !json.Valid(out) || !bytes.Contains(out, []byte(`"pattern": "openai-api-key"`)) {
 		t.Fatalf("unexpected output/error: %s / %v", out, err)
 	}
 }
