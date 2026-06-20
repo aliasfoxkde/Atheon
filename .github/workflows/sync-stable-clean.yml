@@ -5,6 +5,10 @@ on:
     - cron: '0 0 * * *'  # Daily at midnight UTC
   workflow_dispatch:  # Allow manual triggering
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   sync:
     name: Sync stable/clean branch
@@ -35,4 +39,4 @@ jobs:
 
       - name: Validate patterns
         run: |
-          go run . list --all
+          go run ./cmd/atheon list --all

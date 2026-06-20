@@ -155,7 +155,7 @@ jobs:
 
       - name: Build binaries
         run: |
-          go build -o atheon-${{ matrix.os }} .
+          go build -o atheon-${{ matrix.os }} ./cmd/atheon
           go build -o atheon-mcp-${{ matrix.os }} ./cmd/mcp
 
       - name: Test binaries
@@ -180,7 +180,7 @@ jobs:
       - name: Run integration tests
         run: |
           # Test pattern loading
-          go run . list --all
+          go run ./cmd/atheon list --all
 
           # Test configuration profiles
           for profile in config/profiles/*.json; do
@@ -190,7 +190,7 @@ jobs:
           done
 
           # Test self-scanning (expected to find issues, that's OK)
-          go run . . --all > /dev/null || echo "Self-scan found issues as expected"
+          go run ./cmd/atheon . --all > /dev/null || echo "Self-scan found issues as expected"
 
       - name: Test MCP integration
         run: |

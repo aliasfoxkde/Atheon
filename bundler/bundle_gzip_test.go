@@ -11,19 +11,6 @@ import (
 	"testing"
 )
 
-// failingWriter fails after N writes.
-type failingWriter struct {
-	remaining int
-}
-
-func (f *failingWriter) Write(p []byte) (int, error) {
-	if f.remaining <= 0 {
-		return 0, io.ErrClosedPipe
-	}
-	f.remaining--
-	return len(p), nil
-}
-
 // TestBundleWalkPatternsNoDir exercises the WalkDir error branch when the
 // community directory doesn't exist.
 func TestBundleWalkPatternsNoDir(t *testing.T) {
