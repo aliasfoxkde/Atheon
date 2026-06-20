@@ -209,7 +209,7 @@ Output is a JSON array, one object per finding:
 
 **Environment scanning**
 
-`--env` scans every variable in the current environment  useful in CI to catch secrets injected at runtime rather than stored in files:
+`--env` scans every variable in the current environment  useful in CI to catch patterns injected at runtime rather than stored in files:
 
 ```
 atheon --env
