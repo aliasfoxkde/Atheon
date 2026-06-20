@@ -1,130 +1,141 @@
-# Project Progress - {{PROJECT_NAME}}
+# Project Progress — Atheon-Enhanced
 
-**Last Updated**: {{DATETIME}}
-**Current Phase**: {{CURRENT_PHASE}}
-**Overall Progress**: {{OVERALL_PROGRESS}}%
-
----
-
-## Progress Summary
-
-| Phase | Status | Progress | Start Date | Target Date |
-|-------|--------|----------|------------|-------------|
-| Phase 1: Foundation | {{STATUS}} | {{PROGRESS}}% | {{START}} | {{TARGET}} |
-| Phase 2: Planning | {{STATUS}} | {{PROGRESS}}% | {{START}} | {{TARGET}} |
-| Phase 3: Architecture | {{STATUS}} | {{PROGRESS}}% | {{START}} | {{TARGET}} |
-| Phase 4: Implementation | {{STATUS}} | {{PROGRESS}}% | {{START}} | {{TARGET}} |
-| Phase 5: Testing | {{STATUS}} | {{PROGRESS}}% | {{START}} | {{TARGET}} |
-| Phase 6: Deployment | {{STATUS}} | {{PROGRESS}}% | {{START}} | {{TARGET}} |
+**Last Updated:** 2026-06-20
+**Current Phase:** Phase 1 — Tier 1 (this week)
+**Overall Progress:** ~5% (planning done; Tier 1 work not yet
+started)
 
 ---
 
-## Current Sprint
+## Where the detailed plan lives
 
-**Sprint**: {{SPRINT_NUMBER}}
-**Dates**: {{SPRINT_START}} - {{SPRINT_END}}
-**Focus**: {{SPRINT_FOCUS}}
-
-### Sprint Goals
-
-1. {{SPRINT_GOAL_1}}
-2. {{SPRINT_GOAL_2}}
-3. {{SPRINT_GOAL_3}}
-
-### Sprint Backlog
-
-| Task | Status | Assignee | Estimated | Actual |
-|------|--------|----------|-----------|--------|
-| {{TASK_1}} | {{STATUS}} | {{ASSIGNEE}} | {{EST}} | {{ACTUAL}} |
-| {{TASK_2}} | {{STATUS}} | {{ASSIGNEE}} | {{EST}} | {{ACTUAL}} |
-| {{TASK_3}} | {{STATUS}} | {{ASSIGNEE}} | {{EST}} | {{ACTUAL}} |
+All planning detail is in
+[`docs/planning/atheon-enhanced/`](./planning/atheon-enhanced/00_README.md).
+This file is the high-level progress tracker.
 
 ---
 
-## Recent Activity
+## Progress summary
 
-### Completed (Last 7 Days)
-
-{{COMPLETED_ITEMS}}
-
-### In Progress
-
-{{IN_PROGRESS_ITEMS}}
-
-### Blocked
-
-{{BLOCKED_ITEMS}}
+| Phase | Tier | Status | Target |
+|---|---|---|---|
+| Planning | — | ✅ DONE (18 docs) | 2026-06-20 |
+| Phase 1: launch | Tier 1 | ⏳ NOT STARTED | 2026-06-27 |
+| Phase 2: credibility | Tier 2 | ⏳ NOT STARTED | 2026-07-20 |
+| Phase 3: distribution | Tier 3 | ⏳ NOT STARTED | 2026-09-20 |
+| Phase 4: sustained | — | ⏳ NOT STARTED | 2026-12-20 |
 
 ---
 
-## Metrics
+## Phase 1 — Tier 1 (this week, target 2026-06-27)
 
-### Code Quality
+### 1.1 Hygiene (Day 1)
 
-- **Test Coverage**: {{COVERAGE}}%
-- **Linting Issues**: {{LINT_ISSUES}}
-- **Code Smells**: {{CODE_SMELLS}}
-- **Technical Debt**: {{TECH_DEBT}} hours
+- [ ] Commit `core/engine.go` + `core/context_cancel_test.go`
+      to `feat/engine-rwmutex` branch
+- [ ] Wire Engine into public API; `go test -race ./...` clean
+- [ ] Strip `config/profiles/*.json` to 3 lines each
+- [ ] Fix README pattern counts (57→179, 85→179, 152→179)
+- [ ] Audit existing demos: `atheon-scanner.pages.dev`,
+      `atheon-benchmark.pages.dev`
 
-### Development Velocity
+### 1.2 Ship the `gate` tool (Day 2-4)
 
-- **Tasks Completed (Week)**: {{TASKS_COMPLETED}}
-- **Tasks Completed (Sprint)**: {{SPRINT_COMPLETED}}/{{SPRINT_TOTAL}}
-- **Average Task Duration**: {{AVG_DURATION}} hours
+- [ ] Implement `gate(content, source, categories)` in
+      `cmd/mcp/main.go`
+- [ ] Tests: `TestGateApproved`, `TestGateRejected`,
+      `TestGateEmptyContent`, `TestGateCategories`
+- [ ] Update `tools/list` to include `gate`
+- [ ] Update `docs/MCP_INTEGRATION.md` with system-prompt
+      snippet
 
-### Build & Deploy
+### 1.3 Ship the demo (Day 5)
 
-- **Last Successful Build**: {{LAST_BUILD}}
-- **Build Success Rate**: {{BUILD_SUCCESS}}%
-- **Deployment Frequency**: {{DEPLOY_FREQ}}
+- [ ] Build `atheon-gate.pages.dev` (JS port of patterns;
+      1-page paste-text-see-findings)
+- [ ] Add demo link to README
+- [ ] Tag `v0.3.0` (renumber from 1.2.0 to be honest about
+      pre-1.0)
+- [ ] Set GitHub repo topics: `mcp`, `ai`, `code-review`,
+      `secrets`, `developer-tools`, `model-context-protocol`
 
----
+### 1.4 Launch (Day 5)
 
-## Issues & Blockers
+- [ ] Post Show HN (Tue/Wed, 8-10am US Pacific)
+- [ ] Cross-post to r/golang, r/programming,
+      r/MachineLearning, dev.to
+- [ ] Reply to every comment for 24 hours
 
-### Active Blockers
-
-| Issue | Impact | Owner | Status | Resolution Target |
-|-------|--------|-------|--------|-------------------|
-| {{BLOCKER_1}} | {{HIGH|MED|LOW}} | {{OWNER}} | {{STATUS}} | {{TARGET}} |
-
-### Open Issues
-
-- {{ISSUE_1}} ({{SEVERITY}})
-- {{ISSUE_2}} ({{SEVERITY}})
-- {{ISSUE_3}} ({{SEVERITY}})
-
----
-
-## Upcoming
-
-### Next Sprint Goals
-
-{{NEXT_SPRINT_GOALS}}
-
-### Planned Features
-
-{{UPCOMING_FEATURES}}
-
-### Releases
-
-| Version | Target Date | Features |
-|---------|-------------|----------|
-| {{VERSION_1}} | {{DATE}} | {{FEATURES}} |
-| {{VERSION_2}} | {{DATE}} | {{FEATURES}} |
+See [`16_ACTION_PLANS.md`](./planning/atheon-enhanced/16_ACTION_PLANS.md)
+for the full day-by-day breakdown.
 
 ---
 
-## Notes
+## Phase 2 — Tier 2 (this month, target 2026-07-20)
 
-{{PROGRESS_NOTES}}
+- [ ] Open 3+ PRs upstream (engine RWMutex, context
+      cancellation, bundler fixes)
+- [ ] Build labelled dataset (`benchmarks/dataset.jsonl`)
+- [ ] Write runner (`benchmarks/runner.go`)
+- [ ] Run benchmark v1; produce `benchmarks/results/v1.md`
+- [ ] Write white paper v1 (`docs/WHITEPAPER.md`)
+- [ ] Implement `--profile` flag end-to-end
+- [ ] Add per-pattern `description:` field
+- [ ] Add `findings` field to MCP tool responses
+- [ ] Add `pattern:allow <name>` to `.atheonignore`
 
 ---
 
-## Changelog Summary
+## Phase 3 — Tier 3 (this quarter, target 2026-09-20)
 
-### Recent Changes
+- [ ] Ship `auto_fix` MCP tool
+- [ ] Per-call pattern injection
+- [ ] Build benchmark v2 (human-eval rubric)
+- [ ] White paper v2
+- [ ] Blog post on dev.to
+- [ ] Show HN (take 2)
+- [ ] Per-language pattern files
+- [ ] Decouple pattern bundle from binary
 
-{{RECENT_CHANGES}}
+---
 
-See [CHANGELOG.md](../CHANGELOG.md) for full history.
+## Recent activity
+
+### 2026-06-20 — planning complete
+
+- 18 planning documents created (~4,900 lines) in
+  `docs/planning/atheon-enhanced/`
+- 3 top-level docs (`PLAN.md`, `PROGRESS.md`, `TASKS.md`)
+  filled in
+- All planning tasks in the task list marked completed
+
+---
+
+## Open blockers
+
+None at the planning phase. Phase 1 work begins once the user
+reviews the plan and confirms priorities.
+
+---
+
+## Risks (top 3)
+
+1. **R-05: Maintainer burnout.** The plan is too big for one
+   person. Cut Tier 3 if Tier 2 isn't done by month 2.
+2. **R-01: Drift from upstream.** The fork has 28 uncommitted
+   changes; needs immediate hygiene.
+3. **R-03: AI-detection discredited.** Patterns have high FP
+   rate; default to opt-in, don't lead with this category.
+
+Full risk register:
+[`15_RISKS_AND_LIMITATIONS.md`](./planning/atheon-enhanced/15_RISKS_AND_LIMITATIONS.md).
+
+---
+
+## Metrics to track
+
+- GitHub stars (target: 50+ post-launch, 300+ by month 3)
+- Weekly downloads (target: 100+ post-launch, 500+ by month 3)
+- MCP directory listings (target: 2+ post-launch, 5+ by month 3)
+- Upstream PRs merged (target: 3+ in 2026-Q3, 6+ in 2026-Q4)
+- Test coverage (maintain 98.7%+)

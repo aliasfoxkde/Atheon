@@ -1,0 +1,32 @@
+# CODEOWNERS — automatic review assignment for pull requests.
+#
+# When a PR touches a path listed below, GitHub automatically requests
+# a review from the matching owners. The last matching rule wins, so
+# list more specific paths *after* broader ones.
+#
+# Owners are GitHub usernames or team names (org/team). The maintainer
+# list in docs/MAINTAINERS.md is the source of truth for who is
+# responsible for what; this file should mirror it.
+
+# Default owner — every PR gets at least one review.
+*                                  @aliasfoxkde
+
+# Core scanning engine — patterns, regex, runner.
+core/                              @aliasfoxkde
+
+# CLI entry points and integration tests.
+cmd/atheon/                        @aliasfoxkde
+cmd/mcp/                           @aliasfoxkde
+
+# Pattern bundle generation and CI integration.
+bundler/                           @aliasfoxkde
+.github/workflows/                 @aliasfoxkde
+.githooks/                         @aliasfoxkde
+
+# Community-supplied patterns need a second pair of eyes before they
+# ship in the default bundle.
+community/                         @aliasfoxkde
+
+# Documentation and configuration.
+docs/                              @aliasfoxkde
+*.md                               @aliasfoxkde

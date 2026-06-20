@@ -1,0 +1,22 @@
+# These are supported funding model platforms for this project.
+#
+# The maintainers listed in MAINTAINERS.md receive all funds routed
+# here. Update the `user` field below with the GitHub Sponsors handle
+# once the project has one. Other platforms (Open Collective, Ko-fi,
+# Liberapay, Patreon, Tidelift, Community Bridge) can be added by
+# uncommenting the matching line and filling in the identifier.
+#
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+# for the full list of supported keys.
+
+github: [] # Replace with the GitHub username(s) that own the sponsor page, e.g. [aliasfoxkde]
+# open_collective: <collective-slug>
+# ko_fi: <username>
+# tidelift: <platform-username>
+# community_bridge: <project-slug>
+# liberapay: <username>
+# patreon: <username>
+# issuehunt: <username>
+# otechie: <username>
+# lfx_crowdfunding: <campaign-slug>
+# custom: ["https://example.com/donate"]

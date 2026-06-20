@@ -1,0 +1,79 @@
+# Dependabot configuration.
+#
+# Watches this repository for outdated dependencies and opens PRs on
+# a schedule. Grouped updates keep PR volume manageable; ignore
+# rules keep noise out of the queue when a major bump would land
+# a behavior change that needs a separate, hand-rolled PR.
+#
+# Reference: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+# Disable auto-merge for any dependabot PR. Maintainers should
+# review and merge after CI is green, just like any other PR.
+# (Dependabot respects auto-merge when enabled per-repository.)
+
+updates:
+  # Go module updates.
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "go"
+    groups:
+      # Roll patch-level Go module bumps into a single PR so they
+      # don't dominate the queue. Minor and major bumps land alone
+      # because they are more likely to need a code change.
+      go-patch-and-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Skip major bumps of the Go toolchain itself — those need a
+    # coordinated CI matrix change.
+    ignore:
+      - dependency-name: "go"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions workflow updates.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    groups:
+      actions-patch-and-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker base image updates, if/when container images are added.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+    # Opt-in by removing this ignore block once a Dockerfile exists.
+    ignore:
+      - dependency-name: "*"

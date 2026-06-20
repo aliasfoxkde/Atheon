@@ -1,11 +1,11 @@
-# Task List - {{PROJECT_NAME}}
+# Tasks — Atheon-Enhanced
 
-**Version**: 1.0.0
-**Last Updated**: {{DATE}}
+**Version:** 0.3.0 (planned)
+**Last Updated:** 2026-06-20
 
 ---
 
-## Task Status Legend
+## Status legend
 
 - [ ] Pending
 - [~] In Progress
@@ -15,214 +15,252 @@
 
 ---
 
-## Phase 1: Foundation {{PHASE_STATUS}}
+## Phase 0: Planning (COMPLETE)
 
-### 1.1 Project Setup
+- [x] Read upstream repo and fork repo fully
+- [x] Audit current state of fork
+- [x] Identify technical debt (20 items)
+- [x] Design feature roadmap (3 tiers)
+- [x] Write pattern library strategy
+- [x] Write MCP integration plan
+- [x] Calculate token economics
+- [x] Design benchmark v1 and v2
+- [x] Write white paper outline
+- [x] Write go-to-market plan
+- [x] Design demos and infrastructure
+- [x] Write upstream contribution playbook
+- [x] Write release and versioning plan
+- [x] Identify risks and limitations
+- [x] Write day-by-day action plans
+- [x] Write quick reference cheat sheet
+- [x] Fill in top-level `PLAN.md`, `PROGRESS.md`, `TASKS.md`
 
-- [ ] Initialize Git repository
-- [ ] Create GitHub repository
-- [ ] Set up Claude Code symbolic link
-- [ ] Configure .gitignore
-- [ ] Create initial README.md
-- [ ] Set up LICENSE file
-- [ ] Configure GitHub templates (CODEOWNERS, dependabot, etc.)
+**Deliverables:**
+- 18 documents in `docs/planning/atheon-enhanced/`
+- ~4,900 lines of planning content
+- Linked from `PLAN.md`, `PROGRESS.md`, `TASKS.md`
 
-**Estimated Time**: 1-2 hours
-**Dependencies**: None
-**Priority**: Critical
-
----
-
-### 1.2 Documentation Structure
-
-- [ ] Create docs/ directory structure
-- [ ] Create PRD.md (Product Requirements Document)
-- [ ] Create TASKS.md (this file)
-- [ ] Create PLAN.md (project plan)
-- [ ] Create PROGRESS.md (progress tracking)
-- [ ] Create CHANGELOG.md
-- [ ] Create USAGE.md
-- [ ] Create CONTRIBUTE.md
-
-**Estimated Time**: 2-3 hours
-**Dependencies**: 1.1
-**Priority**: High
+**See:** [`docs/planning/atheon-enhanced/`](./planning/atheon-enhanced/00_README.md)
 
 ---
 
-## Phase 2: Planning & Research {{PHASE_STATUS}}
+## Phase 1: Tier 1 — This Week (PENDING)
 
-### 2.1 Pre-Planning Research
+### Hygiene (TD-01 through TD-04)
 
-- [ ] Research similar projects
-- [ ] Analyze technical options
-- [ ] Document architectural decisions
-- [ ] Create technology stack justification
+- [ ] **TD-01:** Commit the 28 uncommitted working-tree changes
+      to feature branches
+  - `feat/engine-rwmutex` (engine.go + context_cancel_test.go)
+  - `fix/bundler-...` (bundler fixes)
+  - One commit per logical change
+- [ ] **F-02:** Wire Engine RWMutex into public API;
+      `go test -race ./...` clean
+- [ ] **F-03:** Strip `config/profiles/*.json` to 3 lines each
+- [ ] **F-04:** Fix README pattern counts (57→179, 85→179,
+      152→179)
+- [ ] **F-15:** MCP server version via -ldflags
+- [ ] **F-16:** Move fork binaries out of repo root
+      (.gitignore)
 
-**Estimated Time**: 4-8 hours
-**Dependencies**: 1.2
-**Priority**: High
+### Ship the `gate` tool (F-05)
 
----
+- [ ] Implement `gate(content, source, categories)` in
+      `cmd/mcp/main.go`
+- [ ] Add `gate` to `tools/list` output
+- [ ] Tests:
+  - [ ] `TestGateApproved` (clean content)
+  - [ ] `TestGateRejected` (one finding)
+  - [ ] `TestGateEmptyContent`
+  - [ ] `TestGateCategories` (categories filter works)
+  - [ ] `TestGateStructuredFindings` (JSON shape)
+- [ ] Update README's MCP integration section
 
-### 2.2 Requirements Analysis
+### Document the integration pattern (F-06)
 
-- [ ] Gather user requirements
-- [ ] Define functional requirements
-- [ ] Define non-functional requirements
-- [ ] Create user stories
-- [ ] Define success criteria
+- [ ] Create `docs/MCP_INTEGRATION.md`
+- [ ] Add system-prompt snippet for Claude Code, Cursor,
+      Windsurf, Continue.dev, Zed
+- [ ] Link from README
 
-**Estimated Time**: 4-6 hours
-**Dependencies**: 2.1
-**Priority**: High
+### Build the demo (F-21, F-22)
 
----
+- [ ] Audit `atheon-scanner.pages.dev`
+- [ ] Audit `atheon-benchmark.pages.dev`
+- [ ] Build `atheon-gate.pages.dev` (JS port of patterns)
+- [ ] Link all three demos from README
 
-## Phase 3: Architecture & Design {{PHASE_STATUS}}
+### Tag a release
 
-### 3.1 System Architecture
+- [ ] Update CHANGELOG.md
+- [ ] Tag `v0.3.0` (renumber from 1.2.0)
+- [ ] Push tag, verify goreleaser runs (or manual release)
 
-- [ ] Design system architecture
-- [ ] Create data model
-- [ ] Design API contracts
-- [ ] Define component structure
-- [ ] Create architecture diagrams
+### Launch
 
-**Estimated Time**: 8-12 hours
-**Dependencies**: 2.2
-**Priority**: High
-
----
-
-### 3.2 Database Design
-
-- [ ] Design database schema
-- [ ] Create entity relationships
-- [ ] Define indexes and constraints
-- [ ] Plan migrations
-
-**Estimated Time**: 4-6 hours
-**Dependencies**: 3.1
-**Priority**: High
-
----
-
-## Phase 4: Implementation {{PHASE_STATUS}}
-
-### 4.1 Core Features
-
-- [ ] {{FEATURE_1}}
-  - [ ] Subtask 1
-  - [ ] Subtask 2
-  - [ ] Tests
-- [ ] {{FEATURE_2}}
-  - [ ] Subtask 1
-  - [ ] Subtask 2
-  - [ ] Tests
-- [ ] {{FEATURE_3}}
-  - [ ] Subtask 1
-  - [ ] Subtask 2
-  - [ ] Tests
-
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 3.1, 3.2
-**Priority**: High
+- [ ] Write Show HN draft
+- [ ] Post Show HN (Tue/Wed, 8-10am US Pacific)
+- [ ] Cross-post to r/golang, r/programming,
+      r/MachineLearning, dev.to
+- [ ] Reply to every comment for 24 hours
 
 ---
 
-## Phase 5: Testing {{PHASE_STATUS}}
+## Phase 2: Tier 2 — This Month (PENDING)
 
-### 5.1 Unit Tests
+### Upstream PRs (F-08)
 
-- [ ] Achieve 80%+ code coverage
-- [ ] Test all critical paths
-- [ ] Test edge cases
-- [ ] Test error handling
+- [ ] PR: Engine RWMutex (if not already)
+- [ ] PR: Context cancellation tests
+- [ ] PR: Bundler fixes
+- [ ] PR: MCP server version via -ldflags
 
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 4.1
-**Priority**: High
+### Benchmark v1 (F-11)
 
----
+- [ ] Build labelled dataset
+  - [ ] 50 true positives per category
+  - [ ] 50 true negatives per category
+  - [ ] 50 AI-generated vs 50 human-written examples
+  - [ ] Pin dataset hash in
+        `benchmarks/dataset.SHA256`
+- [ ] Write runner (`benchmarks/runner.go`)
+- [ ] Run benchmark; produce `benchmarks/results/v1.{json,md}`
+- [ ] Wire `make bench-v1` into CI
+- [ ] PR comment on every PR with the diff vs main
 
-### 5.2 Integration Tests
+### White paper v1 (F-12)
 
-- [ ] Test API endpoints
-- [ ] Test database operations
-- [ ] Test external integrations
-- [ ] Test data flow
+- [ ] Assemble benchmark v1 numbers into paper structure
+- [ ] Write prose
+- [ ] Produce `docs/WHITEPAPER.md` (markdown)
+- [ ] Produce `docs/WHITEPAPER.pdf` (pandoc)
+- [ ] Link from README
 
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 5.1
-**Priority**: High
+### Profiles (F-09)
 
----
+- [ ] Implement `Profile struct` in `core/`
+- [ ] Implement `LoadProfile(path)`
+- [ ] Add `--profile <path>` CLI flag
+- [ ] Update `config/profiles/*.json` with implemented fields
+- [ ] Add "Profiles" section to README
 
-### 5.3 E2E Tests
+### Per-pattern descriptions (F-10)
 
-- [ ] Test critical user flows
-- [ ] Test authentication/authorization
-- [ ] Test error scenarios
-- [ ] Test performance
+- [ ] Add `description:` field to YAML schema
+- [ ] Migrate most-trafficked 30 patterns to v2
+- [ ] Update `atheon list` to show descriptions
+- [ ] Display descriptions in MCP tool responses
 
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 5.2
-**Priority**: Medium
+### Structured findings (F-13)
 
----
+- [ ] Add `findings` field to MCP `tools/call` responses
+- [ ] Update README's MCP integration section
 
-## Phase 6: Deployment {{PHASE_STATUS}}
+### Allow-list (F-14)
 
-### 6.1 CI/CD Setup
-
-- [ ] Configure GitHub Actions
-- [ ] Set up automated testing
-- [ ] Set up automated deployment
-- [ ] Configure staging environment
-
-**Estimated Time**: 4-6 hours
-**Dependencies**: 5.3
-**Priority**: Medium
-
----
-
-### 6.2 Production Deployment
-
-- [ ] Deploy to production
-- [ ] Configure monitoring
-- [ ] Set up alerts
-- [ ] Document deployment process
-
-**Estimated Time**: 2-4 hours
-**Dependencies**: 6.1
-**Priority**: Medium
+- [ ] Add `pattern:allow <name>` to `.atheonignore`
+- [ ] Test: allow-list prevents pattern from firing
+- [ ] Document in README
 
 ---
 
-## Bug Fixes & Improvements
+## Phase 3: Tier 3 — This Quarter (PENDING)
 
-### Bugs
-- [ ] {{BUG_1}}
-- [ ] {{BUG_2}}
+### `auto_fix` tool (F-17)
 
-### Improvements
-- [ ] {{IMPROVEMENT_1}}
-- [ ] {{IMPROVEMENT_2}}
+- [ ] Design tool schema
+- [ ] Implement in `cmd/mcp/main.go`
+- [ ] Implement redaction in `core/redact.go`
+- [ ] Tests
+- [ ] Update README
+
+### Per-call pattern injection (F-18)
+
+- [ ] Add `pattern:` parameter to `scan_string`
+- [ ] Implement one-off regex in `core/runner.go`
+- [ ] Tests
+
+### Benchmark v2 (F-19)
+
+- [ ] Design 40 tasks
+- [ ] Run control + treatment (40 tasks × 2 conditions)
+- [ ] 4 human raters, blind to condition
+- [ ] Statistical analysis (Wilcoxon, Cohen's d)
+- [ ] Produce `benchmarks/results/v2.md`
+
+### White paper v2 (F-12)
+
+- [ ] Update with v2 benchmark results
+- [ ] Add agent-vs-agent comparison section
+- [ ] Re-publish PDF + markdown
+
+### Distribution (F-23, F-24, F-21)
+
+- [ ] Show HN, take 2
+- [ ] Submit to MCP directories (mcp.so, glama.ai/mcp,
+      awesome-mcp)
+- [ ] Build `atheon-docs.pages.dev` (Docusaurus)
+- [ ] Cross-post to golangweekly.com, dev.to, Hashnode
+- [ ] VS Code extension (separate repo)
+- [ ] GitHub Action (`.github/actions/atheon`)
+- [ ] Pre-commit hook
+
+### Per-language patterns (F-25)
+
+- [ ] Add `languages:` field to YAML schema
+- [ ] Update bundler to validate
+- [ ] Update engine to filter by file language
+- [ ] Migrate web-security + frameworks patterns to v2
+
+### Bundle decoupling (F-26)
+
+- [ ] Update `.goreleaser.yml` to publish
+      `atheon-patterns-vX.Y.Z.bundle` as separate artifact
+- [ ] Document install-into-upstream-binary flow
+
+---
+
+## Phase 4: Steady State (PENDING)
+
+### Quarterly cadence
+
+- [ ] Quarterly benchmark releases
+- [ ] Year-in-review blog post (December)
+- [ ] Conference talk submission (GopherCon, AI Engineer
+      Summit)
+
+### Community
+
+- [ ] Enable GitHub Discussions
+- [ ] Add `good first pattern` label
+- [ ] Pin "What we're working on" issue
+- [ ] Triage issues daily for first 2 weeks, then weekly
+- [ ] Find a co-maintainer (upstream maintainer first
+      choice)
+
+### Releases
+
+- [ ] Every-other-Tuesday cadence
+- [ ] Patch as needed for security
+- [ ] Major with rc process (2-week rc)
+
+---
+
+## Progress summary
+
+- **Total tasks planned:** ~80
+- **Completed:** 16 (Phase 0: planning)
+- **In progress:** 0
+- **Pending:** ~64
+- **Completion:** 20%
 
 ---
 
 ## Notes
 
-{{NOTES_SECTION}}
-
----
-
-## Progress Summary
-
-- **Total Tasks**: {{TOTAL_TASKS}}
-- **Completed**: {{COMPLETED_TASKS}}
-- **In Progress**: {{IN_PROGRESS_TASKS}}
-- **Pending**: {{PENDING_TASKS}}
-- **Blocked**: {{BLOCKED_TASKS}}
-- **Completion**: {{COMPLETION_PERCENTAGE}}%
+- Tasks are ordered by tier and by file path.
+- Each task should result in a commit on a feature branch.
+- Each tier should end with a tagged release.
+- Tier 3 is conditional on Tier 2 being 50%+ complete by
+  month 2.
+- See [`16_ACTION_PLANS.md`](./planning/atheon-enhanced/16_ACTION_PLANS.md)
+  for day-by-day execution.
