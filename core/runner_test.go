@@ -359,6 +359,42 @@ func TestScanDir_PermissionError(t *testing.T) {
 	}
 }
 
+// TestScanDir_UnreadableFile_CollectsWalkErrors verifies that a single
+// unreadable file is surfaced via Stats.WalkErrors rather than silently
+// dropped. Uses a regular file (not a directory) so the test works on
+// every platform regardless of filesystem permission semantics.
+func TestScanDir_UnreadableFile_CollectsWalkErrors(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("running as root, chmod can't restrict owner")
+	}
+
+	tmpDir := t.TempDir()
+	goodFile := filepath.Join(tmpDir, "good.txt")
+	if err := os.WriteFile(goodFile, []byte("hello world\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	badFile := filepath.Join(tmpDir, "bad.txt")
+	if err := os.WriteFile(badFile, []byte("unreadable\n"), 0o000); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(badFile, 0o644) })
+
+	_, stats, err := ScanDir(context.Background(), tmpDir)
+	if err != nil {
+		t.Fatalf("ScanDir returned error: %v", err)
+	}
+
+	// The good file should be scanned.
+	if stats.Files < 1 {
+		t.Errorf("expected at least 1 file scanned, got %d", stats.Files)
+	}
+
+	// The bad file's read error should be recorded.
+	if len(stats.WalkErrors) == 0 {
+		t.Errorf("expected WalkErrors to contain the unreadable file's error, got none")
+	}
+}
+
 // TestScanDir_EmptyDirectory tests ScanDir with empty directory
 func TestScanDir_EmptyDirectory(t *testing.T) {
 	tmpDir := t.TempDir()

@@ -149,6 +149,11 @@ func run(ctx context.Context, args []string) int {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			return 1
 		}
+		if stats != nil {
+			for _, werr := range stats.WalkErrors {
+				fmt.Fprintf(os.Stderr, "warning: skipped file: %v\n", werr)
+			}
+		}
 		printFindings(findings, stats, jsonOutput)
 		if len(findings) > 0 {
 			return 1

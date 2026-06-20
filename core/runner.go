@@ -125,6 +125,7 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 	results := make([][]Finding, len(paths))
 	sizes := make([]int64, len(paths))
 	scanned := make([]bool, len(paths))
+	readErrs := make([]error, len(paths))
 	var wg sync.WaitGroup
 	workers := max(8, runtime.NumCPU()*8)
 	sem := make(chan struct{}, workers)
@@ -146,6 +147,10 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 			}
 			data, err := os.ReadFile(p)
 			if err != nil {
+				// Per-file read failures don't abort the scan;
+				// they are surfaced via Stats.WalkErrors so the
+				// caller can log or report them.
+				readErrs[i] = err
 				return
 			}
 			results[i] = scanLines(ctx, string(data), p)
@@ -158,18 +163,23 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 	var findings []Finding
 	var totalBytes int64
 	var filesScanned int
+	var walkErrors []error
 	for i := range results {
 		if scanned[i] {
 			filesScanned++
 		}
 		findings = append(findings, results[i]...)
 		totalBytes += sizes[i]
+		if readErrs[i] != nil {
+			walkErrors = append(walkErrors, readErrs[i])
+		}
 	}
 
 	return findings, &Stats{
-		Files:     filesScanned,
-		Bytes:     totalBytes,
-		ElapsedMs: time.Since(start).Milliseconds(),
+		Files:      filesScanned,
+		Bytes:      totalBytes,
+		ElapsedMs:  time.Since(start).Milliseconds(),
+		WalkErrors: walkErrors,
 	}, nil
 }
 

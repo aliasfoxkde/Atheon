@@ -16,8 +16,17 @@ type Finding struct {
 // number of files whose contents were scanned (binary files and skipped
 // directories are excluded); Bytes is the total number of bytes scanned;
 // ElapsedMs is the wall-clock duration of the scan in milliseconds.
+//
+// WalkErrors, when non-nil, lists per-file read errors collected by
+// ScanDir -- files that the directory walk enumerated but whose contents
+// could not be read (typically because of a permission change, a
+// symlink whose target disappeared, or a TOCTOU race between WalkDir and
+// ReadFile). ScanDir returns nil for its error in this case so callers
+// that only want findings are unaffected; callers that care about every
+// skipped file should inspect Stats.WalkErrors.
 type Stats struct {
-	Files     int
-	Bytes     int64
-	ElapsedMs int64
+	Files      int
+	Bytes      int64
+	ElapsedMs  int64
+	WalkErrors []error
 }
