@@ -97,10 +97,10 @@ git clone https://github.com/aliasfoxkde/Atheon.git
 cd Atheon
 
 # Build the main binary
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 
 # Build the MCP server (optional)
-go build -o atheon-mcp ./core/mcp
+go build -o atheon-mcp ./cmd/mcp
 
 # Install to your PATH
 sudo mv atheon /usr/local/bin/  # Linux/macOS
@@ -119,13 +119,13 @@ cd Atheon
 git checkout dev/full-feature
 
 # Build with all features enabled
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 
 # Verify installation
 atheon --version
 ```
-go build -o atheon .
-go build -o atheon-mcp ./core/mcp
+go build -o atheon ./cmd/atheon
+go build -o atheon-mcp ./cmd/mcp
 ```
 
 </details>

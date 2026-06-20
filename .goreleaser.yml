@@ -27,7 +27,7 @@ builds:
   - id: atheon-mcp
     env:
       - CGO_ENABLED=0
-    main: ./core/mcp
+    main: ./cmd/mcp
     goos:
       - windows
       - linux

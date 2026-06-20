@@ -26,7 +26,7 @@ Package                   Coverage     Status
 ─────────────────────────────────────────────
 atheon                    43.9%        ⚠️ Below threshold
 atheon/bundler            65.1%        ✅ Above threshold
-atheon/core/mcp            60.3%        ✅ Above threshold
+atheon/cmd/mcp            60.3%        ✅ Above threshold
 atheon/core               53.2%        ✅ Above threshold
 ─────────────────────────────────────────────
 Overall                   52.7%        ✅ Above threshold

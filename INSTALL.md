@@ -10,7 +10,7 @@ go install github.com/aliasfoxkde/Atheon@v2.0.0-enhanced
 go install github.com/aliasfoxkde/Atheon@latest
 
 # Install MCP server
-go install github.com/aliasfoxkde/Atheon/core/mcp@v2.0.0-enhanced
+go install github.com/aliasfoxkde/Atheon/cmd/mcp@v2.0.0-enhanced
 ```
 
 ## 🛠️ Build from Source
@@ -24,8 +24,8 @@ cd Atheon
 git checkout v2.0.0-enhanced
 
 # Build binaries
-go build -o atheon .
-go build -o atheon-mcp ./core/mcp
+go build -o atheon ./cmd/atheon
+go build -o atheon-mcp ./cmd/mcp
 
 # Install to PATH
 sudo mv atheon /usr/local/bin/
@@ -82,7 +82,7 @@ atheon . --categories=ai-detection,secrets
 sudo apt install golang-go
 
 # Build and install
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 sudo mv atheon /usr/local/bin/
 ```
 
@@ -92,7 +92,7 @@ sudo mv atheon /usr/local/bin/
 brew install go
 
 # Build and install
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 sudo mv atheon /usr/local/bin/
 ```
 

@@ -49,10 +49,10 @@ go mod verify
 
 ```bash
 # Build main binary
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 
 # Build MCP server
-go build -o atheon-mcp ./core/mcp
+go build -o atheon-mcp ./cmd/mcp
 
 # Build bundler
 go build -o bundler/bundler ./bundler
@@ -100,7 +100,7 @@ go test ./core -v
 go test . -v
 
 # Test MCP server
-go test ./core/mcp -v
+go test ./cmd/mcp -v
 ```
 
 ### Pre-commit Hooks
@@ -147,7 +147,7 @@ golangci-lint run
 staticcheck ./...
 
 # Build to verify
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 ```
 
 ### 3. Pattern Development
@@ -165,7 +165,7 @@ EOF
 ./bundler/bundler
 
 # Rebuild binary
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 
 # Test new pattern
 ./atheon list | grep pattern-name
@@ -423,7 +423,7 @@ go test -race -v
 rm ~/.atheon/patterns.bundle
 
 # Rebuild binary
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 ```
 
 ---
