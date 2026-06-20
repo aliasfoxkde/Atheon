@@ -4,9 +4,29 @@ import (
 	"bytes"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
+
+func testBinaryName() string {
+	if runtime.GOOS == "windows" {
+		return "atheon-test.exe"
+	}
+	return "atheon-test"
+}
+
+func buildTestBinary(t *testing.T) (string, func()) {
+	t.Helper()
+	name := testBinaryName()
+	buildCmd := exec.Command("go", "build", "-o", name, ".")
+	if err := buildCmd.Run(); err != nil {
+		t.Skip("Failed to build binary, skipping test")
+	}
+	bin := filepath.Join(".", name)
+	return bin, func() { os.Remove(name) }
+}
 
 // TestMainVersionFlag tests main() with --version flag
 func TestMainVersionFlag(t *testing.T) {
@@ -14,15 +34,10 @@ func TestMainVersionFlag(t *testing.T) {
 		t.Skip("Skipping main() test in short mode")
 	}
 
-	// Build the binary first
-	buildCmd := exec.Command("go", "build", "-o", "atheon-test", ".")
-	if err := buildCmd.Run(); err != nil {
-		t.Skip("Failed to build binary, skipping test")
-	}
-	defer os.Remove("atheon-test")
+	bin, cleanup := buildTestBinary(t)
+	defer cleanup()
 
-	// Test --version flag
-	cmd := exec.Command("./atheon-test", "--version")
+	cmd := exec.Command(bin, "--version")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Logf("--version flag error: %v", err)
@@ -43,15 +58,10 @@ func TestMainListCommand(t *testing.T) {
 		t.Skip("Skipping main() test in short mode")
 	}
 
-	// Build the binary
-	buildCmd := exec.Command("go", "build", "-o", "atheon-test", ".")
-	if err := buildCmd.Run(); err != nil {
-		t.Skip("Failed to build binary, skipping test")
-	}
-	defer os.Remove("atheon-test")
+	bin, cleanup := buildTestBinary(t)
+	defer cleanup()
 
-	// Test list command
-	cmd := exec.Command("./atheon-test", "list")
+	cmd := exec.Command(bin, "list")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("list command failed: %v", err)
@@ -61,9 +71,7 @@ func TestMainListCommand(t *testing.T) {
 		t.Error("Expected output from list command")
 	}
 
-	// Should contain pattern names
-	outputStr := string(output)
-	if !strings.Contains(outputStr, "aws-access-key") {
+	if !strings.Contains(string(output), "aws-access-key") {
 		t.Error("Expected 'aws-access-key' in list output")
 	}
 }
@@ -74,15 +82,10 @@ func TestMainHelpCommand(t *testing.T) {
 		t.Skip("Skipping main() test in short mode")
 	}
 
-	// Build the binary
-	buildCmd := exec.Command("go", "build", "-o", "atheon-test", ".")
-	if err := buildCmd.Run(); err != nil {
-		t.Skip("Failed to build binary, skipping test")
-	}
-	defer os.Remove("atheon-test")
+	bin, cleanup := buildTestBinary(t)
+	defer cleanup()
 
-	// Test --help flag
-	cmd := exec.Command("./atheon-test", "--help")
+	cmd := exec.Command(bin, "--help")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("--help command failed: %v", err)
@@ -92,9 +95,7 @@ func TestMainHelpCommand(t *testing.T) {
 		t.Error("Expected output from --help command")
 	}
 
-	// Should contain usage information
-	outputStr := string(output)
-	if !strings.Contains(outputStr, "usage:") {
+	if !strings.Contains(string(output), "usage:") {
 		t.Error("Expected 'usage:' in help output")
 	}
 }
@@ -105,26 +106,19 @@ func TestMainJSONOutput(t *testing.T) {
 		t.Skip("Skipping main() test in short mode")
 	}
 
-	// Build the binary
-	buildCmd := exec.Command("go", "build", "-o", "atheon-test", ".")
-	if err := buildCmd.Run(); err != nil {
-		t.Skip("Failed to build binary, skipping test")
-	}
-	defer os.Remove("atheon-test")
+	bin, cleanup := buildTestBinary(t)
+	defer cleanup()
 
-	// Create a test file with content
-	tmpFile := "/tmp/atheon-test-input.txt"
+	tmpFile := filepath.Join(os.TempDir(), "atheon-test-input.txt")
 	defer os.Remove(tmpFile)
 	content := []byte("AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE")
 	if err := os.WriteFile(tmpFile, content, 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	// Test --json flag
-	cmd := exec.Command("./atheon-test", "--json", "--file", tmpFile)
+	cmd := exec.Command(bin, "--json", "--file", tmpFile)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		// Non-zero exit code is expected if findings are found
 		t.Logf("JSON command completed with exit code: %v", err)
 	}
 
@@ -132,7 +126,6 @@ func TestMainJSONOutput(t *testing.T) {
 		t.Error("Expected JSON output")
 	}
 
-	// Should be valid JSON
 	if !bytes.HasPrefix(output, []byte("[")) {
 		t.Error("Expected JSON array output")
 	}
@@ -144,22 +137,15 @@ func TestMainEnvScanning(t *testing.T) {
 		t.Skip("Skipping main() test in short mode")
 	}
 
-	// Build the binary
-	buildCmd := exec.Command("go", "build", "-o", "atheon-test", ".")
-	if err := buildCmd.Run(); err != nil {
-		t.Skip("Failed to build binary, skipping test")
-	}
-	defer os.Remove("atheon-test")
+	bin, cleanup := buildTestBinary(t)
+	defer cleanup()
 
-	// Set test environment variable
 	os.Setenv("TEST_AWS_KEY", "AKIAIOSFODNN7EXAMPLE")
 	defer os.Unsetenv("TEST_AWS_KEY")
 
-	// Test --env flag
-	cmd := exec.Command("./atheon-test", "--env")
+	cmd := exec.Command(bin, "--env")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		// Non-zero exit code is expected if findings are found
 		t.Logf("Env scan completed with exit code: %v", err)
 	}
 
@@ -167,8 +153,7 @@ func TestMainEnvScanning(t *testing.T) {
 		t.Error("Expected output from env scan")
 	}
 
-	outputStr := string(output)
-	if !strings.Contains(outputStr, "aws-access-key") {
+	if !strings.Contains(string(output), "aws-access-key") {
 		t.Error("Expected 'aws-access-key' in env scan output")
 	}
 }
@@ -179,15 +164,10 @@ func TestMainInvalidArgs(t *testing.T) {
 		t.Skip("Skipping main() test in short mode")
 	}
 
-	// Build the binary
-	buildCmd := exec.Command("go", "build", "-o", "atheon-test", ".")
-	if err := buildCmd.Run(); err != nil {
-		t.Skip("Failed to build binary, skipping test")
-	}
-	defer os.Remove("atheon-test")
+	bin, cleanup := buildTestBinary(t)
+	defer cleanup()
 
-	// Test invalid command
-	cmd := exec.Command("./atheon-test", "invalid-command")
+	cmd := exec.Command(bin, "invalid-command")
 	output, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Error("Expected error for invalid command")
@@ -197,8 +177,8 @@ func TestMainInvalidArgs(t *testing.T) {
 		t.Error("Expected error message for invalid command")
 	}
 
-	outputStr := string(output)
-	if !strings.Contains(strings.ToLower(outputStr), "error") && !strings.Contains(strings.ToLower(outputStr), "unknown") {
+	outputStr := strings.ToLower(string(output))
+	if !strings.Contains(outputStr, "error") && !strings.Contains(outputStr, "unknown") {
 		t.Error("Expected error message in output")
 	}
 }
