@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -165,6 +167,100 @@ func TestRunStdin(t *testing.T) {
 func TestRunPathMissing(t *testing.T) {
 	if code := run(context.Background(), []string{"/this/path/does/not/exist/anywhere"}); code != 1 {
 		t.Errorf("expected exit 1, got %d", code)
+	}
+}
+
+// TestExtractJSONFlag covers the position-independent --json parser
+// (upstream issue #156). The flag must be detected and removed
+// regardless of where in argv it appears.
+func TestExtractJSONFlag(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    []string
+		wantSet  bool
+		wantRest []string
+	}{
+		{"absent", []string{"file.txt"}, false, []string{"file.txt"}},
+		{"first", []string{"--json", "file.txt"}, true, []string{"file.txt"}},
+		{"after-path", []string{"file.txt", "--json"}, true, []string{"file.txt"}},
+		{"middle-with-categories", []string{"--categories=secrets", "--json", "file.txt"}, true, []string{"--categories=secrets", "file.txt"}},
+		{"only", []string{"--json"}, true, []string{}},
+		{"duplicates-take-first", []string{"--json", "a", "--json"}, true, []string{"a", "--json"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			gotSet, gotRest := extractJSONFlag(tc.input)
+			if gotSet != tc.wantSet {
+				t.Errorf("set = %v, want %v", gotSet, tc.wantSet)
+			}
+			if !equalStrings(gotRest, tc.wantRest) {
+				t.Errorf("rest = %v, want %v", gotRest, tc.wantRest)
+			}
+		})
+	}
+}
+
+// equalStrings is a tiny helper that keeps the TestExtractJSONFlag table
+// readable without pulling in the reflect or slices package.
+func equalStrings(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// TestRunJSONFlagAfterPath is a black-box regression test for upstream
+// issue #156: `atheon <path> --json` previously treated `--json` as a
+// second path and failed. The flag must be recognised in any position.
+func TestRunJSONFlagAfterPath(t *testing.T) {
+	dir := t.TempDir()
+	target := filepath.Join(dir, "leak.txt")
+	if err := os.WriteFile(target, []byte("token=sk-abcdefghijklmnopqrstuvwxyz\n"), 0o644); err != nil { //nolint atheon:ignore
+		t.Fatal(err)
+	}
+
+	// Capture stdout so we can assert the JSON shape, not just the exit code.
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	t.Cleanup(func() { os.Stdout = oldStdout })
+
+	code := run(context.Background(), []string{dir, "--json"})
+	_ = w.Close()
+	out, _ := readAllNoErr(r)
+
+	if code != 1 { // exit 1 because findings were produced
+		t.Errorf("expected exit 1 (findings), got %d; output=%s", code, out)
+	}
+	if !json.Valid(out) {
+		t.Errorf("output is not valid JSON: %s", out)
+	}
+	if !bytes.Contains(out, []byte(`"pattern":"openai-api-key"`)) {
+		t.Errorf("expected openai-api-key pattern in JSON output, got: %s", out)
+	}
+}
+
+// readAllNoErr is io.ReadAll minus the error, used by tests that have
+// already drained the writer and only care about the captured bytes.
+func readAllNoErr(r interface{ Read(p []byte) (int, error) }) ([]byte, error) {
+	var buf []byte
+	tmp := make([]byte, 4096)
+	for {
+		n, err := r.Read(tmp)
+		if n > 0 {
+			buf = append(buf, tmp[:n]...)
+		}
+		if err != nil {
+			if err.Error() == "EOF" {
+				return buf, nil
+			}
+			return buf, err
+		}
 	}
 }
 

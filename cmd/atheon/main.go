@@ -36,10 +36,7 @@ func run(ctx context.Context, args []string) int {
 		return 0
 	}
 
-	jsonOutput := len(args) > 0 && args[0] == "--json"
-	if jsonOutput {
-		args = args[1:]
-	}
+	jsonOutput, args := extractJSONFlag(args)
 
 	cats, args, enableAll := parseCategories(args)
 	if enableAll {
@@ -160,6 +157,26 @@ func run(ctx context.Context, args []string) int {
 		}
 		return 0
 	}
+}
+
+// extractJSONFlag scans args for a `--json` token in any position and
+// returns (true, rest) if found, (false, args) otherwise. The returned
+// slice is freshly allocated; the input is not mutated.
+//
+// Recognising the flag in any position matters for users who reach for
+// shell aliases (`alias atheon='atheon --json'`) and for scripts that
+// build the argv vector incrementally, both of which would otherwise
+// see `--json` treated as a path and fail.
+func extractJSONFlag(args []string) (bool, []string) {
+	for i, a := range args {
+		if a == "--json" {
+			rest := make([]string, 0, len(args)-1)
+			rest = append(rest, args[:i]...)
+			rest = append(rest, args[i+1:]...)
+			return true, rest
+		}
+	}
+	return false, args
 }
 
 func parseCategories(args []string) (cats, rest []string, enableAll bool) {
