@@ -269,7 +269,7 @@ See [BRANCH_STRATEGY.md](BRANCH_STRATEGY.md) for workflow details.
 - **Issues**: [GitHub Issues](https://github.com/aliasfoxkde/Atheon/issues)
 - **Documentation**: [docs/](INDEX.md)
 - **Wiki**: [GitHub Wiki](../.github/wiki/)
-- **Troubleshooting**: [Troubleshooting Guide](../.github/wiki/Troubleshooting.md)
+- **Troubleshooting**: [Troubleshooting Guide](../.github/wiki/TROUBLESHOOTING.md)
 
 ### **Q: How can I contact the maintainers?**
 **A:**
