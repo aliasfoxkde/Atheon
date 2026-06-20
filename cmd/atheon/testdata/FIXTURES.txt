@@ -1,5 +1,5 @@
 # Atheon test fixtures
-# Run: atheon --file test/fixtures.txt
+# Run: atheon --file cmd/atheon/testdata/FIXTURES.txt
 # Expected: at least one finding per pattern
 
 EXAMPLE_KEY_1=AKIAIOSFODNN7EXAMPLE
