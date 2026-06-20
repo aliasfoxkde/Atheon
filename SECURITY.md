@@ -134,8 +134,7 @@ We use the following severity levels:
 
 ### Documentation
 - [SECURITY.md](https://github.com/HoraDomu/Atheon/blob/main/SECURITY.md) (this file)
-- [contributing.md](https://github.com/HoraDomu/Atheon/blob/main/docs/contributing.md)
-- [Pattern Guidelines](https://github.com/HoraDomu/Atheon/blob/main/community/README.md)
+- [CONTRIBUTING.md](https://github.com/HoraDomu/Atheon/blob/main/CONTRIBUTING.md)
 
 ### External Resources
 - [Go Security Guide](https://github.com/golang/go/wiki/Security)
@@ -152,8 +151,7 @@ We use the following severity levels:
 
 ### Manual Testing
 - **Code Review**: All code undergoes security review
-- **Pattern Review**: All patterns are reviewed for safety
-- **Penetration Testing**: Regular security assessments
+- **Pattern Review**: All patterns are reviewed for safety before merge
 
 ## Compliance and Privacy
 
@@ -163,7 +161,7 @@ We use the following severity levels:
 - **Optional Updates**: Pattern updates are opt-in
 
 ### Compliance
-- **GPL-3.0 License**: Open source with standard GPL protections
+- **MIT + Additional Terms**: Open source; see LICENSE for full terms
 - **No Warranty**: Software provided "as is" without warranty
 - **User Responsibility**: Users are responsible for secure usage
 
@@ -202,7 +200,7 @@ We thank all security researchers who have helped make Atheon more secure.
 Atheon is provided "as is" without warranty of any kind. The maintainers are not responsible for any damages arising from its use.
 
 ### License
-Atheon is licensed under GPL-3.0. See [LICENSE](https://github.com/HoraDomu/Atheon/blob/main/LICENSE) for details.
+Atheon is licensed under MIT with Additional Terms. See [LICENSE](https://github.com/HoraDomu/Atheon/blob/main/LICENSE) for details.
 
 ### Contact
 For legal questions, please contact the maintainers through official channels.
