@@ -1,65 +1,28 @@
 package main
 
 import (
-	"bytes"
-	"io"
-	"os"
+	"os/exec"
 	"strings"
 	"testing"
 )
 
-// TestVersionFlag tests the --version flag
+// TestVersionFlag tests the --version flag via subprocess to avoid os.Exit side effects.
 func TestVersionFlag(t *testing.T) {
-	// Save original args and restore after test
-	origArgs := os.Args
-	defer func() { os.Args = origArgs }()
+	bin, cleanup := buildTestBinary(t)
+	defer cleanup()
 
-	// Test --version flag
-	os.Args = []string{"atheon", "--version"}
-
-	// Capture output
-	oldStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	// Create a buffered copy of stdout
-	out := make(chan string)
-	go func() {
-		var buf bytes.Buffer
-		if _, err := io.Copy(&buf, r); err != nil {
-			t.Logf("Failed to capture stdout: %v", err)
-		}
-		out <- buf.String()
-	}()
-
-	// Run main (which should exit with --version)
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				// Expected to exit, so panic is OK
-				t.Logf("Recovered panic (expected): %v", r)
-			}
-		}()
-		main()
-	}()
-
-	// Restore stdout
-	w.Close()
-	os.Stdout = oldStdout
-
-	// Get output
-	output := <-out
-
-	// Check that output contains "atheon" and a version
-	if !strings.Contains(output, "atheon") {
-		t.Errorf("Version output should contain 'atheon', got: %s", output)
+	out, err := exec.Command(bin, "--version").CombinedOutput()
+	if err != nil {
+		t.Logf("--version flag error: %v", err)
 	}
 
-	if !strings.Contains(output, "dev") && !strings.Contains(output, "v") {
-		t.Errorf("Version output should contain version number, got: %s", output)
+	if !strings.Contains(string(out), "atheon") {
+		t.Errorf("Version output should contain 'atheon', got: %s", out)
 	}
 
-	t.Logf("Version output: %s", strings.TrimSpace(output))
+	if !strings.Contains(string(out), "dev") && !strings.Contains(string(out), "v") {
+		t.Errorf("Version output should contain version number, got: %s", out)
+	}
 }
 
 // TestDevVersion tests that dev version works correctly
