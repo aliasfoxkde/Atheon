@@ -48,6 +48,8 @@ If you can describe the rule, Atheon can run it.
 
 Skip to **9:36** for the live demo, or watch the whole thing to see what Atheon is about.
 
+[![Watch on YouTube](https://img.youtube.com/vi/4vlepIzRGqw/maxresdefault.jpg)](https://www.youtube.com/watch?v=VK2xZa1wuTA)
+Atheon Dev Log and latest features ^^^
 ---
 
 ## The scenario that makes this real
