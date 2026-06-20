@@ -7,9 +7,10 @@ Welcome to the Atheon documentation. This is the canonical index for everything 
 | Directory | Purpose |
 |-----------|---------|
 | `api/`          | Programmatic API reference |
+| `architecture/` | System architecture, pattern system design |
 | `development/`  | Dev environment, building, testing |
 | `guides/`       | How-to guides and troubleshooting |
-| `reports/`      | Analysis reports, architecture, comparisons, roadmaps |
+| `reports/`      | Analysis reports, comparisons, roadmaps, plans |
 | `tests/`        | Test harness and coverage documentation |
 | `planning/`     | Internal planning docs (gitignored) |
 | `memories/`     | Validated metrics and audits (gitignored) |
@@ -26,12 +27,15 @@ Welcome to the Atheon documentation. This is the canonical index for everything 
 - [Development Setup](development/setup.md)
 - [Troubleshooting Guide](guides/troubleshooting.md)
 
+## 🏗️ Architecture
+
+- [System Architecture](architecture/SYSTEM_ARCHITECTURE.md)
+- [Pattern Categories](architecture/PATTERN_CATEGORIES.md)
+
 ## 📊 Reports & Analysis
 
-- [System Architecture](reports/SYSTEM_ARCHITECTURE.md)
 - [Feature Comparison](reports/FEATURE_COMPARISON.md) — Enhanced vs upstream
 - [MCP Integration Analysis](reports/MCP_INTEGRATION_ANALYSIS.md)
-- [Pattern Categories](reports/PATTERN_CATEGORIES.md)
 - [Pattern Levels Plan](reports/PATTERN_LEVELS_PLAN.md)
 - [Security Testing](reports/SECURITY_TESTING.md)
 - [Roadmap](reports/ROADMAP.md)
