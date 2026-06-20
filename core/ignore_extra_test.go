@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -93,7 +94,7 @@ func TestLoadPatternStateNoFile(t *testing.T) {
 
 // TestScanStringWithNewlines exercises ScanString with multi-line content.
 func TestScanStringWithNewlines(t *testing.T) {
-	findings := ScanString("line1\nAKIAIOSFODNN7EXAMPLE\nline3", "test")
+	findings := ScanString(context.Background(), "line1\nAKIAIOSFODNN7EXAMPLE\nline3", "test")
 	if len(findings) == 0 {
 		t.Error("expected findings from multi-line scan string")
 	}

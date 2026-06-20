@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"regexp"
 	"testing"
 )
@@ -34,7 +35,7 @@ func TestSetActiveCategoriesExternalPatterns(t *testing.T) {
 	SetActiveCategories([]string{"external-test"})
 
 	// The external pattern should be in active scanners — verify by scanning
-	findings := ScanString("any line", "test")
+	findings := ScanString(context.Background(), "any line", "test")
 	// It might match or not depending on regex, but the path should be exercised
 	_ = findings
 }
@@ -50,7 +51,7 @@ func TestSetActiveCategoriesNormal(t *testing.T) {
 	SetActiveCategories([]string{"secrets", "pii"})
 
 	// Verify by scanning for an AWS key (secrets category)
-	findings := ScanString("AKIAIOSFODNN7EXAMPLE", "test")
+	findings := ScanString(context.Background(), "AKIAIOSFODNN7EXAMPLE", "test")
 	if len(findings) == 0 {
 		t.Error("expected findings in secrets+pii categories")
 	}
@@ -62,7 +63,7 @@ func TestSetActiveCategoriesNormal(t *testing.T) {
 // TestSetActiveCategoriesEmpty exercises setting to empty filter.
 func TestSetActiveCategoriesEmpty(t *testing.T) {
 	SetActiveCategories([]string{})
-	findings := ScanString("AKIAIOSFODNN7EXAMPLE", "test")
+	findings := ScanString(context.Background(), "AKIAIOSFODNN7EXAMPLE", "test")
 	if len(findings) == 0 {
 		t.Error("expected findings with empty filter (all categories)")
 	}
@@ -73,7 +74,7 @@ func TestSetActiveCategoriesTrimWhitespace(t *testing.T) {
 	SetActiveCategories([]string{"  secrets  ", " pii "})
 	defer SetActiveCategories(nil)
 
-	findings := ScanString("AKIAIOSFODNN7EXAMPLE", "test")
+	findings := ScanString(context.Background(), "AKIAIOSFODNN7EXAMPLE", "test")
 	if len(findings) == 0 {
 		t.Error("expected findings after trim")
 	}
@@ -82,7 +83,7 @@ func TestSetActiveCategoriesTrimWhitespace(t *testing.T) {
 // TestScanLines indirectly via ScanString exercises the line scanner.
 func TestScanLines(t *testing.T) {
 	content := "AKIAIOSFODNN7EXAMPLE\nnormal line\nsk-1234567890abcdefghijklmn"
-	findings := ScanString(content, "test.txt")
+	findings := ScanString(context.Background(), content, "test.txt")
 	if len(findings) == 0 {
 		t.Error("expected findings from multi-line scan")
 	}

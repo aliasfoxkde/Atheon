@@ -62,7 +62,7 @@ func bundle(communityDir, outPath string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	if err := os.WriteFile(outPath, buf.Bytes(), 0o644); err != nil {
+	if err := os.WriteFile(outPath, buf.Bytes(), 0o600); err != nil {
 		return 0, err
 	}
 	return n, nil

@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -13,7 +14,7 @@ import (
 // when scanning a line containing the directive.
 func TestScanLinesAtheonIgnore(t *testing.T) {
 	content := "AKIAIOSFODNN7EXAMPLE\nthis is a real finding line with AKIAIOSFODNN7EXAMPLE\n// atheon:ignore\nAKIAIOSFODNN7EXAMPLE-after-ignore\n"
-	findings := scanLines(content, "test")
+	findings := scanLines(context.Background(), content, "test")
 	if len(findings) == 0 {
 		t.Fatal("expected findings before ignore directive")
 	}
@@ -193,7 +194,7 @@ func TestScanFileIgnored(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, _, err := ScanFile(secret)
+	findings, _, err := ScanFile(context.Background(), secret)
 	if err != nil {
 		t.Fatalf("ScanFile failed: %v", err)
 	}
@@ -223,7 +224,7 @@ func TestScanEnvNoFindingsEmpty(t *testing.T) {
 		}
 	}()
 
-	findings := ScanEnv()
+	findings := ScanEnv(context.Background())
 	if len(findings) != 0 {
 		t.Errorf("expected no findings with empty env, got %d", len(findings))
 	}
@@ -237,7 +238,7 @@ func TestScanEnvMalformedEntry(t *testing.T) {
 		"VALID_KEY=AKIAIOSFODNN7EXAMPLE",
 		"ANOTHER_MALFORMED",
 	}
-	findings := scanEnv(envs)
+	findings := scanEnv(context.Background(), envs)
 	if len(findings) == 0 {
 		t.Error("expected findings from valid entry")
 	}
@@ -276,7 +277,7 @@ func TestSetActiveCategoriesResetAll(t *testing.T) {
 	SetActiveCategories([]string{"__nonexistent_category__"})
 
 	// No findings under non-matching category
-	findings := ScanString("AKIAIOSFODNN7EXAMPLE", "test")
+	findings := ScanString(context.Background(), "AKIAIOSFODNN7EXAMPLE", "test")
 	if len(findings) != 0 {
 		t.Errorf("expected no findings with nonexistent category filter, got %d", len(findings))
 	}

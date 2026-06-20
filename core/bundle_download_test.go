@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -46,7 +47,7 @@ func TestDownloadBundleMockOK(t *testing.T) {
 		SetActiveCategories(nil)
 	}()
 
-	if err := DownloadBundle(); err != nil {
+	if err := DownloadBundle(context.Background()); err != nil {
 		t.Fatalf("DownloadBundle failed: %v", err)
 	}
 
@@ -82,7 +83,7 @@ func TestDownloadBundleMockServerError(t *testing.T) {
 	restore := SetBundleDownloadURL(srv.URL)
 	defer restore()
 
-	err := DownloadBundle()
+	err := DownloadBundle(context.Background())
 	if err == nil {
 		t.Fatal("expected error from server returning 500")
 	}
@@ -103,7 +104,7 @@ func TestDownloadBundleMockBadGzip(t *testing.T) {
 	restore := SetBundleDownloadURL(srv.URL)
 	defer restore()
 
-	err := DownloadBundle()
+	err := DownloadBundle(context.Background())
 	if err == nil {
 		t.Fatal("expected error from server returning non-gzip data")
 	}
@@ -121,7 +122,7 @@ func TestDownloadBundleMockBadJSON(t *testing.T) {
 	restore := SetBundleDownloadURL(srv.URL)
 	defer restore()
 
-	err := DownloadBundle()
+	err := DownloadBundle(context.Background())
 	if err == nil {
 		t.Fatal("expected error from server returning bad JSON")
 	}
@@ -151,7 +152,7 @@ func TestDownloadBundleMockMkdirError(t *testing.T) {
 	}
 	t.Setenv("HOME", filepath.Join(blocker, "subdir"))
 
-	err := DownloadBundle()
+	err := DownloadBundle(context.Background())
 	if err == nil {
 		t.Fatal("expected error when HOME points through a file")
 	}
@@ -184,7 +185,7 @@ func TestDownloadBundleMockChangesReported(t *testing.T) {
 	restore := SetBundleDownloadURL(srv.URL)
 	defer restore()
 
-	if err := DownloadBundle(); err != nil {
+	if err := DownloadBundle(context.Background()); err != nil {
 		t.Fatalf("DownloadBundle failed: %v", err)
 	}
 }
@@ -199,7 +200,7 @@ func TestDownloadBundleNetworkError(t *testing.T) {
 	restore := SetBundleDownloadURL(srv.URL)
 	defer restore()
 
-	err := DownloadBundle()
+	err := DownloadBundle(context.Background())
 	if err == nil {
 		t.Error("expected network error from closed server URL")
 	}
@@ -227,7 +228,7 @@ func TestDownloadBundleReadAllError(t *testing.T) {
 	restore := SetBundleDownloadURL(srv.URL)
 	defer restore()
 
-	err := DownloadBundle()
+	err := DownloadBundle(context.Background())
 	if err == nil {
 		t.Error("expected error from server with truncated body")
 	}

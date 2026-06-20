@@ -6,8 +6,10 @@
 
 ![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Patterns](https://img.shields.io/badge/patterns-152%2B-blueviolet)
+![Patterns](https://img.shields.io/badge/patterns-179-blueviolet)
+![Categories](https://img.shields.io/badge/categories-19-orange)
 ![CI](https://github.com/aliasfoxkde/Atheon/actions/workflows/comprehensive-ci.yml/badge.svg)
+![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)
 ![Stars](https://img.shields.io/github/stars/aliasfoxkde/Atheon?style=social)
 
 > **One tool. All patterns. Any input.**
@@ -31,7 +33,7 @@
 ### **Enhanced aliasfoxkde/Atheon (Atheon-Enhanced)** - Feature-Rich Testing Build
 - **Purpose**: Experimental "nightly build" testing the limits of pattern matching
 - **Focus**: Performance optimizations, advanced features, comprehensive pattern coverage
-- **Patterns**: 152 patterns (community-driven, comprehensive coverage)
+- **Patterns**: 179 patterns across 19 categories (community-driven, comprehensive coverage)
 - **Update cadence**: Frequent updates with latest features and enhancements
 - **Best for**: Power users, CI/CD integration, comprehensive security scanning
 
@@ -54,7 +56,7 @@
 <summary><b>📊 Enhanced Features vs Official Release</b></summary>
 
 ### **What's Enhanced in This Testing Build?**
-- **85 patterns** - comprehensive coverage across multiple categories
+- **179 patterns** across 19 categories - comprehensive coverage
 - **2-3x faster** with streaming API and performance optimizations
 - **10x less memory** usage with chunked file scanning
 - **MCP integration** with enhanced configuration options
@@ -62,6 +64,7 @@
 - **Quality enforcement** patterns for AI/developer shortcuts
 - **Configuration profiles** for different use cases
 - **Comprehensive CI/CD** with multi-version testing
+- **98% test coverage** on the core scanner
 
 ### **Trade-offs to Consider**
 - ✅ **More features** - Latest capabilities and experimental patterns
@@ -163,6 +166,37 @@ atheon list --category secrets
 # List enabled/disabled only
 atheon list --enabled
 atheon list --disabled
+```
+
+### **Library Usage**
+Atheon is usable as a Go library. All scanner entry points accept
+`context.Context` for cancellation and return structured `core.Finding` values:
+
+```go
+import "github.com/aliasfoxkde/Atheon/core"
+
+// Scan an in-memory string (returns []core.Finding)
+findings := core.ScanString(ctx, content, "config.txt")
+
+// Scan a file on disk (returns findings, stats, error)
+findings, stats, err := core.ScanFile(ctx, "/path/to/file.go")
+
+// Scan a directory recursively (parallel walk)
+findings, stats, err := core.ScanDir(ctx, "/path/to/project")
+
+// Scan environment variables (returns []core.Finding)
+findings := core.ScanEnv(ctx)
+```
+
+Sentinel errors are exported for programmatic checks:
+
+```go
+import "errors"
+import "github.com/aliasfoxkde/Atheon/core"
+
+if errors.Is(err, core.ErrPatternNotFound) {
+    // handle missing pattern
+}
 ```
 
 ### **Advanced Usage**
@@ -351,7 +385,7 @@ atheon --profile config/profiles/pipeline.json ./my-project
 - ✅ **Performance Benchmarks**: Track improvements over time
 
 ### **Expanded Pattern Library**
-- ✅ **152 patterns** across 19 categories
+- ✅ **179 patterns** across 19 categories
 - ✅ **New categories**: Accessibility, Performance, Web Development, API Integration, Security Hardening, Cloud-Native, PWA, Data Visualization
 - ✅ **Enhanced coverage**: Modern web development, security best practices, performance optimization
 - ✅ **AI Detection Patterns**: AI-generated code identification, template detection, safety bypasses
@@ -361,6 +395,29 @@ atheon --profile config/profiles/pipeline.json ./my-project
 - ✅ **Performance Patterns**: N+1 queries, memory leaks, caching strategies, blocking operations
 - ✅ **Accessibility Patterns**: WCAG compliance, keyboard navigation, ARIA labels, semantic HTML
 - ✅ **API Patterns**: REST/GraphQL best practices, rate limiting, error handling, versioning
+
+### **Pattern Distribution**
+| Category | Patterns |
+|----------|----------|
+| secrets | 32 |
+| code-quality | 25 |
+| accessibility | 19 |
+| security-hardening | 14 |
+| performance | 12 |
+| web-development | 12 |
+| web-security | 12 |
+| api-integration | 9 |
+| healthcare | 7 |
+| ai-detection | 6 |
+| cloud-native | 6 |
+| devops | 6 |
+| data-visualization | 5 |
+| pwa | 5 |
+| finance | 3 |
+| pii | 3 |
+| django | 1 |
+| nodejs | 1 |
+| react | 1 |
 
 ### **Advanced Functionality**
 - ✅ **Pattern Persistence**: Remember enabled/disabled patterns across sessions
@@ -380,17 +437,25 @@ atheon --profile config/profiles/pipeline.json ./my-project
 
 | Feature | Official HoraDomu/Atheon | Enhanced aliasfoxkde/Atheon |
 |---------|----------------------|---------------------------|
-| Pattern Count | 57 | 152 |
+| Pattern Count | 57 | 179 |
+| Categories | 5 | 19 |
 | Memory Usage | Full file loading | Chunked streaming (10x reduction) |
 | Performance | Baseline | 2-3x faster |
 | MCP Integration | ✅ Basic | ✅ Enhanced with streaming |
 | Pattern Persistence | ❌ | ✅ |
 | Configuration Profiles | ❌ | ✅ 4 profiles |
 | Quality Enforcement | ❌ | ✅ 13 patterns |
-| AI Detection | ❌ | ✅ 4 patterns |
+| AI Detection | ❌ | ✅ 6 patterns |
 | Self-Scanning | ❌ | ✅ |
 | Streaming API | ❌ | ✅ |
 | DevOps Patterns | ❌ | ✅ 6 patterns |
+| Context Cancellation | ❌ | ✅ |
+| Sentinel Errors | ❌ | ✅ |
+| Godoc Comments | Partial | ✅ Comprehensive |
+| golangci-lint | ❌ | ✅ 18 linters in CI |
+| Test Coverage | — | 98% (core), 100% (cmd/atheon) |
+| Benchmarks | ❌ | ✅ In-tree |
+| Examples | ❌ | ✅ Runnable godoc examples |
 | Stability | Production-ready | Testing/Experimental |
 | Update Frequency | Scheduled releases | Frequent updates |
 | Feature Parity | N/A (upstream) | Maintained via PRs |
@@ -408,16 +473,19 @@ atheon --profile config/profiles/pipeline.json ./my-project
 
 ### **Testing Infrastructure**
 - ✅ Multi-version Go testing (1.21, 1.22, 1.23, 1.24)
-- ✅ Static analysis (golangci-lint, staticcheck)
+- ✅ Static analysis (golangci-lint v1.64.8 with 18 linters)
 - ✅ Security scanning (Atheon self-scan)
-- ✅ Performance benchmarking
+- ✅ Performance benchmarking ([BENCHMARKS.md](BENCHMARKS.md))
 - ✅ Integration tests for all features
+- ✅ Context-cancellation tests for every scanner entry point
+- ✅ Runnable godoc examples for every public API
 
 ### **Quality Metrics**
-- **Test Coverage**: 60.1% (comprehensive testing)
+- **Test Coverage**: 98% core, 100% cmd/atheon, 92% cmd/mcp, 97% bundler
 - **CI/CD Pass Rate**: >95%
-- **Pattern Validation**: All 152 patterns tested and functional
+- **Pattern Validation**: All 179 patterns tested and functional
 - **Pattern Coverage**: 19 categories with modern development support
+- **Lint Warnings**: 0 (golangci-lint clean)
 
 **📖 Detailed Documentation**: See [PATTERN_CATEGORIES.md](docs/PATTERN_CATEGORIES.md) for comprehensive pattern documentation
 
@@ -487,13 +555,13 @@ gh pr create --base main --head feat/my-feature
 ### **`main` Branch** (Production Build)
 - **Purpose**: Production-ready with all enhancements
 - **Usage**: User-facing installation, production deployment
-- **Patterns**: 57 community-driven patterns
+- **Patterns**: 179 patterns across 19 categories
 - **Installation**: `go install github.com/aliasfoxkde/Atheon@latest`
 
 ### **`dev/full-feature` Branch** (Development/Testing)
 - **Purpose**: Comprehensive testing with all patterns enabled
 - **Usage**: Pattern development, performance validation, quality assurance
-- **Patterns**: All 85 patterns enabled, full testing active
+- **Patterns**: All 179 patterns enabled, full testing active
 - **Installation**: `go install github.com/aliasfoxkde/Atheon@dev/full-feature`
 
 </details>
@@ -596,14 +664,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Production-ready reliability
 
 ### **Use Enhanced aliasfoxkde/Atheon (Atheon-Enhanced) when you want**:
-- ✅ 85 patterns (comprehensive coverage)
+- ✅ 179 patterns across 19 categories (comprehensive coverage)
 - ✅ 2-3x performance improvements
 - ✅ 10x memory reduction for large files
 - ✅ MCP integration with advanced features
 - ✅ Pattern state persistence
 - ✅ Quality enforcement patterns
 - ✅ Configuration profiles for different use cases
-- ✅ Comprehensive testing and validation
+- ✅ Comprehensive testing (98% coverage) and validation
+- ✅ Context cancellation across all scan APIs
+- ✅ Static-analysis clean (golangci-lint v1.64.8)
+- ✅ Runnable godoc examples
+- ✅ In-tree performance benchmarks
 - ✅ Experimental feature testing
 
 ---

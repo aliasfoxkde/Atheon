@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -15,7 +16,7 @@ func TestSetActiveCategoriesWithFilters(t *testing.T) {
 	defer SetActiveCategories(nil)
 
 	// Verify only secrets patterns are now active by scanning
-	findings := ScanString("AKIAIOSFODNN7EXAMPLE", "test")
+	findings := ScanString(context.Background(), "AKIAIOSFODNN7EXAMPLE", "test")
 	if len(findings) == 0 {
 		t.Error("expected findings in secrets category")
 	}
@@ -27,7 +28,7 @@ func TestSetActiveCategoriesWithFilters(t *testing.T) {
 
 	// Filter to a category that matches nothing
 	SetActiveCategories([]string{"nonexistent-category-xyz"})
-	findings = ScanString("AKIAIOSFODNN7EXAMPLE", "test")
+	findings = ScanString(context.Background(), "AKIAIOSFODNN7EXAMPLE", "test")
 	if len(findings) != 0 {
 		t.Errorf("expected no findings with nonexistent category filter, got %d", len(findings))
 	}
@@ -54,7 +55,7 @@ func TestLoadBundleBadData(t *testing.T) {
 
 // TestScanFileMissing exercises the error path of ScanFile.
 func TestScanFileMissing(t *testing.T) {
-	_, _, err := ScanFile("/nonexistent/path/file.go")
+	_, _, err := ScanFile(context.Background(), "/nonexistent/path/file.go")
 	if err == nil {
 		t.Error("expected error for missing file")
 	}
@@ -63,7 +64,7 @@ func TestScanFileMissing(t *testing.T) {
 // TestScanFileDirectory calls ScanFile on a directory (should error).
 func TestScanFileDirectory(t *testing.T) {
 	dir := t.TempDir()
-	_, _, err := ScanFile(dir)
+	_, _, err := ScanFile(context.Background(), dir)
 	if err == nil {
 		t.Error("expected error when scanning a directory as a file")
 	}
@@ -73,7 +74,7 @@ func TestScanFileDirectory(t *testing.T) {
 // function returns nil for errors so filepath.WalkDir succeeds with empty
 // results — this test just verifies no panic.
 func TestScanDirMissing(t *testing.T) {
-	findings, _, err := ScanDir("/this/dir/does/not/exist")
+	findings, _, err := ScanDir(context.Background(), "/this/dir/does/not/exist")
 	if err != nil {
 		t.Errorf("expected no error (walker swallows), got %v", err)
 	}
@@ -180,7 +181,7 @@ func TestScanFileEmpty(t *testing.T) {
 	if err := os.WriteFile(tmp, []byte(""), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	findings, _, err := ScanFile(tmp)
+	findings, _, err := ScanFile(context.Background(), tmp)
 	if err != nil {
 		t.Fatalf("ScanFile failed: %v", err)
 	}

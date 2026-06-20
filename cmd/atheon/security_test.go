@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"regexp"
 	"strings"
 	"testing"
@@ -74,7 +75,7 @@ func TestInputValidation(t *testing.T) {
 			}()
 
 			// Test that string scanning handles malicious input safely
-			core.ScanString(input, "test")
+			core.ScanString(context.Background(), input, "test")
 		}()
 	}
 }
@@ -104,7 +105,7 @@ func TestMemorySafety(t *testing.T) {
 
 	done := make(chan bool)
 	go func() {
-		core.ScanString(largeInput, "test")
+		core.ScanString(context.Background(), largeInput, "test")
 		done <- true
 	}()
 
@@ -182,7 +183,7 @@ func TestConcurrencySafety(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func(id int) {
 			testInput := "test input with pattern aws-access-key: AKIAIOSFODNN7EXAMPLE"
-			core.ScanString(testInput, "test")
+			core.ScanString(context.Background(), testInput, "test")
 			done <- true
 		}(i)
 	}

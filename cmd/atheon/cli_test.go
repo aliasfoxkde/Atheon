@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,7 +66,7 @@ func TestScanFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := core.ScanFile(testFile)
+	findings, stats, err := core.ScanFile(context.Background(), testFile)
 	if err != nil {
 		t.Fatalf("ScanFile failed: %v", err)
 	}
@@ -107,7 +108,7 @@ func TestScanDirectory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := core.ScanDir(tmpDir)
+	findings, stats, err := core.ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -182,7 +183,7 @@ func TestIgnoreFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := core.ScanDir(tmpDir)
+	findings, stats, err := core.ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -219,7 +220,7 @@ func TestJSONOutput(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, _, err := core.ScanFile(testFile)
+	findings, _, err := core.ScanFile(context.Background(), testFile)
 	if err != nil {
 		t.Fatalf("ScanFile failed: %v", err)
 	}
@@ -261,7 +262,7 @@ func TestEnvironmentScanning(t *testing.T) {
 
 	os.Setenv("TEST_AWS_KEY", "AKIAIOSFODNN7EXAMPLE")
 
-	findings := core.ScanEnv()
+	findings := core.ScanEnv(context.Background())
 
 	if len(findings) == 0 {
 		t.Error("expected to find AWS key in environment variables")
@@ -284,7 +285,7 @@ func TestStringScanning(t *testing.T) {
 	// Test scanning strings directly
 	testContent := "Here's a test string with AKIAIOSFODNN7EXAMPLE embedded"
 
-	findings := core.ScanString(testContent, "test-source")
+	findings := core.ScanString(context.Background(), testContent, "test-source")
 
 	if len(findings) == 0 {
 		t.Error("expected to find AWS key pattern")
@@ -327,7 +328,7 @@ func TestUpdateCommand(t *testing.T) {
 
 	// The update command requires network access, so we'll just verify it exists
 	// by attempting to call it (it will fail but shouldn't panic)
-	err := core.DownloadBundle()
+	err := core.DownloadBundle(context.Background())
 	if err == nil {
 		t.Log("Update command succeeded (unexpected in test environment)")
 	} else {
@@ -341,7 +342,7 @@ func TestHelpText(t *testing.T) {
 	// but we can verify the functions exist
 
 	// Just verify the core package has the expected functions
-	findings := core.ScanString("test", "test")
+	findings := core.ScanString(context.Background(), "test", "test")
 	// ScanString should return a slice (may be nil or empty)
 	// The important thing is it doesn't panic
 	if len(findings) > 0 {
@@ -355,7 +356,7 @@ func TestMultiplePatternsInSameLine(t *testing.T) {
 	// Test that multiple patterns in the same line are detected
 	testContent := "AWS_KEY=AKIAIOSFODNN7EXAMPLE and api_key=sk-test1234567890abcdef"
 
-	findings := core.ScanString(testContent, "test")
+	findings := core.ScanString(context.Background(), testContent, "test")
 
 	if len(findings) < 2 {
 		t.Errorf("expected to find at least 2 patterns, got %d", len(findings))
@@ -386,7 +387,7 @@ func TestBinaryFilesExcluded(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := core.ScanDir(tmpDir)
+	findings, stats, err := core.ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
