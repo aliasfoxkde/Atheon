@@ -2,8 +2,12 @@
 /atheon
 /atheon.exe
 /atheon-*
+/atheon-mcp
+/atheon-mcp.exe
 /Atheon
 /Atheon.exe
+bundler/bundler
+bundler/bundler.exe
 
 # IDE
 .vs/

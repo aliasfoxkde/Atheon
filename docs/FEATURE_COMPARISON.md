@@ -122,7 +122,7 @@ Memory usage: Upstream: 450MB → Enhanced: 45MB (10x reduction)
 **Usage**:
 ```bash
 # Build MCP server
-go build -o atheon-mcp ./core/mcp
+go build -o atheon-mcp ./cmd/mcp
 
 # Run with configuration
 ./atheon-mcp --profile config/profiles/mcp-integration.json

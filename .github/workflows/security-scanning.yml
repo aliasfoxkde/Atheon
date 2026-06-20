@@ -32,7 +32,7 @@ jobs:
           cache: true
 
       - name: Build Atheon
-        run: go build -o atheon .
+        run: go build -o atheon ./cmd/atheon
 
       - name: Scan codebase with Atheon
         run: |

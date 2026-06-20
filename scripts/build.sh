@@ -21,12 +21,12 @@ set -euo pipefail
 
 build_cli() {
     echo "→ building atheon"
-    go build -o atheon .
+    go build -o atheon ./cmd/atheon
 }
 
 build_mcp() {
     echo "→ building atheon-mcp"
-    go build -o atheon-mcp ./core/mcp
+    go build -o atheon-mcp ./cmd/mcp
 }
 
 build_bundler() {

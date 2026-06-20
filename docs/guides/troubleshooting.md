@@ -12,7 +12,7 @@ Comprehensive troubleshooting guide for common issues and their solutions.
    rm ~/.atheon/patterns.bundle
 
    # Rebuild binary
-   go build -o atheon .
+   go build -o atheon ./cmd/atheon
 
    # Verify
    ./atheon list | wc -l  # Should show 87
@@ -36,7 +36,7 @@ Comprehensive troubleshooting guide for common issues and their solutions.
    go mod download
 
    # Rebuild
-   go build -o atheon .
+   go build -o atheon ./cmd/atheon
    ```
 
 ## 🔧 Pattern Issues
@@ -61,7 +61,7 @@ rm -f ~/.atheon/patterns.bundle
 ./bundler/bundler
 
 # Rebuild binary
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 
 # Verify patterns
 ./atheon list categories
@@ -138,7 +138,7 @@ go mod verify
 
 # Clean and rebuild
 go clean -cache
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 ```
 
 ### Compilation Errors
@@ -161,7 +161,7 @@ go vet ./...
 go fmt ./...
 
 # Rebuild
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 ```
 
 ### Cross-platform Build Issues
@@ -174,7 +174,7 @@ go build -o atheon .
 
 ```bash
 # Test on current platform
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 
 # Use GOOS/GOARCH for cross-compilation
 GOOS=linux GOARCH=amd64 go build -o atheon-linux
@@ -433,7 +433,7 @@ ping github.com
 
 ```bash
 # Check MCP server build
-go build -o atheon-mcp ./core/mcp
+go build -o atheon-mcp ./cmd/mcp
 
 # Test MCP server
 ./atheon-mcp &
@@ -455,7 +455,7 @@ ps aux | grep atheon-mcp
 
 ```bash
 # Build binary
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 
 # Install to PATH
 sudo mv atheon /usr/local/bin/

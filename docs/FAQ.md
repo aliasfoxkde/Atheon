@@ -8,14 +8,14 @@
 # Option 1: Build from source (recommended)
 git clone https://github.com/aliasfoxkde/Atheon.git
 cd Atheon
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 sudo mv atheon /usr/local/bin/  # or add to your PATH
 
 # Option 2: Development version with all features
 git clone https://github.com/aliasfoxkde/Atheon.git
 cd Atheon
 git checkout dev/full-feature
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 ```
 
 ### **Q: Why does `go install` fail with "does not contain package" error?**
@@ -25,7 +25,7 @@ go build -o atheon .
 ```bash
 git clone https://github.com/aliasfoxkde/Atheon.git
 cd Atheon
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 sudo mv atheon /usr/local/bin/  # or add to your PATH
 ```
 
@@ -34,7 +34,7 @@ sudo mv atheon /usr/local/bin/  # or add to your PATH
 git clone https://github.com/aliasfoxkde/Atheon.git
 cd Atheon
 git checkout dev/full-feature
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 ```
 
 3. **Check your Go version:**

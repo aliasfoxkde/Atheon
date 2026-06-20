@@ -163,7 +163,7 @@ echo "Exit code: $?"
 **Build verification:**
 ```bash
 # Rebuild MCP server
-go build -o atheon-mcp ./core/mcp
+go build -o atheon-mcp ./cmd/mcp
 
 # Test directly
 ./atheon-mcp
@@ -284,7 +284,7 @@ go clean -cache
 go mod tidy
 
 # Rebuild
-go build -o atheon .
+go build -o atheon ./cmd/atheon
 ```
 
 ## Getting Help

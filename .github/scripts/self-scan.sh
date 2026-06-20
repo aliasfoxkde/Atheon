@@ -8,7 +8,7 @@ echo "=== Atheon Self-Scan Integration ==="
 
 # Build Atheon first
 echo "Building Atheon..."
-go build -o atheon . || { echo "Build failed"; exit 1; }
+go build -o atheon ./cmd/atheon || { echo "Build failed"; exit 1; }
 
 # Create scan results directory
 mkdir -p scan-results
