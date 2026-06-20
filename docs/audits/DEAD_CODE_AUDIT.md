@@ -4,6 +4,7 @@
 **Scope:** `core/`, `cmd/atheon/`, `cmd/mcp/`, `bundler/`
 **Tools:** `staticcheck 2025.1.1 (0.6.1)`, `go vet`, manual grep
 **Auditor:** Phase 1.1 of [`docs/GOAL_ROADMAP.md`](../GOAL_ROADMAP.md)
+**Canonical entry point:** `make audit` (see [`Makefile`](../../Makefile))
 
 ---
 
@@ -18,6 +19,10 @@
 | `grep "// FIXME\|// XXX"` | 0 |
 
 The codebase is in **excellent shape**. One dead helper remains.
+
+Run `make audit` to reproduce every gate in this table.
+Run individual gates (`make audit-dead-code`, `make audit-nolint`,
+`make audit-fixmes`, `make audit-sentinels`) for narrower scope.
 
 ---
 
@@ -89,9 +94,9 @@ auditors know not to "re-add" them:
 
 ## Recommendations
 
-1. **Remove `contains` and its test** (Phase 1.2 of GOAL_ROADMAP).
+1. **Remove `contains` and its test** (Phase 1.2 of GOAL_ROADMAP). **DONE in commit 7638e76.**
 2. **No other dead code in production.** Existing `//nolint` comments are all justified.
-3. **Add a `make audit` target** that runs staticcheck + go vet + this manual grep (Phase 1.3 of GOAL_ROADMAP).
+3. **Add a `make audit` target** that runs staticcheck + go vet + this manual grep (Phase 1.3 of GOAL_ROADMAP). **DONE — see [`Makefile`](../../Makefile).**
 4. **Wire staticcheck into `.githooks/pre-commit`** so new dead code is caught at commit time (Phase 1.4 of GOAL_ROADMAP).
 5. **Add a PreToolUse hook in the global harness** that runs `go build ./...` after every Write/Edit on Go files to catch dead-code-introducing changes immediately (Phase 1.5 of GOAL_ROADMAP).
 
