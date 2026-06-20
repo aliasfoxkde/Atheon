@@ -160,6 +160,21 @@ if git diff --cached --name-only | grep -E '\.go$' > /dev/null; then
         fi
     fi
 
+    # Check staged files for newly-introduced dead helpers
+    echo "=== 🪦 Checking for dead code in staged files ==="
+    if [ -x "scripts/audit-dead-code.sh" ]; then
+        if bash scripts/audit-dead-code.sh --staged; then
+            echo "✓ No new dead code"
+        else
+            echo "ERROR: dead code detected in staged files (see above)."
+            echo "Remove the unused helper, give it a caller, or document"
+            echo "why it's retained with an exported reference."
+            exit 1
+        fi
+    else
+        echo "⚠️  scripts/audit-dead-code.sh missing; skipping dead-code check"
+    fi
+
     # Verify pattern bundle is up to date
     echo "=== 🔍 Checking pattern bundle ==="
     if git diff --cached --name-only | grep -E "community/.*\.yaml" > /dev/null; then

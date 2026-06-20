@@ -71,18 +71,7 @@ audit: vet staticcheck audit-dead-code audit-nolint audit-fixmes audit-sentinels
 
 audit-dead-code: ## find unexported helpers with no production callers
 	@echo "--- audit: dead code (unexported helpers with no callers)"
-	@FAILED=0; \
-	for f in $$(find core bundler cmd -name '*.go' -not -name '*_test.go' 2>/dev/null); do \
-		HELPERS=$$(grep -E '^func [a-z]' $$f | sed -E 's/^func +([A-Za-z0-9_]+).*/\1/'); \
-		for h in $$HELPERS; do \
-			COUNT=$$(grep -rE "\\b$$h\\b" --include='*.go' . 2>/dev/null \
-				| grep -v "^$$f:" | grep -v '_test.go:' | wc -l); \
-			if [ "$$COUNT" -eq 0 ]; then \
-				echo "  $$f: $$h (no callers)"; FAILED=1; \
-			fi; \
-		done; \
-	done; \
-	if [ $$FAILED -eq 0 ]; then echo "  OK"; fi
+	@bash scripts/audit-dead-code.sh all
 
 audit-nolint: ## enumerate every //nolint annotation
 	@echo "--- audit: //nolint annotations"
