@@ -163,6 +163,26 @@ func run(ctx context.Context, args []string) int {
 		}
 		return 0
 
+	case "audit":
+		root := "."
+		if len(args) >= 2 {
+			root = args[1]
+		}
+		report, err := core.Audit(ctx, root)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "error:", err)
+			return 1
+		}
+		// Write to docs/audits/ with a timestamped subdirectory.
+		ts := report.GeneratedAt.Format("2006-01-02-150405")
+		dir := fmt.Sprintf("docs/audits/%s", ts)
+		if err := core.WriteReport(report, dir); err != nil {
+			fmt.Fprintln(os.Stderr, "error writing report:", err)
+			return 1
+		}
+		fmt.Printf("audit complete: %s/REPORT.md\n", dir)
+		return 0
+
 	default:
 		path := args[0]
 		info, err := os.Stat(path)
@@ -330,6 +350,7 @@ usage:
   atheon list --disabled             list only disabled patterns
   atheon scan-url <url>             scan a remote URL for secrets
   atheon scan-git <url>             scan a remote git repository for secrets
+  atheon audit [path]              run audit checks and write REPORT.md + REPORT.json
   atheon list categories             list available categories
   atheon enable <pattern>            enable a pattern
   atheon disable <pattern>           disable a pattern
