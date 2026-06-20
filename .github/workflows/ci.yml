@@ -87,7 +87,7 @@ jobs:
         run: go build -v -o atheon${{ runner.os == 'Windows' && '.exe' || '' }} .
 
       - name: Build MCP Server
-        run: go build -v -o atheon-mcp${{ runner.os == 'Windows' && '.exe' || '' }} ./cmd/mcp
+        run: go build -v -o atheon-mcp${{ runner.os == 'Windows' && '.exe' || '' }} ./core/mcp
 
       - name: Run basic smoke tests (unix)
         if: runner.os != 'Windows'

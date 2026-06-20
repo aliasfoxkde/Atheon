@@ -10,7 +10,7 @@ go install github.com/aliasfoxkde/Atheon@v2.0.0-enhanced
 go install github.com/aliasfoxkde/Atheon@latest
 
 # Install MCP server
-go install github.com/aliasfoxkde/Atheon/cmd/mcp@v2.0.0-enhanced
+go install github.com/aliasfoxkde/Atheon/core/mcp@v2.0.0-enhanced
 ```
 
 ## 🛠️ Build from Source
@@ -25,7 +25,7 @@ git checkout v2.0.0-enhanced
 
 # Build binaries
 go build -o atheon .
-go build -o atheon-mcp ./cmd/mcp
+go build -o atheon-mcp ./core/mcp
 
 # Install to PATH
 sudo mv atheon /usr/local/bin/

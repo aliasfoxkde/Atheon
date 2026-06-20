@@ -302,3 +302,148 @@ func TestSkipDirs(t *testing.T) {
 		t.Error("expected to find pattern in regular file")
 	}
 }
+
+// TestScanDir_NonExistent tests ScanDir with non-existent directory
+func TestScanDir_NonExistent(t *testing.T) {
+	findings, stats, err := ScanDir("/nonexistent/directory/path")
+	// ScanDir might not error on non-existent directories, just return empty results
+	if err != nil {
+		// Error is acceptable
+		t.Logf("ScanDir returned error for non-existent directory: %v", err)
+	}
+
+	if stats.Files != 0 {
+		t.Errorf("expected 0 files scanned for non-existent directory, got %d", stats.Files)
+	}
+
+	if len(findings) != 0 {
+		t.Errorf("expected 0 findings for non-existent directory, got %d", len(findings))
+	}
+}
+
+// TestScanDir_PermissionError tests ScanDir with permission errors
+func TestScanDir_PermissionError(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("running as root, permission test ineffective")
+	}
+
+	tmpDir := t.TempDir()
+	// Create a subdirectory with no permissions
+	noPermDir := filepath.Join(tmpDir, "noperm")
+	if err := os.Mkdir(noPermDir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(noPermDir, 0o755) // Cleanup
+
+	// Also create a readable file so ScanDir has something to process
+	readableFile := filepath.Join(tmpDir, "readable.txt")
+	if err := os.WriteFile(readableFile, []byte("AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// ScanDir should still work, just skip the inaccessible directory
+	findings, stats, err := ScanDir(tmpDir)
+	if err != nil {
+		// Permission errors might be returned, that's acceptable
+		t.Logf("ScanDir returned error (acceptable): %v", err)
+	}
+
+	// Should have completed without crashing and scanned the readable file
+	if stats.Files < 1 {
+		t.Errorf("expected at least 1 file scanned (readable), got %d", stats.Files)
+	}
+
+	if findings == nil {
+		t.Error("findings should not be nil")
+	}
+}
+
+// TestScanDir_EmptyDirectory tests ScanDir with empty directory
+func TestScanDir_EmptyDirectory(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	findings, stats, err := ScanDir(tmpDir)
+	if err != nil {
+		t.Fatalf("ScanDir failed on empty directory: %v", err)
+	}
+
+	if stats.Files != 0 {
+		t.Errorf("expected 0 files scanned, got %d", stats.Files)
+	}
+
+	if len(findings) != 0 {
+		t.Errorf("expected 0 findings, got %d", len(findings))
+	}
+}
+
+// TestScanDir_WithSubdirectories tests ScanDir with nested directory structure
+func TestScanDir_WithSubdirectories(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create nested structure
+	subDir1 := filepath.Join(tmpDir, "subdir1")
+	subDir2 := filepath.Join(tmpDir, "subdir2")
+	nestedDir := filepath.Join(subDir1, "nested")
+
+	for _, dir := range []string{subDir1, subDir2, nestedDir} {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Create files in different directories
+	file1 := filepath.Join(tmpDir, "root.txt")
+	file2 := filepath.Join(subDir1, "sub1.txt")
+	file3 := filepath.Join(subDir2, "sub2.txt")
+	file4 := filepath.Join(nestedDir, "nested.txt")
+
+	for _, file := range []string{file1, file2, file3, file4} {
+		if err := os.WriteFile(file, []byte("TEST_KEY=AKIAIOSFODNN7EXAMPLE"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	findings, stats, err := ScanDir(tmpDir)
+	if err != nil {
+		t.Fatalf("ScanDir failed: %v", err)
+	}
+
+	if stats.Files != 4 {
+		t.Errorf("expected 4 files scanned, got %d", stats.Files)
+	}
+
+	if len(findings) < 4 {
+		t.Errorf("expected at least 4 findings, got %d", len(findings))
+	}
+}
+
+// TestScanDir_BinaryFiles tests ScanDir with binary file filtering
+func TestScanDir_BinaryFiles(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create text file
+	textFile := filepath.Join(tmpDir, "text.txt")
+	if err := os.WriteFile(textFile, []byte("AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create binary file (executable)
+	binaryFile := filepath.Join(tmpDir, "binary.exe")
+	if err := os.WriteFile(binaryFile, []byte{0x00, 0x01, 0x02, 0x03, 0x04}, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	findings, stats, err := ScanDir(tmpDir)
+	if err != nil {
+		t.Fatalf("ScanDir failed: %v", err)
+	}
+
+	// Binary files should be skipped
+	if stats.Files != 1 {
+		t.Errorf("expected 1 file scanned (text only), got %d", stats.Files)
+	}
+
+	if len(findings) < 1 {
+		t.Errorf("expected at least 1 finding from text file, got %d", len(findings))
+	}
+}

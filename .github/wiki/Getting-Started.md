@@ -66,7 +66,7 @@ fi
 ### MCP Server Setup
 ```bash
 # Build MCP server
-go build -o atheon-mcp ./cmd/mcp
+go build -o atheon-mcp ./core/mcp
 
 # Add to Claude Code config
 {

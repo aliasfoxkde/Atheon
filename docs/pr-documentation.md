@@ -21,7 +21,7 @@ Atheon/
 ├── docs/              # Comprehensive documentation
 ├── community/         # Community pattern definitions (87 patterns)
 ├── core/             # Core pattern matching engine
-├── cmd/mcp/          # Model Context Protocol server
+├── core/mcp/          # Model Context Protocol server
 ├── bundler/          # Pattern bundling tool
 ├── config/profiles/  # Configuration profiles
 └── .github/          # CI/CD workflows and templates

@@ -433,7 +433,7 @@ ping github.com
 
 ```bash
 # Check MCP server build
-go build -o atheon-mcp ./cmd/mcp
+go build -o atheon-mcp ./core/mcp
 
 # Test MCP server
 ./atheon-mcp &

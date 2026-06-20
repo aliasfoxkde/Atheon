@@ -26,7 +26,7 @@ build_cli() {
 
 build_mcp() {
     echo "→ building atheon-mcp"
-    go build -o atheon-mcp ./cmd/mcp
+    go build -o atheon-mcp ./core/mcp
 }
 
 build_bundler() {

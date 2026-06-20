@@ -156,7 +156,7 @@ jobs:
       - name: Build binaries
         run: |
           go build -o atheon-${{ matrix.os }} .
-          go build -o atheon-mcp-${{ matrix.os }} ./cmd/mcp
+          go build -o atheon-mcp-${{ matrix.os }} ./core/mcp
 
       - name: Test binaries
         run: |
@@ -194,7 +194,7 @@ jobs:
 
       - name: Test MCP integration
         run: |
-          go build -o atheon-mcp ./cmd/mcp
+          go build -o atheon-mcp ./core/mcp
           # Test MCP server can start
           timeout 5s ./atheon-mcp || true
 

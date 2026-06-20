@@ -52,7 +52,7 @@ go mod verify
 go build -o atheon .
 
 # Build MCP server
-go build -o atheon-mcp ./cmd/mcp
+go build -o atheon-mcp ./core/mcp
 
 # Build bundler
 go build -o bundler/bundler ./bundler
@@ -100,7 +100,7 @@ go test ./core -v
 go test . -v
 
 # Test MCP server
-go test ./cmd/mcp -v
+go test ./core/mcp -v
 ```
 
 ### Pre-commit Hooks

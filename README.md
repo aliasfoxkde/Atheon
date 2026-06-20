@@ -100,7 +100,7 @@ cd Atheon
 go build -o atheon .
 
 # Build the MCP server (optional)
-go build -o atheon-mcp ./cmd/mcp
+go build -o atheon-mcp ./core/mcp
 
 # Install to your PATH
 sudo mv atheon /usr/local/bin/  # Linux/macOS
@@ -125,7 +125,7 @@ go build -o atheon .
 atheon --version
 ```
 go build -o atheon .
-go build -o atheon-mcp ./cmd/mcp
+go build -o atheon-mcp ./core/mcp
 ```
 
 </details>

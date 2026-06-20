@@ -201,7 +201,7 @@ jobs:
         run: |
           echo "=== Building Binaries ==="
           go build -o atheon .
-          go build -o atheon-mcp ./cmd/mcp
+          go build -o atheon-mcp ./core/mcp
           ./atheon --version
           ./atheon-mcp &
           MCP_PID=$!

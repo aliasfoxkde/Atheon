@@ -9,6 +9,14 @@ echo "=== ENHANCED PRE-COMMIT VALIDATION ==="
 # Minimum coverage threshold
 MIN_COVERAGE=54
 
+# All generated files (coverage, test output, etc.) are written to .tmp-cov/
+# instead of the repo root, so the working tree stays clean.
+HOOK_TMP="$(mktemp -d .tmp-cov/hooks.XXXXXX)"
+COVERAGE_OUT="$HOOK_TMP/coverage.out"
+TEST_LOG="$HOOK_TMP/test_output.txt"
+cleanup() { rm -rf "$HOOK_TMP"; }
+trap cleanup EXIT
+
 # Check if this is a commit worth validating
 if git diff --cached --name-only | grep -E '\.go$' > /dev/null; then
     echo "=== 📝 Go Code Changes Detected ==="
@@ -113,16 +121,16 @@ if git diff --cached --name-only | grep -E '\.go$' > /dev/null; then
 
     # Run tests with coverage and race detection
     echo "=== 🧪 Running comprehensive test suite ==="
-    if ! go test ./... -race -coverprofile=coverage.out -timeout 15m > /tmp/test_output.txt 2>&1; then
+    if ! go test ./... -race -coverprofile="$COVERAGE_OUT" -timeout 15m > "$TEST_LOG" 2>&1; then
         echo "ERROR: Tests failed:"
-        cat /tmp/test_output.txt
+        cat "$TEST_LOG"
         exit 1
     fi
     echo "✓ All tests passed"
 
     # Check coverage threshold
     echo "=== 📊 Checking coverage threshold ==="
-    COVERAGE=$(go tool cover -func=coverage.out 2>/dev/null | grep total: | awk '{print $3}' | sed 's/%//' || echo "0")
+    COVERAGE=$(go tool cover -func="$COVERAGE_OUT" 2>/dev/null | grep total: | awk '{print $3}' | sed 's/%//' || echo "0")
     echo "Current coverage: ${COVERAGE}%"
 
     if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l 2>/dev/null || echo "0") )); then
