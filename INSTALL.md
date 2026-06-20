@@ -62,8 +62,8 @@ atheon . --categories=ai-detection,secrets
 
 - **Complete Documentation**: https://github.com/aliasfoxkde/Atheon/tree/main/docs
 - **API Reference**: https://github.com/aliasfoxkde/Atheon/blob/main/docs/api/README.md
-- **Development Guide**: https://github.com/aliasfoxkde/Atheon/blob/main/docs/development/setup.md
-- **Troubleshooting**: https://github.com/aliasfoxkde/Atheon/blob/main/docs/guides/troubleshooting.md
+- **Development Guide**: https://github.com/aliasfoxkde/Atheon/blob/main/docs/development/SETUP.md
+- **Troubleshooting**: https://github.com/aliasfoxkde/Atheon/blob/main/docs/guides/TROUBLESHOOTING.md
 
 ## 📦 Package Information
 

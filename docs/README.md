@@ -40,12 +40,12 @@ Welcome to the Atheon documentation. This is the canonical index for everything 
 - [Security Testing](reports/SECURITY_TESTING.md)
 - [Roadmap](reports/ROADMAP.md)
 - [Branch Strategy](reports/BRANCH_STRATEGY.md)
-- [PR Documentation](reports/pr-documentation.md)
-- [Documentation Validation Plan](reports/documentation-validation-plan.md)
+- [PR Documentation](reports/PR_DOCUMENTATION.md)
+- [Documentation Validation Plan](reports/DOCUMENTATION_VALIDATION_PLAN.md)
 - [Finalization Summary](reports/FINALIZATION_SUMMARY.md)
 - [Completion Report](reports/COMPLETION_REPORT.md)
 - [Repository Rename Plan](reports/REPOSITORY_RENAME_PLAN.md)
-- [Test Coverage Report](reports/test-coverage.md)
+- [Test Coverage Report](reports/TEST_COVERAGE.md)
 
 ## 🧪 Tests
 
