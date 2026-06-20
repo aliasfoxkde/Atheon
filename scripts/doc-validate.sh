@@ -6,7 +6,7 @@ set -euo pipefail
 
 # Source the categorization script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/categorize.sh"
+source "$SCRIPT_DIR/doc-categorize.sh"
 
 # Color codes
 RED='\033[0;31m'

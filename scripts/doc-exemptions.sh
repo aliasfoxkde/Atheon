@@ -6,7 +6,7 @@ set -euo pipefail
 
 # Source the categorization script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/categorize.sh"
+source "$SCRIPT_DIR/doc-categorize.sh"
 
 # Exemption reasons
 EXEMPT_TEST_ONLY="test-only"

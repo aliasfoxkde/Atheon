@@ -171,13 +171,13 @@ if git diff --cached --name-only | grep -E '\.go$' > /dev/null; then
 
     # Smart documentation validation
     echo "=== 📚 Documentation Validation ==="
-    if [ -f "docs/scripts/validate-docs.sh" ]; then
+    if [ -f "scripts/doc-validate.sh" ]; then
         # Make scripts executable
-        chmod +x docs/scripts/*.sh 2>/dev/null || true
+        chmod +x scripts/doc-*.sh 2>/dev/null || true
 
         # Run smart documentation validation
         STAGED_FILES=$(git diff --cached --name-only)
-        if bash docs/scripts/validate-docs.sh $STAGED_FILES; then
+        if bash scripts/doc-validate.sh $STAGED_FILES; then
             echo "✓ Documentation validation passed"
         else
             # Validation failed, but this is non-blocking for now
