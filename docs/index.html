@@ -270,6 +270,10 @@
 atheon --categories=secrets,pii .
 atheon --all .</pre>
     <p>Directory scans automatically respect <code>.gitignore</code> and <code>.atheonignore</code>. Native binaries ship for Windows, macOS (Intel + Apple Silicon), and Linux with no runtime or dependencies.</p>
+    <p>Enable or disable any pattern and the preference persists across updates — your choices survive every new bundle download.</p>
+    <pre>atheon enable stripe-live-key
+atheon disable console-log
+atheon list --enabled</pre>
   </section>
 
   <hr />

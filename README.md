@@ -4,7 +4,7 @@
 
 ![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Patterns](https://img.shields.io/badge/patterns-57-blueviolet)
+![Patterns](https://img.shields.io/badge/patterns-58-blueviolet)
 ![CI](https://github.com/HoraDomu/Atheon/actions/workflows/ci.yml/badge.svg)
 [![Wiki](https://img.shields.io/badge/docs-wiki-blue)](https://github.com/HoraDomu/Atheon/wiki)
 
@@ -101,27 +101,30 @@ go build -o atheon .
 ## Usage
 
 ```
-atheon <path>                        scan a directory or file
-atheon --file <path>                 scan a single file explicitly
-atheon --env                         scan all environment variables
-atheon --json <path>                 output findings as JSON
-atheon --categories=<c1,c2> <path>  scan specific pattern categories only
-atheon --all <path>                  include disabled patterns in scan
-atheon list                          list all patterns with enabled/disabled status
-atheon list --enabled                list only enabled patterns
-atheon list --disabled               list only disabled patterns
-atheon list categories               list available categories
-atheon enable <pattern>              enable a pattern by name
-atheon disable <pattern>             disable a pattern by name
-atheon update                        download the latest patterns bundle
-atheon --help                        show help
+atheon <path>                         scan a directory or file
+atheon --file <path>                  scan a single file explicitly
+atheon --env                          scan all environment variables
+atheon --json <path>                  output findings as JSON
+atheon --categories=<c1,c2> <path>   scan specific pattern categories only
+atheon --all <path>                   include disabled patterns in scan
+atheon list                           list all patterns with enabled/disabled status
+atheon list --enabled                 list only enabled patterns
+atheon list --disabled                list only disabled patterns
+atheon list --category=<cat>          list patterns for a specific category
+atheon list categories                list available category names
+atheon enable <pattern>               enable a pattern by name
+atheon disable <pattern>              disable a pattern by name
+atheon update                         download the latest patterns bundle
+atheon --version                      show version
+atheon --help                         show help
 ```
 
-Pipe support  pass `-` to read from stdin:
+Pipe support — pass `-` (or `--stdin`) to read from stdin:
 
 ```
 cat file.txt | atheon -
 git diff | atheon -
+git diff | atheon --stdin
 ```
 
 Exit code `0` = clean. Exit code `1` = findings. CI-friendly by default.
@@ -136,6 +139,7 @@ Patterns are organized into categories. Run only what you need:
 atheon --categories=secrets .
 atheon --categories=secrets,pii .
 atheon list categories
+atheon list --category=secrets
 ```
 
 This keeps scans fast regardless of how many patterns are in the bundle. A pre-commit hook scanning only `secrets` costs nothing for PII patterns you don't need in that context.
@@ -165,6 +169,19 @@ dist/
 ```
 
 Full gitignore syntax is supported including `**`, `!` negation rules, and `[!...]` character class negation.
+
+**JSON output with flags**
+
+`--json` must be the first flag. It can precede any scan command:
+
+```
+atheon --json ./
+atheon --json --file config.yaml
+atheon --json --env
+atheon --json --categories=secrets ./
+```
+
+---
 
 To suppress a single line without ignoring the whole file, add `atheon:ignore` anywhere on that line:
 
@@ -352,7 +369,7 @@ Omit the `categories` parameter to scan all categories.
 
 ## Pattern bundle
 
-All patterns live in `community/` as plain YAML files  no Go required. The engine ships with a compiled bundle embedded in the binary. Run `atheon update` to pull the latest bundle from the release.
+All patterns live in `community/` as plain YAML files — no Go required. The engine ships with a compiled bundle embedded in the binary. Run `atheon update` to pull the latest bundle from the release. The update command reports exactly what changed — which patterns were added or removed.
 
 Adding a new pattern is one file:
 
@@ -360,17 +377,37 @@ Adding a new pattern is one file:
 # community/secrets/my-service.yaml
 name: my-service-api-key
 match: '\bmsvc_[A-Za-z0-9]{32}\b'
+enabled: false   # optional — omit to default to true
 ```
+
+Fields:
+
+- `name` — unique lowercase-hyphenated identifier. Be specific: `stripe-live-key`, not `stripe`.
+- `match` — a valid RE2 regex. Use single quotes so backslashes don't need escaping.
+- `enabled` — optional. Defaults to `true`. Set to `false` to ship the pattern disabled-by-default (useful for high-false-positive patterns users can opt into).
 
 The folder name is the category. No engine changes, no recompile, no release gate.
 
 ---
 
+**Pattern state**
+
+`atheon enable` and `atheon disable` write state to `~/.atheon/pattern_state.json`. The state survives binary updates and `atheon update` — your enabled/disabled preferences are reapplied on top of each new bundle automatically.
+
+```
+atheon enable stripe-live-key
+atheon disable console-log
+atheon list --enabled
+atheon list --disabled
+```
+
+---
+
 ## Contributing
 
-Patterns are the heart of Atheon. Every pattern is one YAML file  small, fast to review, and immediately useful to every user once merged.
+Patterns are the heart of Atheon. Every pattern is one YAML file — small, fast to review, and immediately useful to every user once merged.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) to add your own.
+See [CONTRIBUTING.md](CONTRIBUTING.md) to add your own. See [ROADMAP.md](ROADMAP.md) for what categories and domains need patterns most.
 
 ---
 

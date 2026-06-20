@@ -239,20 +239,23 @@ func printHelp() {
 	fmt.Print(`atheon - pattern matching engine
 
 usage:
-  atheon <path>                      scan a directory
-  atheon --file <path>               scan a single file
-  atheon --env                       scan environment variables
-  atheon --json <path>               print findings as JSON
-  atheon --categories=<c1,c2> <path> scan specific categories
-  atheon --all <path>                scan all patterns including disabled ones
-  atheon list                        list all patterns with enabled/disabled status
-  atheon list --enabled              list only enabled patterns
-  atheon list --disabled             list only disabled patterns
-  atheon list categories             list available categories
-  atheon enable <pattern>            enable a pattern
-  atheon disable <pattern>           disable a pattern
-  atheon update                      download latest patterns bundle
-  atheon --help                      show this message
+  atheon <path>                       scan a directory or file
+  atheon --file <path>                scan a single file explicitly
+  atheon --env                        scan environment variables
+  atheon - / --stdin                  scan from stdin
+  atheon --json <path>                print findings as JSON (must be first flag)
+  atheon --categories=<c1,c2> <path>  scan specific categories only
+  atheon --all <path>                 scan all patterns including disabled ones
+  atheon list                         list all patterns with enabled/disabled status
+  atheon list --enabled               list only enabled patterns
+  atheon list --disabled              list only disabled patterns
+  atheon list --category=<cat>        list patterns in a specific category
+  atheon list categories              list available category names
+  atheon enable <pattern>             enable a pattern by name
+  atheon disable <pattern>            disable a pattern by name
+  atheon update                       download latest patterns bundle
+  atheon --version                    show version
+  atheon --help                       show this message
 `)
 }
 

@@ -11,19 +11,24 @@ Atheon grows through patterns. Every pattern is one YAML file — no Go required
 ```sh
 atheon list
 atheon list categories
+atheon list --category=secrets
 ```
 
 **2. Create the YAML file**
 
-Drop a `.yaml` file into the appropriate `community/<category>/` folder. The folder name is the category — if yours doesn't fit an existing one, create a new folder.
+Drop a `.yaml` file into the appropriate `community/<category>/` folder. The folder name becomes the pattern's category — if yours doesn't fit an existing one, create a new folder.
 
 ```yaml
 name: my-service-api-key
 match: '\bmsvc_[A-Za-z0-9]{32}\b'
+enabled: false   # optional — omit to default to true
 ```
+
+Fields:
 
 - `name` — lowercase hyphenated, specific: `stripe-live-key` not `stripe`
 - `match` — a valid RE2 regex. Use single quotes so backslashes don't need escaping.
+- `enabled` — optional, defaults to `true`. Set to `false` to ship the pattern disabled-by-default. Useful for high-false-positive patterns that users can opt into with `atheon enable <name>` if needed.
 
 **3. Rebuild the bundle**
 
