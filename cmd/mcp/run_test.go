@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -11,7 +12,7 @@ func TestRunInitialize(t *testing.T) {
 	in := strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}` + "\n")
 	out := &strings.Builder{}
 
-	code := run(in, out)
+	code := run(context.Background(), in, out)
 	if code != 0 {
 		t.Errorf("expected exit 0, got %d", code)
 	}
@@ -25,7 +26,7 @@ func TestRunToolsList(t *testing.T) {
 	in := strings.NewReader(`{"jsonrpc":"2.0","id":2,"method":"tools/list"}` + "\n")
 	out := &strings.Builder{}
 
-	code := run(in, out)
+	code := run(context.Background(), in, out)
 	if code != 0 {
 		t.Errorf("expected exit 0, got %d", code)
 	}
@@ -45,7 +46,7 @@ func TestRunToolsCall(t *testing.T) {
 	in := strings.NewReader(`{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"scan_string","arguments":{"content":"AKIAIOSFODNN7EXAMPLE","source":"x"}}}` + "\n")
 	out := &strings.Builder{}
 
-	code := run(in, out)
+	code := run(context.Background(), in, out)
 	if code != 0 {
 		t.Errorf("expected exit 0, got %d", code)
 	}
@@ -59,7 +60,7 @@ func TestRunUnknownMethod(t *testing.T) {
 	in := strings.NewReader(`{"jsonrpc":"2.0","id":4,"method":"frobnicate"}` + "\n")
 	out := &strings.Builder{}
 
-	code := run(in, out)
+	code := run(context.Background(), in, out)
 	if code != 0 {
 		t.Errorf("expected exit 0, got %d", code)
 	}
@@ -73,7 +74,7 @@ func TestRunInvalidJSONSkipped(t *testing.T) {
 	in := strings.NewReader("{not-json\n")
 	out := &strings.Builder{}
 
-	code := run(in, out)
+	code := run(context.Background(), in, out)
 	if code != 0 {
 		t.Errorf("expected exit 0, got %d", code)
 	}
@@ -89,7 +90,7 @@ func TestRunInitializedNotification(t *testing.T) {
 	in := strings.NewReader(`{"jsonrpc":"2.0","method":"initialized"}` + "\n")
 	out := &strings.Builder{}
 
-	code := run(in, out)
+	code := run(context.Background(), in, out)
 	if code != 0 {
 		t.Errorf("expected exit 0, got %d", code)
 	}
@@ -109,7 +110,7 @@ func TestRunMultipleRequests(t *testing.T) {
 	in := strings.NewReader(strings.Join(requests, "\n") + "\n")
 	out := &strings.Builder{}
 
-	code := run(in, out)
+	code := run(context.Background(), in, out)
 	if code != 0 {
 		t.Errorf("expected exit 0, got %d", code)
 	}

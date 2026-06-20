@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"os"
 	"strings"
@@ -44,7 +45,7 @@ func runMain(t *testing.T, args []string) string {
 		defer func() {
 			_ = recover()
 		}()
-		_ = run(os.Args[1:])
+		_ = run(context.Background(), os.Args[1:])
 	}()
 
 	<-done

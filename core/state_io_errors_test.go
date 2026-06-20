@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -95,7 +96,7 @@ func TestDownloadBundleNoChanges(t *testing.T) {
 	restore := SetBundleDownloadURL(srv.URL)
 	defer restore()
 
-	if err := DownloadBundle(); err != nil {
+	if err := DownloadBundle(context.Background()); err != nil {
 		t.Fatalf("DownloadBundle failed: %v", err)
 	}
 }
@@ -140,7 +141,7 @@ func TestDownloadBundleWriteFileError(t *testing.T) {
 	}
 	defer os.Chmod(stateDir, 0o755)
 
-	err := DownloadBundle()
+	err := DownloadBundle(context.Background())
 	if err == nil {
 		t.Error("expected error from DownloadBundle when .atheon unwritable")
 	}

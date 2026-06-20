@@ -1,9 +1,10 @@
 package core_test
 
 import (
-	"github.com/aliasfoxkde/Atheon/core"
 	"strings"
 	"testing"
+
+	"github.com/aliasfoxkde/Atheon/core"
 )
 
 type patternCase struct {

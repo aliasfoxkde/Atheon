@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/aliasfoxkde/Atheon/core"
 )
@@ -14,13 +17,19 @@ import (
 var version = "dev"
 
 func main() {
-	os.Exit(run(os.Args[1:]))
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	code := run(ctx, os.Args[1:])
+	cancel() // explicit: os.Exit skips deferred cancel
+	os.Exit(code)
 }
 
 // run executes the CLI with the given args and returns the exit code.
 // This is separated from main() so tests can call it without os.Exit
 // terminating the test process.
-func run(args []string) int {
+//
+// The context flows through every Scan*/DownloadBundle call so callers
+// (typically signal.NotifyContext from main) can cancel in-flight work.
+func run(ctx context.Context, args []string) int {
 	// Handle --version flag
 	if len(args) > 0 && args[0] == "--version" {
 		fmt.Printf("atheon %s\n", version)
@@ -46,7 +55,7 @@ func run(args []string) int {
 	switch args[0] {
 	case "update":
 		fmt.Println("downloading patterns bundle...")
-		if err := core.DownloadBundle(); err != nil {
+		if err := core.DownloadBundle(ctx); err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			return 1
 		}
@@ -86,7 +95,7 @@ func run(args []string) int {
 		return 0
 
 	case "--env":
-		findings := core.ScanEnv()
+		findings := core.ScanEnv(ctx)
 		printFindings(findings, nil, jsonOutput)
 		if len(findings) > 0 {
 			return 1
@@ -99,7 +108,7 @@ func run(args []string) int {
 			fmt.Fprintln(os.Stderr, "error: reading stdin:", err)
 			return 1
 		}
-		findings := core.ScanString(string(data), "stdin")
+		findings := core.ScanString(ctx, string(data), "stdin")
 		printFindings(findings, nil, jsonOutput)
 		if len(findings) > 0 {
 			return 1
@@ -111,7 +120,7 @@ func run(args []string) int {
 			fmt.Fprintln(os.Stderr, "error: --file requires a path")
 			return 1
 		}
-		findings, stats, err := core.ScanFile(args[1])
+		findings, stats, err := core.ScanFile(ctx, args[1])
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			return 1
@@ -132,9 +141,9 @@ func run(args []string) int {
 		var findings []core.Finding
 		var stats *core.Stats
 		if info.IsDir() {
-			findings, stats, err = core.ScanDir(path)
+			findings, stats, err = core.ScanDir(ctx, path)
 		} else {
-			findings, stats, err = core.ScanFile(path)
+			findings, stats, err = core.ScanFile(ctx, path)
 		}
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
@@ -148,7 +157,7 @@ func run(args []string) int {
 	}
 }
 
-func parseCategories(args []string) (cats []string, rest []string, enableAll bool) {
+func parseCategories(args []string) (cats, rest []string, enableAll bool) {
 	for _, a := range args {
 		switch {
 		case strings.HasPrefix(a, "--categories="):

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +17,7 @@ func TestScanFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := ScanFile(testFile)
+	findings, stats, err := ScanFile(context.Background(), testFile)
 	if err != nil {
 		t.Fatalf("ScanFile failed: %v", err)
 	}
@@ -69,7 +70,7 @@ func TestScanDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := ScanDir(tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -126,7 +127,7 @@ func TestScanEnv(t *testing.T) {
 	// Use realistic token format that should NOT match AWS key pattern
 	os.Setenv("TEST_TOKEN", "tok_1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p")
 
-	findings := ScanEnv()
+	findings := ScanEnv(context.Background())
 
 	if len(findings) == 0 {
 		t.Error("expected to find AWS key in environment")
@@ -148,7 +149,7 @@ func TestScanEnv(t *testing.T) {
 func TestScanString(t *testing.T) {
 	testContent := "Here's a test string with AKIAIOSFODNN7EXAMPLE embedded"
 
-	findings := ScanString(testContent, "test-source")
+	findings := ScanString(context.Background(), testContent, "test-source")
 
 	if len(findings) == 0 {
 		t.Error("expected to find AWS key pattern")
@@ -243,7 +244,7 @@ func TestBinaryExts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := ScanDir(tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -288,7 +289,7 @@ func TestSkipDirs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := ScanDir(tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -305,7 +306,7 @@ func TestSkipDirs(t *testing.T) {
 
 // TestScanDir_NonExistent tests ScanDir with non-existent directory
 func TestScanDir_NonExistent(t *testing.T) {
-	findings, stats, err := ScanDir("/nonexistent/directory/path")
+	findings, stats, err := ScanDir(context.Background(), "/nonexistent/directory/path")
 	// ScanDir might not error on non-existent directories, just return empty results
 	if err != nil {
 		// Error is acceptable
@@ -342,7 +343,7 @@ func TestScanDir_PermissionError(t *testing.T) {
 	}
 
 	// ScanDir should still work, just skip the inaccessible directory
-	findings, stats, err := ScanDir(tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		// Permission errors might be returned, that's acceptable
 		t.Logf("ScanDir returned error (acceptable): %v", err)
@@ -362,7 +363,7 @@ func TestScanDir_PermissionError(t *testing.T) {
 func TestScanDir_EmptyDirectory(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	findings, stats, err := ScanDir(tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		t.Fatalf("ScanDir failed on empty directory: %v", err)
 	}
@@ -403,7 +404,7 @@ func TestScanDir_WithSubdirectories(t *testing.T) {
 		}
 	}
 
-	findings, stats, err := ScanDir(tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -433,7 +434,7 @@ func TestScanDir_BinaryFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := ScanDir(tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir)
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
