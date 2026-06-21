@@ -124,7 +124,7 @@ jobs:
       - name: Staticcheck analysis
         run: |
           echo "=== Staticcheck Analysis ==="
-          go install honnef.co/go/tools/cmd/staticcheck@latest
+          go install honnef.co/go/tools/cmd/staticcheck@2024.1
           staticcheck ./...
           if [ $? -ne 0 ]; then
             echo "❌ Staticcheck found issues"
