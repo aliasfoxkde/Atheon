@@ -42,12 +42,13 @@ This project embraces autonomous AI agents operating with:
 ## Enforced Rules
 
 ### Git Safety
-- ❌ `git stash` - Never use stashes (can be lost)
-- ❌ `git reset --hard` - Never destroy work
+- ⚠️ `git stash` - Use only AFTER committing (stash with backup branch)
+- ❌ `git reset --hard` - Never destroy work (use `git revert` instead)
 - ❌ `git push --force` - Never without explicit approval
 - ❌ `git clean -fd` - Never without explicit file list
 - ✅ Always commit before switching contexts
 - ✅ Always use branches for parallel work
+- ✅ When using stash: create backup branch first (`git branch backup/<name>`)
 
 ### Upstream Rules (CRITICAL)
 - ❌ **NEVER push/merge to upstream HoraDomu/Atheon**

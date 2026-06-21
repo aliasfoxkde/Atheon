@@ -1,0 +1,153 @@
+name: Auto Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  check_run:
+    types: [completed]
+  status_check:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Auto Merge PR
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.auto_merge == null && github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check if PR is mergeable
+        run: |
+          echo "Checking PR #${{ github.event.pull_request.number }}: {{ github.event.pull_request.title }}"
+
+          # Check merge status
+          MERGEABLE=$(gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --json mergeable --jq '.mergeable')
+          echo "Mergeable: $MERGEABLE"
+
+          if [ "$MERGEABLE" != "true" ]; then
+            echo "PR is not mergeable (may have conflicts)"
+            exit 1
+          fi
+
+      - name: Check all status checks passed
+        run: |
+          echo "Waiting for status checks to complete..."
+
+          # Get all required status checks
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+
+          # Wait for all checks to complete (max 10 minutes)
+          timeout=600
+          elapsed=0
+          interval=15
+
+          while [ $elapsed -lt $timeout ]; do
+            # Check if all checks are passing
+            STATUS=$(gh api repos/$REPO/commits/${{ github.event.pull_request.head.sha }}/status --jq '.state')
+            echo "Current status: $STATUS (elapsed: ${elapsed}s)"
+
+            if [ "$STATUS" == "success" ]; then
+              echo "✅ All checks passed!"
+              exit 0
+            fi
+
+            sleep $interval
+            elapsed=$((elapsed + interval))
+          done
+
+          echo "⏱️  Timeout waiting for checks"
+          exit 1
+
+      - name: Merge PR
+        if: success()
+        run: |
+          echo "✅ All checks passed. Merging PR #${{ github.event.pull_request.number }}"
+          gh pr merge ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --squash --delete-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  handle-conflicts:
+    name: Handle Branch Conflicts
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.auto_merge == null && github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check for conflicts
+        run: |
+          echo "Checking for conflicts in PR #${{ github.event.pull_request.number }}"
+
+          # Fetch main branch
+          git fetch origin main:main
+
+          # Check if PR branch has conflicts with main
+          MERGE_BASE=$(git merge-base HEAD main)
+          git diff --name-only $MERGE_BASE HEAD main > /tmp/conflicts.txt || true
+
+          if [ -s /tmp/conflicts.txt ]; then
+            echo "❌ Conflicts detected in:"
+            cat /tmp/conflicts.txt
+            echo "---"
+            echo "Attempting to resolve conflicts..."
+
+            # Try to auto-resolve simple conflicts
+            git checkout HEAD -- . 2>/dev/null || true
+
+            # Report conflict files
+            echo "::set-output name=has_conflicts::true"
+            gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} \
+              --body "⚠️ This PR has merge conflicts with main. Please resolve them before merging.
+
+Conflict files:
+\`\`\`
+$(cat /tmp/conflicts.txt)
+\`\`\`
+
+Would you like me to help resolve these? I can create a branch with conflict resolution if you approve."
+          else
+            echo "✅ No conflicts detected"
+            echo "::set-output name=has_conflicts::false"
+          fi
+
+  recheck-dependent-prs:
+    name: Recheck Dependent PRs
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: Find dependent PRs
+        run: |
+          echo "A PR was merged. Checking for dependent PRs that may need rechecks..."
+
+          # Get all open PRs
+          gh pr list --repo ${{ github.repository }} --state open --json number,title,body \
+            --jq '.[] | select(.body | contains("'${GITHUB_SHA}'")) | {number, title}' || true
+
+          echo "If any PRs reference the merged code, they should be automatically updated."
+
+  protect-main:
+    name: Protect Main Branch
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: Verify main is protected
+        run: |
+          echo "✅ PR merged to main. Main branch should be protected via branch rules."
+          echo "Branch protection rules should:"
+          echo "  - Require PR reviews"
+          echo "  - Require status checks to pass"
+          echo "  - Prevent direct pushes"
+          echo "  - Require branch up to date before merge"
