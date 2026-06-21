@@ -31,3 +31,11 @@ The following branches are protected and require PRs:
 - `main`
 - `stable/clean`
 - `dev/full-feature`
+
+## Configuration Profiles
+
+Configuration profiles in `config/profiles/`:
+- `development.json` - Development environment settings
+- `production.json` - Production environment settings
+- `mcp-integration.json` - MCP server integration settings
+- `pipeline.json` - CI/CD pipeline settings

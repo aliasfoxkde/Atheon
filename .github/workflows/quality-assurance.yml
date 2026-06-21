@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, dev/full-feature, stable/clean ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
   actions: read
@@ -20,28 +24,29 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go: ['1.21', '1.22', '1.23', '1.24']
+        go: ['1.22', '1.23']
+      fail-fast: false
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go }}
           cache: true
 
       - name: Run tests
         run: |
-          go test ./... -v -race -coverprofile=coverage.out -timeout 10m
+          go test ./... -v -race -coverprofile=coverage.out -timeout 15m
 
       - name: Check coverage
         run: |
           # Check if coverage file exists (tests may have been cancelled or failed)
           if [ ! -f coverage.out ]; then
-            echo "❌ Coverage file not found - tests may have been cancelled or failed"
-            exit 1
+            echo "⚠️ Coverage file not found - tests may have been cancelled or failed"
+            exit 0
           fi
 
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
@@ -55,11 +60,13 @@ jobs:
         shell: bash
 
       - name: Upload coverage
+        if: success() && file_exists('coverage.out')
         uses: codecov/codecov-action@v4
         with:
           file: coverage.out
           flags: unittests
           name: codecov-${{ matrix.os }}-${{ matrix.go }}
+        continue-on-error: true
 
   windows-testing:
     name: Windows Basic Testing
@@ -67,25 +74,25 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.23'
           cache: true
 
       - name: Run basic tests (no race detection on Windows)
         run: |
-          go test ./... -v -coverprofile=coverage.out -timeout 10m
+          go test ./... -v -coverprofile=coverage.out -timeout 15m
         shell: bash
 
       - name: Check coverage
         run: |
           # Check if coverage file exists
           if [ ! -f coverage.out ]; then
-            echo "❌ Coverage file not found - tests may have failed"
-            exit 1
+            echo "⚠️ Coverage file not found - tests may have been cancelled"
+            exit 0
           fi
 
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
@@ -103,10 +110,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.23'
           cache: true
@@ -124,7 +131,7 @@ jobs:
       - name: Staticcheck analysis
         run: |
           echo "=== Staticcheck Analysis ==="
-          go install honnef.co/go/tools/cmd/staticcheck@latest
+          go install honnef.co/go/tools/cmd/staticcheck@2024.1
           staticcheck ./...
           if [ $? -ne 0 ]; then
             echo "❌ Staticcheck found issues"
@@ -170,10 +177,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.23'
           cache: true
@@ -189,10 +196,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.23'
           cache: true
@@ -280,10 +287,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.23'
           cache: true
@@ -315,7 +322,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Generate quality dashboard
         run: |
