@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+  pull-requests: read
+
 jobs:
   self-scan:
     runs-on: ubuntu-latest
