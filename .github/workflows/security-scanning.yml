@@ -2,9 +2,9 @@ name: Security Scanning and Vulnerability Assessment
 
 on:
   push:
-    branches: [ main, dev/full-feature, 'infra/**' ]
+    branches: [ main, stable/**, 'infra/**' ]
   pull_request:
-    branches: [ main, dev/full-feature, stable/clean ]
+    branches: [ main, stable/** ]
   schedule:
     - cron: '0 6 * * *'  # Daily at 6 AM UTC
   workflow_dispatch:
@@ -17,6 +17,29 @@ permissions:
   pull-requests: read
 
 jobs:
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:go"
+
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
@@ -32,7 +55,7 @@ jobs:
           cache: true
 
       - name: Build Atheon
-        run: go build -o atheon ./cmd/atheon
+        run: go build -o atheon ./cmd/mcp
 
       - name: Scan codebase with Atheon
         run: |
@@ -184,10 +207,10 @@ jobs:
         run: |
           echo "=== Pattern Quality Validation ==="
 
-          go run ./cmd/atheon list --all | wc -l
+          go run ./cmd/mcp list --all | wc -l
 
           # Check for suspicious patterns
-          go run ./cmd/atheon list --all | grep -i "fake\|test\|example" || echo "No test patterns in main list"
+          go run ./cmd/mcp list --all | grep -i "fake\|test\|example" || echo "No test patterns in main list"
 
       - name: Test pattern loading
         run: |

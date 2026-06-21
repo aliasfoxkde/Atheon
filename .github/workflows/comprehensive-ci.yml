@@ -9,11 +9,34 @@ on:
 permissions:
   contents: read
   actions: read
-  security-events: read
+  security-events: write
   statuses: read
   pull-requests: read
 
 jobs:
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:go"
+
   test-multi-version:
     name: Test Go ${{ matrix.version }}
     runs-on: ubuntu-latest
@@ -87,7 +110,7 @@ jobs:
           cache: true
 
       - name: Build Atheon
-        run: go build -o atheon ./cmd/atheon
+        run: go build -o atheon ./cmd/mcp
 
       - name: Scan codebase with Atheon
         run: |
@@ -155,7 +178,7 @@ jobs:
 
       - name: Build binaries
         run: |
-          go build -o atheon-${{ matrix.os }} ./cmd/atheon
+          go build -o atheon-${{ matrix.os }} ./cmd/mcp
           go build -o atheon-mcp-${{ matrix.os }} ./cmd/mcp
 
       - name: Test binaries
@@ -180,7 +203,7 @@ jobs:
       - name: Run integration tests
         run: |
           # Test pattern loading
-          go run ./cmd/atheon list --all
+          go run ./cmd/mcp list --all
 
           # Test configuration profiles
           for profile in config/profiles/*.json; do
@@ -190,7 +213,7 @@ jobs:
           done
 
           # Test self-scanning (expected to find issues, that's OK)
-          go run ./cmd/atheon . --all > /dev/null || echo "Self-scan found issues as expected"
+          go run ./cmd/mcp . --all > /dev/null || echo "Self-scan found issues as expected"
 
       - name: Test MCP integration
         run: |
