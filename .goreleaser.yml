@@ -6,24 +6,6 @@ before:
     - go run ./bundler
 
 builds:
-  - id: atheon
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - windows
-      - linux
-      - darwin
-    goarch:
-      - amd64
-      - arm64
-    ignore:
-      - goos: windows
-        goarch: arm64
-    binary: atheon
-    ldflags:
-      - -s -w
-      - -X main.version={{.Version}}
-
   - id: atheon-mcp
     env:
       - CGO_ENABLED=0
@@ -49,39 +31,27 @@ archives:
       - goos: windows
         formats:
           - zip
-    name_template: "atheon-{{ .Os }}-{{ .Arch }}"
+    name_template: "atheon-mcp-{{ .Os }}-{{ .Arch }}"
 
 checksum:
   name_template: "checksums.txt"
 
 release:
   github:
-    owner: HoraDomu
-    name: Atheon
-  extra_files:
-    - glob: core/patterns.bundle
+    owner: aliasfoxkde
+    name: Atheon-Enhanced
+  skip: false
 
 brews:
-  - name: atheon
+  - name: atheon-mcp
     repository:
-      owner: HoraDomu
-      name: homebrew-atheon
+      owner: aliasfoxkde
+      name: homebrew-atheon-enhanced
       token: "{{ .Env.GH_PAT }}"
-    homepage: "https://github.com/HoraDomu/Atheon"
+    homepage: "https://github.com/aliasfoxkde/Atheon-Enhanced"
     description: "Pattern matching engine for secrets/PII detection with MCP server support"
     license: "MIT"
     install: |
-      bin.install "atheon"
       bin.install "atheon-mcp"
     test: |
-      system "#{bin}/atheon", "--help"
       system "#{bin}/atheon-mcp", "--help"
-
-scoops:
-  - repository:
-      owner: HoraDomu
-      name: scoop-atheon
-      token: "{{ .Env.GH_PAT }}"
-    homepage: "https://github.com/HoraDomu/Atheon"
-    description: "Pattern matching engine for secrets/PII detection with MCP server support"
-    license: MIT
