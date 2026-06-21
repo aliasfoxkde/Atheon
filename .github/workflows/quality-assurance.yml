@@ -1,0 +1,201 @@
+name: Quality Assurance and Testing
+
+on:
+  push:
+    branches: [ main, dev/full-feature, 'infra/**' ]
+  pull_request:
+    branches: [ main, dev/full-feature, stable/clean ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+  security-events: read
+  statuses: read
+  pull-requests: read
+
+jobs:
+  comprehensive-testing:
+    name: Comprehensive Testing
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        go: ['1.22', '1.23']
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go ${{ matrix.go }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+
+      - name: Run tests
+        run: |
+          go test ./... -v -race -coverprofile=coverage.out -timeout 15m
+
+      - name: Check coverage
+        run: |
+          # Check if coverage file exists (tests may have been cancelled or failed)
+          if [ ! -f coverage.out ]; then
+            echo "⚠️ Coverage file not found - tests may have been cancelled or failed"
+            exit 0
+          fi
+
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Coverage: $COVERAGE%"
+          if [ "$COVERAGE" -lt 45 ]; then
+            echo "❌ Coverage $COVERAGE% is below 45% threshold"
+            exit 1
+          fi
+          echo "✅ Coverage $COVERAGE% meets threshold"
+        shell: bash
+
+      - name: Upload coverage
+        if: success()
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.out
+          flags: unittests
+          name: codecov-${{ matrix.os }}-${{ matrix.go }}
+        continue-on-error: true
+
+  windows-testing:
+    name: Windows Basic Testing
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Run basic tests (no race detection on Windows)
+        run: |
+          go test ./... -v -coverprofile=coverage.out -timeout 15m
+        shell: bash
+
+      - name: Check coverage
+        run: |
+          # Check if coverage file exists
+          if [ ! -f coverage.out ]; then
+            echo "⚠️ Coverage file not found - tests may have been cancelled"
+            exit 0
+          fi
+
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Coverage: $COVERAGE%"
+          if [ "$COVERAGE" -lt 45 ]; then
+            echo "❌ Coverage $COVERAGE% is below 45% threshold"
+            exit 1
+          fi
+          echo "✅ Coverage $COVERAGE% meets threshold"
+        shell: bash
+
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Go vet static analysis
+        run: |
+          echo "=== Go Vet Analysis ==="
+          go vet ./...
+
+      - name: Staticcheck analysis
+        run: |
+          echo "=== Staticcheck Analysis ==="
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=10m
+
+      - name: Format check
+        run: |
+          echo "=== Code Formatting Check ==="
+          go fmt ./...
+          if [ -n "$(git diff --name-only)" ]; then
+            echo "❌ Code is not properly formatted"
+            git diff --name-only
+            exit 1
+          fi
+          echo "✅ Code is properly formatted"
+
+      - name: Import check
+        run: |
+          echo "=== Import Optimization ==="
+          if command -v goimports >/dev/null 2>&1; then
+            goimports -w .
+            if [ -n "$(git diff --name-only)" ]; then
+              echo "⚠️  Imports optimized"
+            fi
+          else
+            echo "goimports not found, skipping import optimization"
+          fi
+
+  integration-testing:
+    name: Integration Testing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Build binaries
+        run: |
+          echo "=== Building Binaries ==="
+          go build -o atheon ./cmd/atheon
+          go build -o atheon-mcp ./cmd/mcp
+          ./atheon --version
+          ./atheon-mcp &
+          MCP_PID=$!
+          sleep 2
+          kill $MCP_PID || true
+
+      - name: Test basic functionality
+        run: |
+          echo "=== Basic Functionality Tests ==="
+          ./atheon --help
+          ./atheon list | head -5
+          ./atheon list categories
+
+      - name: Test error handling
+        run: |
+          echo "=== Error Handling Tests ==="
+          if ./atheon /nonexistent; then
+            echo "❌ Should fail on non-existent file"
+            exit 1
+          fi
+          mkdir -p /tmp/empty-test
+          ./atheon /tmp/empty-test
+          echo "✅ Error handling works"
