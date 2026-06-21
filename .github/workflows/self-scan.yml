@@ -6,11 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-permissions:
-  contents: read
-  actions: read
-  security-events: read
-
 jobs:
   self-scan:
     runs-on: ubuntu-latest
@@ -25,7 +20,7 @@ jobs:
 
       - name: Build Atheon
         run: |
-          go build -v -o atheon ./cmd/atheon
+          go build -v -o atheon .
           go build -v -o atheon-mcp ./cmd/mcp
 
       - name: Scan Atheon source code
