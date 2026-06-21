@@ -3,9 +3,6 @@ name: Auto Merge
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  check_run:
-    types: [completed]
-  status_check:
 
 permissions:
   contents: write
@@ -15,7 +12,7 @@ jobs:
   auto-merge:
     name: Auto Merge PR
     runs-on: ubuntu-latest
-    if: github.event.pull_request.auto_merge == null && github.event.pull_request.draft == false
+    if: github.event.pull_request.auto_merge == null && github.event.pull_request.draft == false && github.event.pull_request != null
     steps:
       - name: Check if PR is mergeable
         run: |
@@ -44,7 +41,7 @@ jobs:
   handle-conflicts:
     name: Report Conflicts
     runs-on: ubuntu-latest
-    if: github.event.pull_request.mergeable == 'conflicting'
+    if: github.event.pull_request.mergeable == 'conflicting' && github.event.pull_request != null
     steps:
       - name: Report conflicts
         run: |
