@@ -20,7 +20,7 @@ jobs:
 
       - name: Build Atheon
         run: |
-          go build -v -o atheon .
+          go build -v -o atheon ./cmd/atheon
           go build -v -o atheon-mcp ./cmd/mcp
 
       - name: Scan Atheon source code
