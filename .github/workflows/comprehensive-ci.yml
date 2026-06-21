@@ -9,11 +9,34 @@ on:
 permissions:
   contents: read
   actions: read
-  security-events: read
+  security-events: write
   statuses: read
   pull-requests: read
 
 jobs:
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:go"
+
   test-multi-version:
     name: Test Go ${{ matrix.version }}
     runs-on: ubuntu-latest
@@ -180,7 +203,7 @@ jobs:
       - name: Run integration tests
         run: |
           # Test pattern loading
-          go run ./cmd/atheon list --all
+          go run ./cmd/mcp list --all
 
           # Test configuration profiles
           for profile in config/profiles/*.json; do
@@ -190,7 +213,7 @@ jobs:
           done
 
           # Test self-scanning (expected to find issues, that's OK)
-          go run ./cmd/atheon . --all > /dev/null || echo "Self-scan found issues as expected"
+          go run ./cmd/mcp . --all > /dev/null || echo "Self-scan found issues as expected"
 
       - name: Test MCP integration
         run: |
@@ -237,17 +260,12 @@ jobs:
 
       - name: Check documentation completeness
         run: |
-          # Check that all config profiles are documented
-          for profile in config/profiles/*.json; do
-            profile_name=$(basename "$profile" .json)
-            if ! grep -q "$profile_name" docs/BRANCH_STRATEGY.md; then
-              echo "Profile $profile_name not documented in BRANCH_STRATEGY.md"
-              exit 1
-            fi
-          done
-          echo "All profiles documented"
-
           # Check that main branches are documented
+          if [ ! -f docs/BRANCH_STRATEGY.md ]; then
+            echo "docs/BRANCH_STRATEGY.md is missing"
+            exit 1
+          fi
+
           for branch in stable/clean main dev/full-feature; do
             if ! grep -q "$branch" docs/BRANCH_STRATEGY.md; then
               echo "Branch $branch not properly documented"
@@ -255,3 +273,17 @@ jobs:
             fi
           done
           echo "All branches documented"
+
+          # Check that all config profiles are documented (skip if no profiles exist)
+          if [ -d config/profiles ] && [ "$(ls -A config/profiles/*.json 2>/dev/null)" ]; then
+            for profile in config/profiles/*.json; do
+              profile_name=$(basename "$profile" .json)
+              if ! grep -q "$profile_name" docs/BRANCH_STRATEGY.md; then
+                echo "Profile $profile_name not documented in BRANCH_STRATEGY.md"
+                exit 1
+              fi
+            done
+            echo "All profiles documented"
+          else
+            echo "No config profiles found, skipping profile documentation check"
+          fi
