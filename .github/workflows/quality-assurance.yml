@@ -49,7 +49,7 @@ jobs:
             exit 0
           fi
 
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | cut -d. -f1)
           echo "Coverage: $COVERAGE%"
           if [ "$COVERAGE" -lt 45 ]; then
             echo "❌ Coverage $COVERAGE% is below 45% threshold"
@@ -94,7 +94,7 @@ jobs:
             exit 0
           fi
 
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | cut -d. -f1)
           echo "Coverage: $COVERAGE%"
           if [ "$COVERAGE" -lt 45 ]; then
             echo "❌ Coverage $COVERAGE% is below 45% threshold"
