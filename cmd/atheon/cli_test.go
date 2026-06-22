@@ -1,7 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -322,17 +327,44 @@ func TestPatternRegistration(t *testing.T) {
 }
 
 func TestUpdateCommand(t *testing.T) {
-	// Test that update command doesn't crash (will fail due to network but shouldn't panic)
-	// We can't easily test the actual update without mocking HTTP requests
-	// This just verifies the function exists and can be called
+	// Serve a minimal valid bundle from a local test server so DownloadBundle
+	// never touches the real network (avoids the HTTP/2 goroutine leak that
+	// caused this test to hang for the full 15-minute timeout).
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var buf bytes.Buffer
+		gz := gzip.NewWriter(&buf)
+		if err := json.NewEncoder(gz).Encode([]core.PatternDef{}); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		gz.Close()
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Write(buf.Bytes())
+	}))
+	defer srv.Close()
 
-	// The update command requires network access, so we'll just verify it exists
-	// by attempting to call it (it will fail but shouldn't panic)
-	err := core.DownloadBundle(context.Background())
-	if err == nil {
-		t.Log("Update command succeeded (unexpected in test environment)")
-	} else {
-		t.Logf("Update command failed as expected: %v", err)
+	// Snapshot the on-disk bundle (if any) so DownloadBundle's os.WriteFile
+	// call doesn't permanently corrupt ~/.atheon/patterns.bundle for other
+	// processes and future test runs.
+	home, _ := os.UserHomeDir()
+	bundlePath := filepath.Join(home, ".atheon", "patterns.bundle")
+	origBundle, origErr := os.ReadFile(bundlePath)
+	defer func() {
+		if origErr == nil {
+			os.WriteFile(bundlePath, origBundle, 0o600) //nolint:errcheck
+		} else {
+			os.Remove(bundlePath) //nolint:errcheck
+		}
+	}()
+
+	restore := core.SetBundleDownloadURL(srv.URL)
+	defer restore()
+	// Reload the embedded bundle after this test so subsequent tests in the
+	// same binary see a full pattern set (DownloadBundle replaces allPatterns).
+	defer core.ReloadBundle()
+
+	if err := core.DownloadBundle(context.Background()); err != nil {
+		t.Fatalf("DownloadBundle failed: %v", err)
 	}
 }
 

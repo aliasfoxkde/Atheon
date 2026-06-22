@@ -207,28 +207,11 @@ func TestScanFileIgnored(t *testing.T) {
 	}
 }
 
-// TestScanEnvMalformedEnv exercises the scanEnv len(parts) != 2 branch.
-// os.Environ() always returns KEY=VALUE entries so this is hard to trigger
-// directly; instead we exercise scanEnv with a hand-crafted env list.
+// TestScanEnvNoFindingsEmpty verifies that an empty env list produces no findings.
+// Uses the internal scanEnv helper directly so we don't mutate os.Environ()
+// (some Windows env vars resist os.Unsetenv and would cause spurious failures).
 func TestScanEnvNoFindingsEmpty(t *testing.T) {
-	// Save env, clear it, scan, restore.
-	orig := os.Environ()
-	for _, env := range orig {
-		k := env
-		if i := bytes.IndexByte([]byte(env), '='); i >= 0 {
-			k = env[:i]
-		}
-		os.Unsetenv(k)
-	}
-	defer func() {
-		for _, env := range orig {
-			if i := bytes.IndexByte([]byte(env), '='); i >= 0 {
-				os.Setenv(env[:i], env[i+1:])
-			}
-		}
-	}()
-
-	findings := ScanEnv(context.Background())
+	findings := scanEnv(context.Background(), []string{})
 	if len(findings) != 0 {
 		t.Errorf("expected no findings with empty env, got %d", len(findings))
 	}

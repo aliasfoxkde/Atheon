@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -527,15 +528,21 @@ func TestCmdListShowEnabledSkipsDisabled(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
+	// Drain pipe concurrently: cmdList prints 200+ lines which exceeds the
+	// OS pipe buffer, causing a deadlock if we read only after the write finishes.
+	done := make(chan string, 1)
+	go func() {
+		var sb strings.Builder
+		io.Copy(&sb, r) //nolint:errcheck
+		done <- sb.String()
+	}()
+
 	cmdList([]string{"--enabled"})
 
 	w.Close()
 	os.Stdout = origStdout
-
-	buf := make([]byte, 16384)
-	n, _ := r.Read(buf)
+	out := <-done
 	r.Close()
-	out := string(buf[:n])
 
 	if out == "" {
 		t.Error("expected some output from --enabled list")
@@ -561,15 +568,19 @@ func TestCmdListShowDisabledIncludes(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
+	done := make(chan string, 1)
+	go func() {
+		var sb strings.Builder
+		io.Copy(&sb, r) //nolint:errcheck
+		done <- sb.String()
+	}()
+
 	cmdList([]string{"--disabled"})
 
 	w.Close()
 	os.Stdout = origStdout
-
-	buf := make([]byte, 16384)
-	n, _ := r.Read(buf)
+	out := <-done
 	r.Close()
-	out := string(buf[:n])
 
 	if out == "" {
 		t.Error("expected output from --disabled list")

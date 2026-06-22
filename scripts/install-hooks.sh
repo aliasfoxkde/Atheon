@@ -7,8 +7,8 @@ set -euo pipefail
 echo "=== Atheon: Installing development hooks ==="
 
 # Wire git to use the repo's hooks/ directory
-git config core.hooksPath .githooks
-echo "  ✓ git core.hooksPath → .githooks"
+git config core.hooksPath scripts/hooks
+echo "  ✓ git core.hooksPath → scripts/hooks"
 
 # Install pre-commit framework (optional but recommended)
 if command -v pre-commit &>/dev/null; then

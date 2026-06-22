@@ -63,6 +63,9 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 	for sc.Scan() {
 		var req request
 		if err := json.Unmarshal(sc.Bytes(), &req); err != nil {
+			// JSON-RPC: malformed requests have no ID, so we cannot send an
+			// error response. Log to stderr for debuggability.
+			fmt.Fprintf(os.Stderr, "atheon-mcp: malformed JSON-RPC request: %v\n", err)
 			continue
 		}
 		if req.Method == "initialized" {

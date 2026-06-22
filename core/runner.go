@@ -196,7 +196,8 @@ func scanEnv(ctx context.Context, envs []string) []Finding {
 			return findings
 		}
 		parts := strings.SplitN(env, "=", 2)
-		if len(parts) != 2 {
+		if len(parts) != 2 || parts[0] == "" {
+			// Skip malformed entries and Windows-internal vars like =C:=C:\path
 			continue
 		}
 		key, val := parts[0], parts[1]

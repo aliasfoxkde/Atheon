@@ -4,7 +4,7 @@
 **Repository:** https://github.com/aliasfoxkde/Atheon-Enhanced  
 **Module:** `github.com/aliasfoxkde/Atheon`  
 **Go version:** 1.21+ (CI tests 1.21–1.24)  
-**Current state:** 223 patterns, 94.9% test coverage, 10 CI workflows  
+**Current state:** 225 patterns, 94.9% test coverage, 10 CI workflows  
 
 ---
 
@@ -15,13 +15,32 @@
 - `goimports` and `staticcheck` are blocked by corporate proxy on this machine — embed them or install from a mirror; the unrestricted system should install them via `go install golang.org/x/tools/cmd/goimports@latest` and `go install honnef.co/go/tools/cmd/staticcheck@latest`
 - Test command: `go test ./... -p 1 -timeout 15m` — the `-p 1` is **mandatory** (global bundle state corrupts under parallel package execution)
 - Bundle rebuild: `go run ./bundler` (output: `core/patterns.bundle`, embedded via `//go:embed`)
-- Hooks: `.githooks/pre-commit` and `.githooks/pre-push`; wired via `git config core.hooksPath .githooks`
+- Hooks: `scripts/hooks/pre-commit` and `scripts/hooks/pre-push`; wired via `git config core.hooksPath scripts/hooks`
+
+---
+
+## Completed Work (PR #43 — pending merge)
+
+The following items from this plan are **already implemented** in `fix/audit-comprehensive-v2` and will be merged via PR #43. Do not re-implement them:
+
+| Section | Item | Status |
+|---------|------|--------|
+| 1.2 | SHA-pin all GitHub Actions (all 10 workflows) | ✅ Done |
+| 1.3 | Renovate dependency bot (`.github/renovate.json`) | ✅ Done |
+| 1.4 | JUnit test result reporting in CI | ✅ Done |
+| 1.5 | govulncheck vulnerability scan in CI | ✅ Done |
+| 1.6 | `-p 1` flag on all `go test` commands in CI | ✅ Done |
+| 8.2 | Makefile with `build`, `test`, `lint`, `bundle`, `setup`, `clean`, `vuln` | ✅ Done |
+| hooks | Consolidated to `scripts/hooks/` (was in 4 directories) | ✅ Done |
+| bundle | `bundleDownloadURL` corrected to `aliasfoxkde/Atheon-Enhanced` | ✅ Done |
+| docs | Package-level Go doc, duplicate docstring removed, JSON-RPC error logging | ✅ Done |
 
 ---
 
 ## Section 1: CI/CD Enhancements
 
 **Branch name:** `feat/ci-improvements`
+**Start from:** 1.1 (1.2–1.6 are done in PR #43)
 
 ### 1.1 Consolidate 10 workflows into ~4
 
@@ -57,6 +76,7 @@ Use `pinact` or `renovatebot` to automate: `go install github.com/suzuki-shunsuk
 ### 1.3 Add dependency update bot
 
 Create `.github/renovate.json`:
+
 ```json
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
@@ -447,7 +467,7 @@ tools/staticcheck:
 	GOBIN=$(PWD)/tools go install honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION)
 ```
 
-Add `tools/` to `.gitignore` and update `.githooks/pre-commit` to check `./tools/goimports` before `goimports` in PATH.
+Add `tools/` to `.gitignore` and update `scripts/hooks/pre-commit` to check `./tools/goimports` before `goimports` in PATH.
 
 ### 8.2 Add Makefile
 
@@ -472,7 +492,7 @@ bundle:
 	go run ./bundler
 
 setup:
-	git config core.hooksPath .githooks
+	git config core.hooksPath scripts/hooks
 	mkdir -p tools
 	GOBIN=$(PWD)/tools go install golang.org/x/tools/cmd/goimports@latest || true
 	GOBIN=$(PWD)/tools go install honnef.co/go/tools/cmd/staticcheck@latest || true
@@ -535,14 +555,14 @@ Create `docs/governance/BRANCH_PROTECTION.md` with:
 
 ## Success Criteria (A+ in every category)
 
-| Category | Current | Target | Key Actions |
-|----------|---------|--------|-------------|
+| Category | Current (post-PR #43) | Target | Key Actions |
+|----------|-----------------------|--------|-------------|
 | Test Coverage | 94.9% | 97%+ | Section 2 |
-| Pattern Count | 223 | 250+ | Section 3 |
-| CI/CD Quality | B | A+ | Sections 1, 6 |
+| Pattern Count | 225 | 250+ | Section 3 |
+| CI/CD Quality | A (SHA-pinned, govulncheck, JUnit) | A+ | Section 1.1 consolidation |
 | Documentation | B+ | A+ | Sections 5, 9 |
-| Security | B | A+ | Sections 1.2, 6 |
-| Code Quality | A | A+ | Sections 4, 8 |
+| Security | A- (SHA-pinned, vuln scan) | A+ | Section 6 (SARIF, rate limiting) |
+| Code Quality | A (package docs, no dup docstring) | A+ | Section 4 (slog, ADRs) |
 | Performance | unknown | measured | Section 7 |
 
 ---

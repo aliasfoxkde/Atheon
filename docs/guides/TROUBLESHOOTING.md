@@ -388,8 +388,8 @@ go test ./... -v
 
 # Fix common issues:
 # 1. Author attribution
-git config user.name "Michael Kinney"
-git config user.email "micheal.l.c.kinney@gmail.com"
+git config user.name "Your Name"
+git config user.email "your.email@example.com"
 
 # 2. Code formatting
 go fmt ./...

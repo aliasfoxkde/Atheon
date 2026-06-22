@@ -81,10 +81,10 @@ go install golang.org/x/vuln/cmd/govulncheck@latest
 
 ```bash
 # Run all tests
-go test ./... -v
+go test ./... -p 1 -v
 
 # Run with coverage
-go test ./... -coverprofile=coverage.out
+go test ./... -p 1 -coverprofile=coverage.out
 
 # View coverage report
 go tool cover -html=coverage.out
@@ -108,12 +108,16 @@ go test ./cmd/mcp -v
 The repository includes comprehensive pre-commit validation:
 
 ```bash
-# Pre-commit hooks are automatically installed in .git/hooks/
-# They run:
-# - Go formatting checks
+# Wire up hooks (one-time setup):
+git config core.hooksPath scripts/hooks
+# Or use the installer:
+bash scripts/install-hooks.sh
+
+# The hook runs automatically on git commit and checks:
+# - Go formatting (gofmt, auto-fixed)
 # - go vet static analysis
-# - Test execution with 54.4% coverage requirement
-# - Author validation (see CODEOWNERS)
+# - Test suite (-p 1 required: global allPatterns state is not concurrency-safe)
+# - 70% coverage minimum
 ```
 
 ## 📝 Development Workflow
@@ -137,7 +141,7 @@ git checkout -b feat/my-feature
 # ... code changes ...
 
 # Run tests
-go test ./... -v
+go test ./... -p 1 -v
 
 # Check formatting
 go fmt ./...
@@ -218,8 +222,8 @@ gh pr create --base main --head feat/my-feature
 
 Required author configuration:
 ```bash
-git config user.name "Michael Kinney"
-git config user.email "micheal.l.c.kinney@gmail.com"
+git config user.name "Your Name"
+git config user.email "your.email@example.com"
 ```
 
 ## 🐛 Debugging Setup
@@ -269,14 +273,14 @@ The pre-commit hook ensures:
 1. **Author Validation**: Correct git user configuration
 2. **Code Formatting**: Proper Go formatting
 3. **Static Analysis**: go vet passes
-4. **Test Coverage**: Minimum 54.4% coverage
+4. **Test Coverage**: Minimum 70% coverage
 5. **Documentation**: Docs updated for user-facing changes
 
 ### Manual Quality Checks
 
 ```bash
 # Full test suite
-go test ./... -race -coverprofile=coverage.out
+go test ./... -p 1 -race -coverprofile=coverage.out
 
 # Linting
 golangci-lint run --timeout=5m
@@ -294,12 +298,12 @@ golangci-lint run --timeout=5m
 
 ```bash
 # Run comprehensive testing
-go test ./... -v -race -coverprofile=coverage.out
+go test ./... -p 1 -v -race -coverprofile=coverage.out
 
 # Check coverage threshold
 COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
 echo "Coverage: $COVERAGE%"
-if [ "$COVERAGE" -lt 54 ]; then
+if [ "$COVERAGE" -lt 70 ]; then
     echo "❌ Coverage below threshold"
     exit 1
 fi
@@ -310,15 +314,15 @@ fi
 Test across multiple Go versions:
 ```bash
 # Test with Go 1.21
-go test ./... -v
+go test ./... -p 1 -v
 
 # Test with Go 1.24
-go test ./... -v
+go test ./... -p 1 -v
 
 # Or use go version matrix
 for version in "1.21" "1.22" "1.23" "1.24"; do
     echo "Testing with Go $version"
-    go test ./... -v
+    go test ./... -p 1 -v
 done
 ```
 
@@ -349,7 +353,7 @@ done
    - Use meaningful variable names
 
 2. **Testing Requirements**
-   - Maintain 54.4%+ coverage
+   - Maintain 70%+ coverage
    - Write comprehensive unit tests
    - Include integration tests for features
    - Test edge cases and error conditions

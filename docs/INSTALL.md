@@ -29,7 +29,7 @@ sudo mv atheon /usr/local/bin/
 sudo mv atheon-mcp /usr/local/bin/
 
 # Install pre-commit hook (recommended for contributors)
-git config core.hooksPath .githooks
+git config core.hooksPath scripts/hooks
 ```
 
 ## ✅ Verify Installation

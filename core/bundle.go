@@ -1,3 +1,6 @@
+// Package core implements pattern loading, scanning, and bundle management for Atheon.
+// It exposes a registry of RE2-compatible patterns compiled from a gzip-JSON bundle
+// that is embedded at build time and optionally overridden by ~/.atheon/patterns.bundle.
 package core
 
 import (
@@ -223,7 +226,7 @@ func Categories() []string {
 
 // bundleDownloadURL is the default upstream bundle URL. Tests may override
 // it via SetBundleDownloadURL to point at an httptest server.
-var bundleDownloadURL = "https://github.com/HoraDomu/Atheon/releases/latest/download/patterns.bundle"
+var bundleDownloadURL = "https://github.com/aliasfoxkde/Atheon-Enhanced/releases/latest/download/patterns.bundle"
 
 // SetBundleDownloadURL swaps the upstream URL used by DownloadBundle. It
 // returns a restore function that callers should defer to reset the URL
@@ -235,29 +238,19 @@ func SetBundleDownloadURL(url string) func() {
 	return func() { bundleDownloadURL = orig }
 }
 
-// DownloadBundle fetches the latest pattern bundle from the URL
-// configured via SetBundleDownloadURL (or the default URL), compares it
-// against the in-memory bundle, prints a summary of added/removed
-// patterns, and persists the new bundle to ~/.atheon/patterns.bundle.
+// DownloadBundle fetches the latest pattern bundle from the URL configured via
+// SetBundleDownloadURL (or the default URL), compares it against the in-memory
+// bundle, prints a summary of added/removed patterns, and persists the new bundle
+// to ~/.atheon/patterns.bundle.
 //
-// The bundle is loaded into memory before being written to disk; if
-// loadBundle fails the on-disk bundle is left untouched.
+// The bundle is loaded into memory before being written to disk; if loadBundle
+// fails the on-disk bundle is left untouched.
 //
-// On any non-success HTTP status code, DownloadBundle returns an error
-// wrapping ErrBundleDownload so callers can use errors.Is.
-// DownloadBundle fetches the latest pattern bundle from the URL
-// configured via SetBundleDownloadURL (or the default URL), compares it
-// against the in-memory bundle, prints a summary of added/removed
-// patterns, and persists the new bundle to ~/.atheon/patterns.bundle.
+// The context controls the HTTP request lifecycle: canceling ctx aborts the
+// in-flight download.
 //
-// The bundle is loaded into memory before being written to disk; if
-// loadBundle fails the on-disk bundle is left untouched.
-//
-// The context controls the HTTP request lifecycle: canceling ctx
-// aborts the in-flight download.
-//
-// On any non-success HTTP status code, DownloadBundle returns an error
-// wrapping ErrBundleDownload so callers can use errors.Is.
+// On any non-success HTTP status code, DownloadBundle returns an error wrapping
+// ErrBundleDownload so callers can use errors.Is.
 func DownloadBundle(ctx context.Context) error {
 	oldPatterns := currentPatternNames()
 
@@ -490,6 +483,13 @@ func EnableAllPatterns() {
 		p.enabled = true
 	}
 	rebuildActiveScanners()
+}
+
+// ReloadBundle discards any runtime state (downloaded bundle, enable/disable
+// changes) and reloads the embedded bundle. Useful in tests that call
+// DownloadBundle and need to restore a clean slate afterward.
+func ReloadBundle() {
+	initializeWith(embeddedBundle)
 }
 
 // rebuildRegistry rebuilds the registry from allPatterns, respecting enabled state

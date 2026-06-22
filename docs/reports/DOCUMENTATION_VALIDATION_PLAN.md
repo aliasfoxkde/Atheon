@@ -161,7 +161,7 @@ should_skip_docs() {
 
 ### Pre-commit Hook Integration
 ```bash
-# .githooks/pre-commit
+# scripts/hooks/pre-commit
 echo "=== 📚 Documentation Validation ==="
 
 # Run smart documentation check
