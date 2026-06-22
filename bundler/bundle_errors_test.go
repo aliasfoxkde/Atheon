@@ -30,7 +30,7 @@ match: '\bX\b'
 	if err := os.Chmod(badPath, 0o000); err != nil {
 		t.Skipf("cannot chmod: %v", err)
 	}
-	defer os.Chmod(badPath, 0o644)
+	defer func() { _ = os.Chmod(badPath, 0o644) }()
 
 	// Verify the file is actually unreadable before asserting
 	if _, err := os.ReadFile(badPath); err == nil {
@@ -67,7 +67,7 @@ match: '\bP\b'
 	if err := os.MkdirAll(outDir, 0o555); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chmod(outDir, 0o755)
+	defer func() { _ = os.Chmod(outDir, 0o755) }()
 
 	// Verify the directory is actually not writable before asserting
 	testFile := filepath.Join(outDir, "test.txt")
