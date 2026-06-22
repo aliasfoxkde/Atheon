@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "packageRules": [
+    {
+      "matchManagers": ["gomod"],
+      "automerge": true,
+      "matchUpdateTypes": ["patch"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "automerge": false,
+      "reviewers": ["aliasfoxkde"]
+    }
+  ],
+  "labels": ["dependencies"],
+  "prCreation": "immediate",
+  "prConcurrentLimit": 5
+}

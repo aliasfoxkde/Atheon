@@ -11,7 +11,8 @@ permissions:
   actions: read
   security-events: read
   statuses: read
-  pull-requests: read
+  pull-requests: write
+  checks: write
 
 jobs:
   test:
@@ -22,10 +23,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -43,8 +44,16 @@ jobs:
             exit 1
           fi
 
-      - name: Run tests
-        run: go test ./... -p 1 -race -coverprofile=coverage.out
+      - name: Run tests with JUnit output
+        run: |
+          go install github.com/jstemmer/go-junit-report/v2@latest
+          go test ./... -p 1 -race -coverprofile=coverage.out -v 2>&1 | go-junit-report -set-exit-code > report.xml
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@283dea176069279a9076e77b548668a8e4f0c31b # v2.9.0
+        if: always()
+        with:
+          files: report.xml
 
       - name: Check coverage threshold
         run: |
@@ -56,11 +65,17 @@ jobs:
           fi
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@0f8570b1a125f4937846a11fcfa3bcd548bd8c97 # v4.6.0
         with:
           files: ./coverage.out
           flags: unittests
           name: codecov-umbrella
+        continue-on-error: true
+
+      - name: Check for vulnerabilities
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
         continue-on-error: true
 
   build:
@@ -73,10 +88,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -102,7 +117,7 @@ jobs:
           .\atheon.exe --help
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: binaries-${{ matrix.os }}
           path: |
@@ -117,15 +132,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.23'
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@8564da7cb3c6866ed1da648ca8f00a258ef0c802 # v6.5.2
         with:
           version: v1.64.8
           args: --timeout=5m
