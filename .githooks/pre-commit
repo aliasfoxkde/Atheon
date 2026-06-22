@@ -1,7 +1,7 @@
 #!/bin/bash
 # Pre-commit hook for Atheon-Enhanced
 # Validates Go code quality before each commit.
-# Install: git config core.hooksPath hooks
+# Install: git config core.hooksPath .githooks
 
 set -euo pipefail
 

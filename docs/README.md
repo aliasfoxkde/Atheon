@@ -54,4 +54,4 @@ Welcome to the Atheon documentation. This is the canonical index for everything 
 ---
 
 **Repository**: Atheon (aliasfoxkde/Atheon)
-**Maintainer**: Micheal Kinney (aliasfoxkde)
+**Maintainer**: [@aliasfoxkde](https://github.com/aliasfoxkde) — see [CONTRIBUTORS](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)

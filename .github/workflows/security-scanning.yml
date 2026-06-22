@@ -217,8 +217,8 @@ jobs:
         run: |
           echo "=== Pattern Loading Test ==="
 
-          go test ./... -run TestPatternLoading
-          go test ./... -run TestBundle
+          go test ./... -p 1 -run TestPatternLoading
+          go test ./... -p 1 -run TestBundle
 
   security-report:
     name: Generate Security Report

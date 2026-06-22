@@ -388,7 +388,7 @@ go test ./... -v
 
 # Fix common issues:
 # 1. Author attribution
-git config user.name "Micheal Kinney"
+git config user.name "Michael Kinney"
 git config user.email "micheal.l.c.kinney@gmail.com"
 
 # 2. Code formatting
@@ -535,4 +535,4 @@ go vet ./...
 
 **Troubleshooting Guide Version**: 1.0.0
 **Last Updated**: 2026-06-19
-**Maintainer**: Micheal Kinney (aliasfoxkde)
+**Maintainer**: [@aliasfoxkde](https://github.com/aliasfoxkde) — see [CONTRIBUTORS](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)

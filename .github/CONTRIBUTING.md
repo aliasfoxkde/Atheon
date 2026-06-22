@@ -41,7 +41,7 @@ Atheon grows through patterns. Every pattern is one YAML file — no Go required
 After cloning, install the pre-commit hook so every commit is automatically formatted and tested:
 
 ```sh
-git config core.hooksPath hooks
+git config core.hooksPath .githooks
 ```
 
 The hook:

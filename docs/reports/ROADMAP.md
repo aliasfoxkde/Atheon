@@ -335,4 +335,4 @@ Thank you to all contributors who help make Atheon better every day. Every patte
 
 **Last Updated**: 2026-06-19
 **Next Review**: 2026-07-19 (monthly roadmap review)
-**Maintainer**: Micheal Kinney (aliasfoxkde)
+**Maintainer**: [@aliasfoxkde](https://github.com/aliasfoxkde) — see [CONTRIBUTORS](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)

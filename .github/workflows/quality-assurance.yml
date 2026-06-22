@@ -41,11 +41,11 @@ jobs:
         run: |
           # macOS ARM64: go test exits 1 after passing tests. Use output capture to detect real failures.
           if [ "${{ runner.os }}" == "macOS" ]; then
-            OUTPUT=$(go test ./... -v -timeout 15m 2>&1) || true
+            OUTPUT=$(go test ./... -p 1 -v -timeout 15m 2>&1) || true
             echo "$OUTPUT"
             echo "$OUTPUT" | grep -q "^FAIL" && exit 1 || true
           else
-            go test ./... -v -race -coverprofile=coverage.out -timeout 15m
+            go test ./... -p 1 -v -race -coverprofile=coverage.out -timeout 15m
           fi
 
       - name: Check coverage
@@ -92,7 +92,7 @@ jobs:
       - name: Run basic tests (no race detection on Windows)
         run: |
           # Windows: go test exits 1 after passing tests. Capture output and check for real failures.
-          OUTPUT=$(go test ./... -v -coverprofile=coverage.out -timeout 15m 2>&1) || true
+          OUTPUT=$(go test ./... -p 1 -v -coverprofile=coverage.out -timeout 15m 2>&1) || true
           echo "$OUTPUT"
           echo "$OUTPUT" | grep -q "^FAIL" && exit 1 || true
         shell: bash
@@ -310,7 +310,7 @@ jobs:
         run: |
           echo "=== Coverage Report Generation ==="
 
-          go test -coverprofile=coverage.out ./...
+          go test -p 1 -coverprofile=coverage.out ./...
           go tool cover -html=coverage.out -o coverage.html
 
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')

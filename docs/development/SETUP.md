@@ -113,7 +113,7 @@ The repository includes comprehensive pre-commit validation:
 # - Go formatting checks
 # - go vet static analysis
 # - Test execution with 54.4% coverage requirement
-# - Author validation (Micheal Kinney)
+# - Author validation (see CODEOWNERS)
 ```
 
 ## 📝 Development Workflow
@@ -218,7 +218,7 @@ gh pr create --base main --head feat/my-feature
 
 Required author configuration:
 ```bash
-git config user.name "Micheal Kinney"
+git config user.name "Michael Kinney"
 git config user.email "micheal.l.c.kinney@gmail.com"
 ```
 
@@ -430,4 +430,4 @@ go build -o atheon ./cmd/atheon
 
 **Setup Guide Version**: 1.0.0
 **Last Updated**: 2026-06-19
-**Maintainer**: Micheal Kinney (aliasfoxkde)
+**Maintainer**: [@aliasfoxkde](https://github.com/aliasfoxkde) — see [CONTRIBUTORS](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)

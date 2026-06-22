@@ -1,0 +1,3 @@
+name: commented-out-code-block
+match: '(?m)^(?:\s*//[^\n]{40,}\n){3,}'
+enabled: false

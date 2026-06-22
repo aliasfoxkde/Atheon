@@ -1,2 +1,3 @@
 name: empty-catch-block
-match: 'catch\s*\([^)]*\)\s*\{\s*\}|catch\s*\([^{]*\)\s*;?\s*//.*'
+match: '(?i)catch\s*\([^)]*\)\s*\{\s*\}'
+enabled: true

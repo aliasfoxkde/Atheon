@@ -1,0 +1,3 @@
+name: terraform-sensitive-variable
+match: '(?i)sensitive\s*=\s*true'
+enabled: false

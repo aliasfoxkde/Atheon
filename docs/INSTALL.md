@@ -29,7 +29,7 @@ sudo mv atheon /usr/local/bin/
 sudo mv atheon-mcp /usr/local/bin/
 
 # Install pre-commit hook (recommended for contributors)
-git config core.hooksPath hooks
+git config core.hooksPath .githooks
 ```
 
 ## ✅ Verify Installation
@@ -124,11 +124,11 @@ atheon list categories
 ## 🎯 Next Steps
 
 1. **Configure Atheon** for your needs
-2. **Explore patterns**: `atheon list` to see all 202 patterns
+2. **Explore patterns**: `atheon list` to see all 223 patterns
 3. **Set up CI/CD integration**: see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 4. **Contribute patterns**: see [CONTRIBUTING.md](../.github/CONTRIBUTING.md)
 
 ---
 
 **Repository**: https://github.com/aliasfoxkde/Atheon-Enhanced  
-**Maintainer**: Michael Kinney (aliasfoxkde)
+**Maintainer**: [@aliasfoxkde](https://github.com/aliasfoxkde) — see [CONTRIBUTORS](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)
