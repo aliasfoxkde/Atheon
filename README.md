@@ -424,7 +424,7 @@ Latest release: [github.com/HoraDomu/Atheon/releases/latest](https://github.com/
 
 ## Thank you
 
-Atheon is built by the community. Every pattern contributed ships to every user in the next release. See everyone who has helped make it here: [CONTRIBUTORS.md](CONTRIBUTORS.md)
+Atheon is built by the community. Every pattern contributed ships to every user in the next release. See everyone who has helped make it here: [CONTRIBUTORS.md](docs/CONTRIBUTORS.md)
 
 ---
 
