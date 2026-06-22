@@ -2,7 +2,7 @@
 
 ## Overview
 
-Atheon Enhanced now supports **152 patterns** across **19 categories**, providing comprehensive coverage of modern development challenges. This documentation describes each category, its patterns, and use cases.
+Atheon Enhanced now supports **223 patterns** across **19 categories**, providing comprehensive coverage of modern development challenges. This documentation describes each category, its patterns, and use cases.
 
 ## Pattern Categories
 
@@ -343,7 +343,7 @@ match: 'regex_pattern_here'
 
 ## Contributing Patterns
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on pattern submission, testing, and review processes.
+See [CONTRIBUTING.md](../.github/CONTRIBUTING.md) for detailed guidelines on pattern submission, testing, and review processes.
 
 ## References
 

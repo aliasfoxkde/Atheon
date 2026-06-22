@@ -1,0 +1,3 @@
+name: sql-string-concat
+match: '(?i)(?:SELECT|INSERT|UPDATE|DELETE|FROM|WHERE)[^;]*\+\s*(?:req\.|request\.|params\.|query\.|body\.|\$_(?:GET|POST|REQUEST))'
+enabled: true

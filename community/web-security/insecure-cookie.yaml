@@ -1,0 +1,3 @@
+name: insecure-cookie-missing-secure
+match: '(?i)Set-Cookie:\s*[^\n]+'
+enabled: false

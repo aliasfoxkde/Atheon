@@ -20,7 +20,7 @@ Atheon is built by the community. Every pattern added is a permanent contributio
 
 | Name | GitHub |
 |------|--------|
-| Micheal Kinney | [@aliasfoxkde](https://github.com/aliasfoxkde) |
+| Michael Kinney | [@aliasfoxkde](https://github.com/aliasfoxkde) |
 
 ---
 

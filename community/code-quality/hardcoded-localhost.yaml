@@ -1,0 +1,3 @@
+name: hardcoded-localhost
+match: '(?i)(?:http://)?localhost(?::\d{2,5})?(?:/[^\s"'']*)?'
+enabled: false

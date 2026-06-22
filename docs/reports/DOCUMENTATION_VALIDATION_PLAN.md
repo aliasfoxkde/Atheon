@@ -412,4 +412,4 @@ gh issue create --title "Documentation Validation False Positive" \
 
 **Status**: Planning Phase
 **Next Steps**: Create categorization scripts and validation logic
-**Maintainer**: Micheal Kinney (aliasfoxkde)
+**Maintainer**: [@aliasfoxkde](https://github.com/aliasfoxkde) — see [CONTRIBUTORS](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)

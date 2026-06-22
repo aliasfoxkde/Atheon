@@ -29,10 +29,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: ${{ matrix.go }}
           cache: true
@@ -41,11 +41,11 @@ jobs:
         run: |
           # macOS ARM64: go test exits 1 after passing tests. Use output capture to detect real failures.
           if [ "${{ runner.os }}" == "macOS" ]; then
-            OUTPUT=$(go test ./... -v -timeout 15m 2>&1) || true
+            OUTPUT=$(go test ./... -p 1 -v -timeout 15m 2>&1) || true
             echo "$OUTPUT"
             echo "$OUTPUT" | grep -q "^FAIL" && exit 1 || true
           else
-            go test ./... -v -race -coverprofile=coverage.out -timeout 15m
+            go test ./... -p 1 -v -race -coverprofile=coverage.out -timeout 15m
           fi
 
       - name: Check coverage
@@ -68,7 +68,7 @@ jobs:
 
       - name: Upload coverage
         if: success()
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
           file: coverage.out
           flags: unittests
@@ -81,10 +81,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.23'
           cache: true
@@ -92,7 +92,7 @@ jobs:
       - name: Run basic tests (no race detection on Windows)
         run: |
           # Windows: go test exits 1 after passing tests. Capture output and check for real failures.
-          OUTPUT=$(go test ./... -v -coverprofile=coverage.out -timeout 15m 2>&1) || true
+          OUTPUT=$(go test ./... -p 1 -v -coverprofile=coverage.out -timeout 15m 2>&1) || true
           echo "$OUTPUT"
           echo "$OUTPUT" | grep -q "^FAIL" && exit 1 || true
         shell: bash
@@ -120,10 +120,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.23'
           cache: true
@@ -150,7 +150,7 @@ jobs:
           echo "✅ Staticcheck passed"
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6.5.2
         with:
           version: latest
           args: --timeout=10m
@@ -187,10 +187,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.23'
           cache: true
@@ -204,10 +204,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.23'
           cache: true
@@ -298,10 +298,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.23'
           cache: true
@@ -310,14 +310,14 @@ jobs:
         run: |
           echo "=== Coverage Report Generation ==="
 
-          go test -coverprofile=coverage.out ./...
+          go test -p 1 -coverprofile=coverage.out ./...
           go tool cover -html=coverage.out -o coverage.html
 
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Total Coverage: $COVERAGE%"
 
       - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: coverage-report
           path: |
@@ -333,7 +333,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Generate quality dashboard
         run: |
@@ -355,7 +355,7 @@ jobs:
           echo "- CI/CD Health: 95%+" >> quality-dashboard.md
 
       - name: Upload quality dashboard
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: quality-dashboard
           path: quality-dashboard.md

@@ -34,7 +34,7 @@ Atheon/
 ### Pre-Submission Checklist ✅
 
 - [x] Clean commit history (no merge commits)
-- [x] Correct author attribution (Micheal Kinney <micheal.l.c.kinney@gmail.com>)
+- [x] Correct author attribution (Michael Kinney <michael.l.c.kinney@gmail.com>)
 - [x] No AI/Assistant attribution in commits
 - [x] Focused, single-purpose changes
 - [x] Natural language in commit messages (no automated/template text)
@@ -202,5 +202,5 @@ Enhanced features proven stable here should be:
 ---
 
 **Last Updated**: 2026-06-19
-**Maintainer**: Micheal Kinney (aliasfoxkde)
+**Maintainer**: [@aliasfoxkde](https://github.com/aliasfoxkde) — see [CONTRIBUTORS](https://github.com/aliasfoxkde/Atheon-Enhanced/graphs/contributors)
 **Enhanced Repository**: https://github.com/aliasfoxkde/Atheon
