@@ -1,41 +1,30 @@
 # Branch Strategy
 
-This document describes the branch strategy for Atheon-Enhanced.
+This document describes the branching strategy for the Atheon project.
 
 ## Main Branches
 
-- `main` - Production-ready code, always deployable
-- `stable/clean` - Stable integration branch synced with upstream HoraDomu/Atheon
-- `dev/full-feature` - Development branch for major features
+### `main`
+The production branch. Contains the latest stable release. All changes eventually flow into this branch through pull requests.
 
-## Branch Naming Conventions
+### `stable/clean`
+The integration branch for tested, stable changes. Feature branches are merged here before being promoted to `main`. This branch serves as a staging area for releases.
 
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation updates
-- `test/` - Test improvements
-- `refactor/` - Code refactoring
-- `infra/` - Infrastructure changes
+### `dev/full-feature`
+The development branch for integrating major features. Contains work-in-progress features and experimental changes.
 
 ## Workflow
 
-1. Create a feature branch from `main`
-2. Make changes and commit
-3. Push to origin and create a PR
-4. After review, merge to `main`
-5. `stable/clean` syncs with upstream HoraDomu/Atheon
+1. **Feature Development**: Create feature branches from `stable/clean`
+2. **Integration**: Merge completed features to `stable/clean`
+3. **Release**: Promote from `stable/clean` to `main` when ready
 
-## Protected Branches
+## Branch Protection
 
-The following branches are protected and require PRs:
-- `main`
-- `stable/clean`
-- `dev/full-feature`
+- `main`: Requires PRs, blocks force pushes
+- `stable/clean`: Requires PRs, blocks force pushes
+- `dev/full-feature`: Requires PRs for main integrations
 
 ## Configuration Profiles
 
-Configuration profiles in `config/profiles/`:
-- `development.json` - Development environment settings
-- `production.json` - Production environment settings
-- `mcp-integration.json` - MCP server integration settings
-- `pipeline.json` - CI/CD pipeline settings
+Configuration profiles are stored in `config/profiles/` and manage environment-specific settings.

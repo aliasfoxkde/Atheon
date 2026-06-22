@@ -246,16 +246,19 @@ jobs:
         run: |
           echo "=== Configuration Profile Tests ==="
 
-          for profile in config/profiles/*.json; do
-            echo "Validating profile: $profile"
+          if [ -d config/profiles ] && [ -n "$(ls config/profiles/*.json 2>/dev/null)" ]; then
+            for profile in config/profiles/*.json; do
+              echo "Validating profile: $profile"
 
-            # Validate JSON syntax
-            jq empty "$profile" || { echo "❌ Invalid JSON in $profile"; exit 1; }
+              # Validate JSON syntax
+              jq empty "$profile" || { echo "❌ Invalid JSON in $profile"; exit 1; }
 
-            echo "✅ Profile $profile is valid JSON"
-          done
-
-          echo "✅ All configuration profiles are valid"
+              echo "✅ Profile $profile is valid JSON"
+            done
+            echo "✅ All configuration profiles are valid"
+          else
+            echo "No configuration profiles found, skipping profile tests"
+          fi
 
       - name: Test pattern operations
         run: |

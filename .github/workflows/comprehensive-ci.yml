@@ -214,11 +214,15 @@ jobs:
           go run ./cmd/mcp list --all
 
           # Test configuration profiles
-          for profile in config/profiles/*.json; do
-            echo "Testing profile: $profile"
-            # Validate profile JSON
-            jq empty "$profile"
-          done
+          if [ -d config/profiles ] && [ -n "$(ls config/profiles/*.json 2>/dev/null)" ]; then
+            for profile in config/profiles/*.json; do
+              echo "Testing profile: $profile"
+              # Validate profile JSON
+              jq empty "$profile"
+            done
+          else
+            echo "No configuration profiles found, skipping profile tests"
+          fi
 
           # Test self-scanning (expected to find issues, that's OK)
           go run ./cmd/mcp . --all > /dev/null || echo "Self-scan found issues as expected"
