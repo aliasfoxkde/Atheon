@@ -78,6 +78,7 @@ func init() {
 	}
 }
 
+// loadBundle decompresses and decodes the gzip-compressed bundle data into pattern definitions, compiles their regular expressions, and registers them as the active pattern set. It replaces the current bundle patterns while preserving externally registered patterns, which are re-registered after loading. For legacy bundles where no patterns have the enabled flag set, all patterns are enabled by default. Errors during individual pattern regex compilation are logged to stderr and those patterns are skipped. It returns an error if the data cannot be decompressed or decoded.
 func loadBundle(data []byte) error {
 	r, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
@@ -132,6 +133,7 @@ func loadBundle(data []byte) error {
 	return nil
 }
 
+// SetActiveCategories configures which pattern categories are matched. An empty list matches patterns from all categories.
 func SetActiveCategories(cats []string) {
 	activeCategoryFilter = cats
 
@@ -203,6 +205,10 @@ func Categories() []string {
 	return cats
 }
 
+// DownloadBundle fetches the latest pattern bundle from GitHub, compares it
+// with the current bundle, reports changes, and persists it to disk. It
+// returns nil on success, or an error if the download, bundle parsing, or
+// file persistence fails.
 func DownloadBundle() error {
 	const url = "https://github.com/HoraDomu/Atheon/releases/latest/download/patterns.bundle"
 
@@ -373,7 +379,7 @@ func EnableAllPatterns() {
 	rebuildActiveScanners()
 }
 
-// rebuildRegistry rebuilds the registry from allPatterns, respecting enabled state
+// rebuildRegistry updates the active pattern registry to include only enabled patterns.
 func rebuildRegistry() {
 	registry = nil
 	for _, p := range allPatterns {

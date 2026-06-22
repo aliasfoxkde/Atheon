@@ -18,6 +18,7 @@ type ignoreMatcher struct {
 	rules []ignoreRule
 }
 
+// compileIgnoreFile reads the ignore file at path and compiles it into an ignoreMatcher, returning any error encountered during file operations.
 func compileIgnoreFile(path string) (*ignoreMatcher, error) {
 	f, err := os.Open(path)
 	if err != nil {

@@ -235,6 +235,7 @@ func cmdList(args []string) {
 	fmt.Printf("\n%d pattern(s)\n", len(filtered))
 }
 
+// PrintHelp prints the program's help and usage message.
 func printHelp() {
 	fmt.Print(`atheon - pattern matching engine
 

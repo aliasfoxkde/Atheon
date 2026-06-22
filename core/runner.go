@@ -67,6 +67,9 @@ func ScanFile(path string) ([]Finding, *Stats, error) {
 	}, nil
 }
 
+// ScanDir recursively scans a directory tree for secret patterns, respecting
+// configured ignore rules and skip directives. File read errors are collected
+// in the returned statistics.
 func ScanDir(root string) ([]Finding, *Stats, error) {
 	start := time.Now()
 	ignoreMatcher := loadIgnorePatternsMatcher(root)
