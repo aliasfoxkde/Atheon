@@ -1,0 +1,2 @@
+match: (?i)\b(AI[ -]?generated|artificial intelligence|machine learning[ -]?powered)
+name: ai-generated-content
