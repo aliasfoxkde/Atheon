@@ -3,6 +3,7 @@ package core
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -56,7 +57,11 @@ func TestSavePatternStateReadOnlyHome(t *testing.T) {
 // TestSavePatternStateBadHome exercises savePatternState with HOME pointing
 // to a directory that doesn't exist and can't be created (a path through
 // a non-directory file).
+// Skipped on Windows: os.UserHomeDir uses USERPROFILE, not HOME.
 func TestSavePatternStateBadHome(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("os.UserHomeDir on Windows uses USERPROFILE, not HOME env var")
+	}
 	// Create a regular file that we'll use as HOME's parent
 	tmpDir := t.TempDir()
 	notADir := filepath.Join(tmpDir, "not-a-dir")
@@ -77,7 +82,11 @@ func TestSavePatternStateBadHome(t *testing.T) {
 
 // TestSavePatternStateBadPath exercises savePatternState where the state
 // file path's parent directory cannot be created.
+// Skipped on Windows: os.UserHomeDir uses USERPROFILE, not HOME env var.
 func TestSavePatternStateBadPath(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("os.UserHomeDir on Windows uses USERPROFILE, not HOME env var")
+	}
 	// Create a path that goes through a non-directory
 	tmpDir := t.TempDir()
 	blocker := filepath.Join(tmpDir, "blocker")

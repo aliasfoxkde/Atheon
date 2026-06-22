@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -170,7 +171,11 @@ func TestRunPathMissing(t *testing.T) {
 
 // TestRunPathFileScanError exercises the default-branch ScanFile error
 // branch by making the file unreadable after os.Stat.
+// Skipped on Windows: os.Chmod file permissions are not enforced there.
 func TestRunPathFileScanError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("os.Chmod file permissions are not enforced on Windows")
+	}
 	tmp := filepath.Join(t.TempDir(), "unreadable.go")
 	if err := os.WriteFile(tmp, []byte("package x\n"), 0o644); err != nil {
 		t.Fatal(err)

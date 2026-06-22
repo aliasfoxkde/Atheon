@@ -126,7 +126,9 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 	sizes := make([]int64, len(paths))
 	scanned := make([]bool, len(paths))
 	var wg sync.WaitGroup
-	workers := max(8, runtime.NumCPU()*8)
+	// I/O-bound file reads saturate well below CPU count; cap at 2× CPUs with
+	// a minimum of 4 and a ceiling of 64 to avoid overwhelming shared runners.
+	workers := min(max(runtime.NumCPU()*2, 4), 64)
 	sem := make(chan struct{}, workers)
 
 	for i, p := range paths {

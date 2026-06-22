@@ -3,9 +3,6 @@ name: Auto Merge
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  check_run:
-    types: [completed]
-  status_check:
 
 permissions:
   contents: write
@@ -13,41 +10,29 @@ permissions:
 
 jobs:
   auto-merge:
-    name: Auto Merge PR
+    name: Enable Auto-Merge
     runs-on: ubuntu-latest
-    if: github.event.pull_request.auto_merge == null && github.event.pull_request.draft == false
+    if: github.event.pull_request.draft == false
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Check if PR is mergeable
+      - name: Enable auto-merge
         run: |
-          echo "Checking PR #${{ github.event.pull_request.number }}"
-          PR_NUM=${{ github.event.pull_request.number }}
-          MERGEABLE=$(gh pr view $PR_NUM --repo ${{ github.repository }} --json mergeable --jq '.mergeable')
-          echo "Mergeable: $MERGEABLE"
-          if [ "$MERGEABLE" != "true" ]; then
-            echo "PR has conflicts or is not mergeable"
-            exit 1
-          fi
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --squash \
+            --delete-branch \
+            --auto
 
-      - name: Wait for checks
-        run: |
-          echo "Waiting for checks..."
-          sleep 30
-
-      - name: Merge PR
-        if: success()
-        run: |
-          PR_NUM=${{ github.event.pull_request.number }}
-          gh pr merge $PR_NUM --repo ${{ github.repository }} --squash --delete-branch --auto
-
-  handle-conflicts:
+  report-conflicts:
     name: Report Conflicts
     runs-on: ubuntu-latest
-    if: github.event.pull_request.mergeable == 'conflicting'
+    if: github.event.pull_request.mergeable == false
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Report conflicts
+      - name: Comment on conflicting PR
         run: |
-          echo "PR #${{ github.event.pull_request.number }} has conflicts with main"
-          gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} \
-            --body "⚠️ This PR has merge conflicts. Please resolve them before merging."
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --body "This PR has merge conflicts. Please resolve them before merging."

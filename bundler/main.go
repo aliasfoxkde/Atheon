@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -69,8 +70,11 @@ func bundle(communityDir, outPath string) (int, error) {
 }
 
 // walkPatterns walks communityDir and returns all parsed pattern definitions.
+// It validates that every pattern has a unique name and a compilable regex,
+// returning an error immediately on the first violation found.
 func walkPatterns(communityDir string) ([]patternDef, error) {
 	var defs []patternDef
+	seen := make(map[string]string) // name → first file path
 	err := filepath.WalkDir(communityDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || !strings.HasSuffix(path, ".yaml") {
 			return err
@@ -85,6 +89,16 @@ func walkPatterns(communityDir string) ([]patternDef, error) {
 		}
 		if pf.Name == "" || pf.Match == "" {
 			return fmt.Errorf("%s: missing name or match", path)
+		}
+		if strings.ContainsAny(pf.Name, " \t") {
+			return fmt.Errorf("%s: pattern name %q must not contain whitespace", path, pf.Name)
+		}
+		if first, dup := seen[pf.Name]; dup {
+			return fmt.Errorf("%s: duplicate pattern name %q (first defined in %s)", path, pf.Name, first)
+		}
+		seen[pf.Name] = path
+		if _, err := regexp.Compile(pf.Match); err != nil {
+			return fmt.Errorf("%s: invalid regex for %q: %w", path, pf.Name, err)
 		}
 		category := filepath.Base(filepath.Dir(path))
 		enabled := true

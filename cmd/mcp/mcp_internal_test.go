@@ -116,7 +116,8 @@ var key = "AKIAIOSFODNN7EXAMPLE"
 `)
 	tmp.Close()
 
-	params := json.RawMessage(`{"name":"scan_file","arguments":{"path":"` + tmp.Name() + `","categories":["secrets"]}}`)
+	pathJSON, _ := json.Marshal(tmp.Name())
+	params := json.RawMessage(`{"name":"scan_file","arguments":{"path":` + string(pathJSON) + `,"categories":["secrets"]}}`)
 	result, rerr := handleCall(context.Background(), params)
 	if rerr != nil {
 		t.Fatalf("unexpected error: %v", rerr)
@@ -160,7 +161,8 @@ func TestHandleCallScanDirError(t *testing.T) {
 	defer os.Remove(tmp.Name())
 	tmp.Close()
 
-	params := json.RawMessage(`{"name":"scan_dir","arguments":{"path":"` + tmp.Name() + `"}}`)
+	pathJSON, _ := json.Marshal(tmp.Name())
+	params := json.RawMessage(`{"name":"scan_dir","arguments":{"path":` + string(pathJSON) + `}}`)
 	_, rerr := handleCall(context.Background(), params)
 	// Either returns error or empty result depending on impl
 	if rerr != nil && rerr.Code != -32603 {
@@ -178,7 +180,8 @@ var k = "AKIAIOSFODNN7EXAMPLE"
 `)
 	f.Close()
 
-	params := json.RawMessage(`{"name":"scan_dir","arguments":{"path":"` + filepath.Clean(dir) + `","categories":["secrets"]}}`)
+	dirJSON, _ := json.Marshal(filepath.Clean(dir))
+	params := json.RawMessage(`{"name":"scan_dir","arguments":{"path":` + string(dirJSON) + `,"categories":["secrets"]}}`)
 	result, rerr := handleCall(context.Background(), params)
 	if rerr != nil {
 		t.Fatalf("unexpected error: %v", rerr)

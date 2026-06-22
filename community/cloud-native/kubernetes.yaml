@@ -1,2 +1,2 @@
-name: kubernetes
+name: kubernetes-misconfiguration
 match: 'imagePullPolicy.*Always|resources:.*limits.*memory.*128Mi|replicas:.*1'

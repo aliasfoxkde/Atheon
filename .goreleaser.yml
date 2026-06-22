@@ -56,18 +56,18 @@ checksum:
 
 release:
   github:
-    owner: HoraDomu
-    name: Atheon
+    owner: aliasfoxkde
+    name: Atheon-Enhanced
   extra_files:
     - glob: core/patterns.bundle
 
 brews:
   - name: atheon
     repository:
-      owner: HoraDomu
-      name: homebrew-atheon
+      owner: aliasfoxkde
+      name: homebrew-Atheon-Enhanced
       token: "{{ .Env.GH_PAT }}"
-    homepage: "https://github.com/HoraDomu/Atheon"
+    homepage: "https://github.com/aliasfoxkde/Atheon-Enhanced"
     description: "Pattern matching engine for secrets/PII detection with MCP server support"
     license: "MIT"
     install: |
@@ -79,9 +79,9 @@ brews:
 
 scoops:
   - repository:
-      owner: HoraDomu
-      name: scoop-atheon
+      owner: aliasfoxkde
+      name: scoop-Atheon-Enhanced
       token: "{{ .Env.GH_PAT }}"
-    homepage: "https://github.com/HoraDomu/Atheon"
+    homepage: "https://github.com/aliasfoxkde/Atheon-Enhanced"
     description: "Pattern matching engine for secrets/PII detection with MCP server support"
     license: MIT

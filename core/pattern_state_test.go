@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -262,8 +263,12 @@ func TestSavePatternState_MarshalError(t *testing.T) {
 	t.Skip("PatternState contains only marshalable types - error path unreachable")
 }
 
-// TestSyncPatternState_SaveError tests save error handling in syncPatternState
+// TestSyncPatternState_SaveError tests save error handling in syncPatternState.
+// Skipped on Windows: os.UserHomeDir uses USERPROFILE, not HOME env var.
 func TestSyncPatternState_SaveError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("os.UserHomeDir on Windows uses USERPROFILE, not HOME env var")
+	}
 	// Save original home
 	originalHome := os.Getenv("HOME")
 	defer os.Setenv("HOME", originalHome)

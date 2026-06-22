@@ -44,6 +44,12 @@ jobs:
         with:
           go-version: '1.23'
 
+      - name: Validate before tagging
+        run: |
+          go build ./...
+          go test ./... -timeout 15m -p 1
+          echo "All checks passed — safe to tag"
+
       - name: Create version tag
         run: |
           git tag "v${{ steps.version.outputs.version }}"

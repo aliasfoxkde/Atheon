@@ -14,7 +14,7 @@ type patternCase struct {
 
 func TestRegisteredPatterns(t *testing.T) {
 	cases := map[string]patternCase{
-		"Social Security Number": {
+		"ssn": {
 			matches:    []string{"ssn=123-45-6789"},
 			nonMatches: []string{"ssn=123-456-789", "invoice=123-45-678"},
 		},

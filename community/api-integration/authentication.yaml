@@ -1,2 +1,2 @@
-name: authentication
+name: insecure-api-authentication
 match: 'Authorization.*Bearer.*token|apiKey.*header|auth.*basic.*credentials'

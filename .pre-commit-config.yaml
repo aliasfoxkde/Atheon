@@ -1,5 +1,6 @@
-# Pre-commit hooks for Atheon
+# Pre-commit hooks for Atheon-Enhanced
 # See https://pre-commit.com for more information
+# Install: ./scripts/install-hooks.sh
 
 repos:
   - repo: local
@@ -20,14 +21,14 @@ repos:
 
       - id: go-fmt
         name: Go Format Check
-        entry: bash -c 'if [ -n \"$(gofmt -s .)\" ]; then gofmt -d .; exit 1; fi'
+        entry: bash -c 'UNFORMATTED=$(gofmt -l .); if [ -n "$UNFORMATTED" ]; then echo "$UNFORMATTED"; exit 1; fi'
         language: system
         pass_filenames: false
         always_run: true
 
       - id: go-build
         name: Go Build
-        entry: go build -v
+        entry: go build ./...
         language: system
         pass_filenames: false
         always_run: true
@@ -43,43 +44,30 @@ repos:
     rev: v4.6.0
     hooks:
       - id: trailing-whitespace
-        name: Trim Trailing Whitespace
         args: ['--markdown-linebreak-ext=md']
 
       - id: end-of-file-fixer
-        name: Fix End of Files
 
       - id: check-yaml
-        name: Check YAML
         args: ['--allow-multiple-documents']
 
       - id: check-added-large-files
-        name: Check for Large Files
         args: ['--maxkb=1000', '--enforce-all']
 
       - id: check-merge-conflict
-        name: Check Merge Conflicts
 
       - id: check-case-conflict
-        name: Check Case Conflict
 
       - id: detect-private-key
-        name: Detect Private Keys
-        args: ['--allow-text=BEGIN OPENSSH PRIVATE']
 
       - id: detect-aws-credentials
-        name: Detect AWS Credentials
-
-      - id: detect-github-token
-        name: Detect GitHub Token
 
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.59.1
+    rev: v1.64.8
     hooks:
       - id: golangci-lint
         name: GolangCI-Lint
-        entry: golangci-lint run --timeout=5m --fix
-        args: ['--build-tags', '']
         language: system
         types: [go]
         pass_filenames: false
+        args: ['run', '--timeout=5m']

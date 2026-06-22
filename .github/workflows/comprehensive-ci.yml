@@ -70,8 +70,8 @@ jobs:
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | cut -d. -f1)
           echo "Coverage: $COVERAGE%"
           # Use cut -d. -f1 to truncate decimal before comparison for cross-platform compatibility
-          if [ "$COVERAGE" -lt 45 ]; then
-            echo "Coverage $COVERAGE% is below 45% threshold"
+          if [ "$COVERAGE" -lt 70 ]; then
+            echo "Coverage $COVERAGE% is below 70% threshold"
             exit 1
           fi
           echo "Coverage $COVERAGE% meets threshold"
@@ -161,10 +161,8 @@ jobs:
           go-version: '1.23'
           cache: true
 
-      - name: Skip benchmarks (no benchmark functions)
-        run: |
-          echo "Skipping performance benchmarks - no benchmark functions found in codebase"
-          echo "This is expected for repositories focused on pattern matching rather than performance testing"
+      - name: Run benchmarks
+        run: go test -bench=. -benchmem -benchtime=3s ./core/ 2>&1 | tee benchmark-results.txt
 
   build-binaries:
     name: Build Binaries

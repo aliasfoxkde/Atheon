@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -130,7 +131,11 @@ func TestDownloadBundleMockBadJSON(t *testing.T) {
 
 // TestDownloadBundleMockMkdirError exercises the MkdirAll error branch
 // by setting HOME to a path that can't be created.
+// Skipped on Windows: os.UserHomeDir uses USERPROFILE, not HOME env var.
 func TestDownloadBundleMockMkdirError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("os.UserHomeDir on Windows uses USERPROFILE, not HOME env var")
+	}
 	// Build a valid bundle so the early checks pass
 	defs := []PatternDef{{Name: "x", Category: "t", Match: `x`, Enabled: true}}
 	body := buildTestBundleBytes(t, defs)

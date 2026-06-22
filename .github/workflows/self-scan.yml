@@ -40,10 +40,10 @@ jobs:
             echo ""
             echo "Checking for false positives (test files, examples)..."
             # Filter out test files and expected findings
-            real_issues=$(jq '[.[] | select(.file | test("_test.go") | not)] | select(.file | test("example")) | length' findings.json || echo "0")
+            real_issues=$(jq '[.[] | select((.file | test("_test.go")) or (.file | test("example")) | not)] | length' findings.json || echo "0")
             if [ "$real_issues" -gt 0 ]; then
               echo "ERROR: Found $real_issues real issues in source code"
-              jq '[.[] | select(.file | test("_test.go") | not)] | select(.file | test("example")) | not]' findings.json
+              jq '[.[] | select((.file | test("_test.go")) or (.file | test("example")) | not)]' findings.json
               exit 1
             else
               echo "All findings are in test files (expected)"

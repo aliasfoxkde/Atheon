@@ -7,12 +7,17 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
 // TestLoadPatternStateReadError exercises the read-error branch in
 // loadPatternState (the path that returns nil, err for non-ENOENT errors).
+// Skipped on Windows: os.Chmod for files/dirs behaves differently.
 func TestLoadPatternStateReadError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("os.Chmod file permissions are not enforced on Windows")
+	}
 	tmpDir := t.TempDir()
 
 	// Create a state file we can make unreadable
@@ -42,7 +47,11 @@ func TestLoadPatternStateReadError(t *testing.T) {
 
 // TestSavePatternStateWriteError exercises the os.WriteFile error branch
 // in savePatternState.
+// Skipped on Windows: os.Chmod directory permissions are not enforced there.
 func TestSavePatternStateWriteError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("os.Chmod directory permissions are not enforced on Windows")
+	}
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
 
@@ -103,7 +112,11 @@ func TestDownloadBundleNoChanges(t *testing.T) {
 
 // TestDownloadBundleWriteFileError exercises the os.WriteFile error branch
 // in DownloadBundle by making the ~/.atheon directory read-only.
+// Skipped on Windows: os.Chmod is a no-op for directory permissions there.
 func TestDownloadBundleWriteFileError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("os.Chmod directory permissions are not enforced on Windows")
+	}
 	defer func() {
 		_ = loadBundle(embeddedBundle)
 		SetActiveCategories(nil)

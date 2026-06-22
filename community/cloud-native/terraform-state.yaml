@@ -1,0 +1,2 @@
+name: terraform-state-sensitive
+match: '(?i)(terraform\.tfstate|backend\s*\{|sensitive\s*=\s*false.*password)'
