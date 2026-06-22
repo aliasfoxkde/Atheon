@@ -3,66 +3,106 @@
 ## Context
 Based on real-world repo benchmarking via Atheon-GitHub-Scanner and Atheon-Benchmark projects.
 
-## High-Priority Pattern Categories to Add
+## Benchmark Results Summary
 
-### 1. Infrastructure as Code
+From `/nas/Temp/repos/Atheon-GitHub-Scanner/pipeline_results.json`:
+- Repositories scanned: 5
+- Total findings: 55
+- Trending patterns discovered: 12
+- PRs created from findings: 2
+
+## Validated Pattern Suggestions (from Benchmark)
+
+The Atheon-GitHub-Scanner benchmarked 2 pattern candidates with accuracy scores:
+
+### 1. API Key Exposure in Configuration Files
+- **Pattern ID**: `pattern_api_key_leak_001`
+- **Severity**: critical
+- **Confidence**: 0.92
+- **Benchmark Score**: 75
+- **Accuracy**: 85%
+- **Pattern**: `(?:\api[_-]?key|apikey|secret|token)\s*[:=]\s*['"]?([a-zA-Z0-9_-]{16,})['"]?`
+- **CWE**: CWE-798
+- **OWASP**: A07:2021 - Identification and Authentication Failures
+- **Source**: `popular-javascript-lib/config/database.js`
+- **Examples**:
+  - `config.API_KEY = "sk_live_1234567890abcdef"`
+  - `const apiKey = process.env.SECRET_KEY;`
+
+### 2. SQL Injection via String Concatenation
+- **Pattern ID**: `pattern_sql_injection_002`
+- **Severity**: high
+- **Confidence**: 0.87
+- **Benchmark Score**: 80
+- **Accuracy**: 88%
+- **Pattern**: `(?:SELECT|INSERT|UPDATE|DELETE)\s+.*?\s+(?:WHERE|SET)\s+.*?(?:\+|concat\()`
+- **CWE**: CWE-89
+- **OWASP**: A03:2021 - Injection
+- **Source**: `awesome-python-project/models/user.py`
+- **Examples**:
+  - `"SELECT * FROM users WHERE id = " + userInput`
+  - `"INSERT INTO logs VALUES ('" + msg + "')"`
+
+## High-Priority Pattern Categories (Based on Findings)
+
+### 1. API Keys & Secrets (High Priority)
+From benchmark findings, these patterns are most frequently found:
+- AWS access keys (already exists: `aws-access-key`)
+- Azure client secrets (already exists: `azure-client-secret`)
+- GCP API keys (already exists: `gcp-api-key`)
+- Generic API key patterns (needs enhancement)
+
+### 2. SQL Injection (High Priority)
+Benchmark found this in `awesome-python-project`:
+- String concatenation in SQL queries
+- Dynamic SQL construction without parameterization
+
+### 3. Infrastructure as Code (Medium Priority)
+From 55 total findings, common patterns:
 - Kubernetes secrets in env vars
 - Terraform state files with sensitive data
 - Docker config with credentials
-- Cloudformation hidden resources
 
-### 2. CI/CD Specific
-- GitHub Actions secrets exposure
+### 4. CI/CD Specific (Medium Priority)
+- GitHub Actions secrets exposure (already exists: `github-actions-secret`)
 - GitLab CI variable usage
-- Jenkins credentials
+- Jenkins credentials (already exists: `jenkins-crumb`)
 - CircleCI context leaks
 
-### 3. API Framework Patterns
-- Express.js error handling leaks
-- Django DEBUG mode indicators
-- Flask SECRET_KEY patterns
-- Spring Boot actuator exposure
+### 5. Database Connection Strings (Medium Priority)
+- Redis connection strings (already exists: `redis-connection-string`)
+- MongoDB connection strings (already exists: `mongodb-connection-string`)
+- PostgreSQL connection strings (already exists: `postgres-connection-string`)
 
-### 4. Database Patterns
-- Redis connection strings with auth
-- MongoDB connection strings
-- PostgreSQL connection strings
-- Database URL patterns in config
+## Gaps Identified by Benchmark
 
-### 5. Authentication/Authorization
-- JWT token patterns (beyond generic)
-- OAuth client secrets
-- API key header patterns
-- Session token exposures
-
-### 6. Cryptography
-- RSA private key blocks
-- ECDSA private keys
-- Ed25519 keys
-- WireGuard config keys
-
-## From Benchmark Findings
-
-The scanner found 2409 security issues in 2000 repositories scanned. Key findings:
-- High occurrence of hardcoded credentials in config files
-- Environment variable exposure patterns
-- API key in URL query parameters
-- Bearer token in Authorization headers
+The benchmark identified these gaps not covered by existing patterns:
+1. **SQL Injection via string concatenation** - NOT in current patterns
+2. **Generic API key patterns** - partial coverage only
+3. **Environment variable secrets in IaC** - needs new category
 
 ## Implementation Plan
 
-1. Create new category folders in `community/`
-2. Add YAML patterns for each finding type
-3. Validate against existing patterns to avoid duplicates
-4. Test with known-good and known-bad samples
+1. Create new patterns from validated benchmark results:
+   - Add `sql-injection-string-concat` pattern
+   - Enhance `api-key` detection patterns
 
-## Suggested New Categories
-- `community/iac/` - Infrastructure as Code patterns
-- `community/ci-cd/` - CI/CD specific patterns
-- `community/api-frameworks/` - Web framework specific patterns
+2. Create new category folders in `community/`:
+   - `community/iac/` - Infrastructure as Code patterns
+   - `community/sql/` - SQL-related patterns
+
+3. Validate against existing patterns to avoid duplicates
+
+4. Test with benchmark's source repositories
+
+## Source Data References
+
+- Benchmark pipeline results: `/nas/Temp/repos/Atheon-GitHub-Scanner/pipeline_results.json`
+- Combined scan results: `/nas/Temp/repos/Atheon-GitHub-Scanner/data/combined_scan_results.json`
+- Dashboard benchmarks: `/nas/Temp/repos/Atheon-Benchmark/dashboard/docs/`
 
 ---
 
-**Date:** 2026-06-22  
+**Date:** 2026-06-22
 **Branch:** `pr/149-patterns-expansion`
-**Source:** Atheon-GitHub-Scanner mass_scan_summary.json (scanned 2000 repos, found 2409 issues)
+**Source:** Atheon-GitHub-Scanner benchmark (5 repos, 55 findings, 2 validated patterns)
