@@ -59,9 +59,9 @@ jobs:
 
       - name: Check coverage
         run: |
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | cut -d. -f1)
           echo "Coverage: $COVERAGE%"
-          # Use simple comparison instead of bash arithmetic for cross-platform compatibility
+          # Use cut -d. -f1 to truncate decimal before comparison for cross-platform compatibility
           if [ "$COVERAGE" -lt 45 ]; then
             echo "Coverage $COVERAGE% is below 45% threshold"
             exit 1
