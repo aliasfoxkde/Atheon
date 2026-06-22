@@ -1,0 +1,2 @@
+match: (?:SELECT|INSERT|UPDATE|DELETE)\s+.*?\s+(?:WHERE|SET)\s+.*?(?:\+|concat\()
+name: sql-injection-string-concat
