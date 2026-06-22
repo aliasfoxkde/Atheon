@@ -50,7 +50,7 @@ jobs:
           go test ./... -p 1 -race -coverprofile=coverage.out -v 2>&1 | go-junit-report -set-exit-code > report.xml
 
       - name: Publish test results
-        uses: EnricoMi/publish-unit-test-result-action@283dea176069279a9076e77b548668a8e4f0c31b # v2.9.0
+        uses: EnricoMi/publish-unit-test-result-action@d0a4676d0e0b938bc201470d88276b7c74c712b3 # v2.9.0
         if: always()
         with:
           files: report.xml
@@ -65,7 +65,7 @@ jobs:
           fi
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@0f8570b1a125f4937846a11fcfa3bcd548bd8c97 # v4.6.0
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
           files: ./coverage.out
           flags: unittests
@@ -140,7 +140,7 @@ jobs:
           go-version: '1.23'
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@8564da7cb3c6866ed1da648ca8f00a258ef0c802 # v6.5.2
+        uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6.5.2
         with:
           version: v1.64.8
           args: --timeout=5m
