@@ -217,7 +217,7 @@ jobs:
       - name: Build binaries
         run: |
           echo "=== Building Binaries ==="
-          go build -o atheon ./cmd/atheon
+          go build -o atheon .
           go build -o atheon-mcp ./cmd/mcp
           ./atheon --version
           ./atheon-mcp &

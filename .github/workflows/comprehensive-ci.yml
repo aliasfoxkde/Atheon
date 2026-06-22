@@ -118,7 +118,7 @@ jobs:
           cache: true
 
       - name: Build Atheon
-        run: go build -o atheon ./cmd/atheon
+        run: go build -o atheon .
 
       - name: Scan codebase with Atheon
         run: |
