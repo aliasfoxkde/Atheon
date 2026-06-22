@@ -343,7 +343,7 @@ match: 'regex_pattern_here'
 
 ## Contributing Patterns
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on pattern submission, testing, and review processes.
+See [CONTRIBUTING.md](../.github/CONTRIBUTING.md) for detailed guidelines on pattern submission, testing, and review processes.
 
 ## References
 

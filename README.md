@@ -490,7 +490,7 @@ atheon --profile config/profiles/pipeline.json ./my-project
 - ✅ Multi-version Go testing (1.21, 1.22, 1.23, 1.24)
 - ✅ Static analysis (golangci-lint v1.64.8 with 18 linters)
 - ✅ Security scanning (Atheon self-scan)
-- ✅ Performance benchmarking ([BENCHMARKS.md](BENCHMARKS.md))
+- ✅ Performance benchmarking ([BENCHMARKS.md](docs/BENCHMARKS.md))
 - ✅ Integration tests for all features
 - ✅ Context-cancellation tests for every scanner entry point
 - ✅ Runnable godoc examples for every public API

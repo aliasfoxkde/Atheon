@@ -259,7 +259,7 @@ del C:\Windows\System32\atheon.exe
 ## Next Steps
 
 After installation:
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md) to add patterns
+1. Read [CONTRIBUTING.md](../.github/CONTRIBUTING.md) to add patterns
 2. Try the tool: `atheon list categories`
 3. Scan your code: `atheon ./`
 4. Set up pre-commit hooks: [Pre-commit Hooks Guide](docs/PRE_COMMIT_HOOKS.md)

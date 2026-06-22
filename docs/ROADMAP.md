@@ -84,4 +84,4 @@ The engine stays minimal. The patterns are the product.
 
 ## Contributing
 
-Every pattern on the roadmap above is open for contribution right now. See [CONTRIBUTING.md](CONTRIBUTING.md) to add yours.
+Every pattern on the roadmap above is open for contribution right now. See [CONTRIBUTING.md](../.github/CONTRIBUTING.md) to add yours.
