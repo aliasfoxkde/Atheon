@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
@@ -324,6 +325,7 @@ func ListDisabledPatterns() []string {
 			disabled = append(disabled, p.name)
 		}
 	}
+	sort.Strings(disabled)
 	return disabled
 }
 
@@ -334,6 +336,7 @@ func ListEnabledPatterns() []string {
 			enabled = append(enabled, p.name)
 		}
 	}
+	sort.Strings(enabled)
 	return enabled
 }
 
