@@ -1,0 +1,2 @@
+name: rate-limiting
+match: 'setInterval.*fetch.*1000|for.*fetch.*break|while.*fetch.*condition'

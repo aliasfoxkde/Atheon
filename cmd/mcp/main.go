@@ -2,10 +2,14 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/aliasfoxkde/Atheon/core"
 )
@@ -29,10 +33,32 @@ type rpcError struct {
 	Message string `json:"message"`
 }
 
+// JSON-RPC method names handled by the MCP server. Extracted as
+// constants so goconst can verify they're not duplicated and so
+// readers can see the protocol surface in one place.
+const (
+	methodInitialize = "initialize"
+	methodToolsList  = "tools/list"
+	methodToolsCall  = "tools/call"
+)
+
 func main() {
-	sc := bufio.NewScanner(os.Stdin)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	code := run(ctx, os.Stdin, os.Stdout)
+	cancel() // explicit: os.Exit skips deferred cancel
+	os.Exit(code)
+}
+
+// run executes the JSON-RPC loop reading from r and writing to w, returning
+// the exit code. Separated from main() so tests can call it without os.Exit
+// terminating the test process.
+//
+// The context is forwarded into the core scan helpers so a SIGTERM
+// received mid-scan aborts cleanly.
+func run(ctx context.Context, r io.Reader, w io.Writer) int {
+	sc := bufio.NewScanner(r)
 	sc.Buffer(make([]byte, 1<<20), 1<<20)
-	enc := json.NewEncoder(os.Stdout)
+	enc := json.NewEncoder(w)
 
 	for sc.Scan() {
 		var req request
@@ -47,16 +73,16 @@ func main() {
 		var rerr *rpcError
 
 		switch req.Method {
-		case "initialize":
+		case methodInitialize:
 			result = map[string]any{
 				"protocolVersion": "2024-11-05",
 				"capabilities":    map[string]any{"tools": map[string]any{}},
 				"serverInfo":      map[string]any{"name": "atheon", "version": "1.0.0"},
 			}
-		case "tools/list":
+		case methodToolsList:
 			result = map[string]any{"tools": toolList()}
-		case "tools/call":
-			result, rerr = handleCall(req.Params)
+		case methodToolsCall:
+			result, rerr = handleCall(ctx, req.Params)
 		default:
 			rerr = &rpcError{Code: -32601, Message: "method not found"}
 		}
@@ -67,8 +93,9 @@ func main() {
 		} else {
 			resp.Result = result
 		}
-		enc.Encode(resp) //nolint:errcheck
+		_ = enc.Encode(resp)
 	}
+	return 0
 }
 
 func toolList() []map[string]any {
@@ -107,7 +134,7 @@ func toolList() []map[string]any {
 	}
 }
 
-func handleCall(params json.RawMessage) (any, *rpcError) {
+func handleCall(ctx context.Context, params json.RawMessage) (any, *rpcError) {
 	var p struct {
 		Name      string          `json:"name"`
 		Arguments json.RawMessage `json:"arguments"`
@@ -130,7 +157,7 @@ func handleCall(params json.RawMessage) (any, *rpcError) {
 			args.Source = "stdin"
 		}
 		core.SetActiveCategories(args.Categories)
-		return textResult(core.ScanString(args.Content, args.Source)), nil
+		return textResult(core.ScanString(ctx, args.Content, args.Source)), nil
 
 	case "scan_file":
 		var args struct {
@@ -141,7 +168,7 @@ func handleCall(params json.RawMessage) (any, *rpcError) {
 			return nil, &rpcError{Code: -32602, Message: "invalid params"}
 		}
 		core.SetActiveCategories(args.Categories)
-		findings, _, err := core.ScanFile(args.Path)
+		findings, _, err := core.ScanFile(ctx, args.Path)
 		if err != nil {
 			return nil, &rpcError{Code: -32603, Message: err.Error()}
 		}
@@ -156,7 +183,7 @@ func handleCall(params json.RawMessage) (any, *rpcError) {
 			return nil, &rpcError{Code: -32602, Message: "invalid params"}
 		}
 		core.SetActiveCategories(args.Categories)
-		findings, _, err := core.ScanDir(args.Path)
+		findings, _, err := core.ScanDir(ctx, args.Path)
 		if err != nil {
 			return nil, &rpcError{Code: -32603, Message: err.Error()}
 		}

@@ -1,0 +1,2 @@
+name: missing-caching
+match: 'fetch.*headers.*cache.*no-cache|fetch.*cache.*no-store|cache.*false'

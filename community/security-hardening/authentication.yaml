@@ -1,0 +1,2 @@
+name: authentication
+match: 'bcrypt.*hash.*password.*compare|JWT.*verify.*secret|session.*secret.*default'

@@ -1,0 +1,2 @@
+name: nextjs
+match: 'useEffect.*\[\].*fetch|export default.*function.*props|getStaticPaths.*fallback.*false'

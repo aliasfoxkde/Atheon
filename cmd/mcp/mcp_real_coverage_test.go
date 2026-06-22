@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -31,7 +32,7 @@ func TestToolList(t *testing.T) {
 func TestHandleCallScanString(t *testing.T) {
 	params := json.RawMessage(`{"name":"scan_string","arguments":{"content":"AKIAIOSFODNN7EXAMPLE","source":"test"}}`)
 
-	result, err := handleCall(params)
+	result, err := handleCall(context.Background(), params)
 
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -56,7 +57,7 @@ func TestHandleCallScanString(t *testing.T) {
 func TestHandleCallScanFile(t *testing.T) {
 	params := json.RawMessage(`{"name":"scan_file","arguments":{"path":"/tmp/test.txt"}}`)
 
-	result, err := handleCall(params)
+	result, err := handleCall(context.Background(), params)
 
 	// File might not exist, but shouldn't panic
 	if err != nil {
@@ -83,7 +84,7 @@ func TestHandleCallScanDir(t *testing.T) {
 	pathJSON, _ := json.Marshal(dir)
 	params := json.RawMessage(`{"name":"scan_dir","arguments":{"path":` + string(pathJSON) + `,"categories":["secrets"]}}`)
 
-	result, err := handleCall(params)
+	result, err := handleCall(context.Background(), params)
 
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -107,7 +108,7 @@ func TestHandleCallScanDir(t *testing.T) {
 func TestHandleCallInvalidTool(t *testing.T) {
 	params := json.RawMessage(`{"name":"invalid_tool","arguments":{}}`)
 
-	result, err := handleCall(params)
+	result, err := handleCall(context.Background(), params)
 
 	if err == nil {
 		t.Error("expected error for invalid tool")
@@ -121,7 +122,7 @@ func TestHandleCallInvalidTool(t *testing.T) {
 func TestHandleCallMissingArguments(t *testing.T) {
 	params := json.RawMessage(`{"name":"scan_string"}`)
 
-	result, err := handleCall(params)
+	result, err := handleCall(context.Background(), params)
 
 	// Should handle missing arguments gracefully
 	if err != nil {
@@ -137,7 +138,7 @@ func TestHandleCallMissingArguments(t *testing.T) {
 func TestHandleCallInvalidParams(t *testing.T) {
 	params := json.RawMessage(`invalid json`)
 
-	result, err := handleCall(params)
+	result, err := handleCall(context.Background(), params)
 
 	if err == nil {
 		t.Error("expected error for invalid params")
