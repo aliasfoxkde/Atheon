@@ -1,0 +1,2 @@
+match: (?i)\b(describe|it|test|context)\.skip\b
+name: test-skip
