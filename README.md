@@ -6,7 +6,8 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Patterns](https://img.shields.io/badge/patterns-58-blueviolet)
 ![CI](https://github.com/HoraDomu/Atheon/actions/workflows/ci.yml/badge.svg)
-[![Wiki](https://img.shields.io/badge/docs-wiki-blue)](https://github.com/HoraDomu/Atheon/wiki)
+[![Wiki](https://img.shields.io/badge/docs-wiki-blue)](https://github.com/aliasfoxkde/Atheon-Enhanced/wiki)
+[![Docs](https://img.shields.io/badge/docs-local-blue)](./docs)
 
 > **One tool. All patterns. Any input.**
 
