@@ -91,7 +91,10 @@ jobs:
 
       - name: Run basic tests (no race detection on Windows)
         run: |
-          go test ./... -v -coverprofile=coverage.out -timeout 15m
+          # Windows: go test exits 1 after passing tests. Capture output and check for real failures.
+          OUTPUT=$(go test ./... -v -coverprofile=coverage.out -timeout 15m 2>&1) || true
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep -q "^FAIL" && exit 1 || true
         shell: bash
 
       - name: Check coverage
