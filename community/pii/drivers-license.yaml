@@ -1,0 +1,3 @@
+name: us-drivers-license
+match: '\b[A-Z][0-9]{7}\b'
+enabled: false

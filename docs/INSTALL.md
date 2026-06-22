@@ -124,7 +124,7 @@ atheon list categories
 ## 🎯 Next Steps
 
 1. **Configure Atheon** for your needs
-2. **Explore patterns**: `atheon list` to see all 190 patterns
+2. **Explore patterns**: `atheon list` to see all 202 patterns
 3. **Set up CI/CD integration**: see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 4. **Contribute patterns**: see [CONTRIBUTING.md](../.github/CONTRIBUTING.md)
 
