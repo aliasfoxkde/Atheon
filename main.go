@@ -22,10 +22,16 @@ func main() {
 		os.Exit(0)
 	}
 
-	jsonOutput := len(args) > 0 && args[0] == "--json"
-	if jsonOutput {
-		args = args[1:]
+	jsonOutput := false
+	var newArgs []string
+	for _, arg := range args {
+		if arg == "--json" {
+			jsonOutput = true
+		} else {
+			newArgs = append(newArgs, arg)
+		}
 	}
+	args = newArgs
 
 	cats, args, enableAll := parseCategories(args)
 	if enableAll {
