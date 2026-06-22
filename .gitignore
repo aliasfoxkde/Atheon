@@ -2,12 +2,6 @@
 /atheon
 /atheon.exe
 /atheon-*
-/atheon-mcp
-/atheon-mcp.exe
-/Atheon
-/Atheon.exe
-bundler/bundler
-bundler/bundler.exe
 
 # IDE
 .vs/
@@ -15,56 +9,6 @@ bundler/bundler.exe
 *.iml
 .pr-notes/
 
-<<<<<<< HEAD
-# AI / assistant config (protected — never commit)
-/.claude
-/.claude/
-/.claude.wrong/
-CLAUDE.md
-
-# generated coverage files (kept out of repo; redirect to tmp/ for tooling)
-/coverage.out
-/*_coverage.out
-/*-coverage.out
-/coverage.html
-/coverage-push.out
-/coverage_new.out
-/coverage-*.out
-*.test
-/validation_coverage.out
-/main_coverage.out
-/final_coverage.out
-/full_coverage.out
-/regression_check.out
-/test_results.log
-
-# local temp dir for coverage output (see scripts/coverage.sh)
-/tmp-cov/
-/.tmp-cov/
-
-# temporary files
-move
-temp
-tmp
-
-# internal documentation (excluded from upstream)
-docs/reports/
-docs/planning/
-docs/temp/
-docs/memories/
-
-# test artifacts
-benchmark-results.txt
-current-benchmark.txt
-security-findings.json
-credentials.json
-outdated.txt
-
-# build artifacts
-dist/
-build/
-=======
 # generated
 *.out
 /coverage.html
->>>>>>> 881ac6e (chore: remove committed artifacts and dev session notes)
