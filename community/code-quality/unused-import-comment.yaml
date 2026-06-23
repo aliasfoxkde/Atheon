@@ -1,0 +1,3 @@
+name: unused-import-comment
+match: '//\s*nolint:unused'
+enabled: true

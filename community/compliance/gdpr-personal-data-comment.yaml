@@ -1,0 +1,3 @@
+name: gdpr-personal-data-comment
+match: '(personal[-_]data|PII|PHI|protected[-_]health)\s+(data|information)\s+(stored|collected|logged)'
+enabled: true

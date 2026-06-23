@@ -196,7 +196,28 @@ func TestPrintFindings(t *testing.T) {
 		}
 	}()
 
-	printFindings(findings, stats, false)
+	printFindings(findings, stats, false, false)
+}
+
+func TestPrintFindingsSarifOutput(t *testing.T) {
+	// Test printFindings with sarifOutput=true to exercise that branch
+	findings := []core.Finding{
+		{
+			Pattern: "test-pattern",
+			File:    "test.txt",
+			Line:    1,
+			Content: "test content",
+		},
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("printFindings panicked with sarif: %v", r)
+		}
+	}()
+
+	// This exercises the sarifOutput branch
+	printFindings(findings, nil, false, true)
 }
 
 func TestPrintJSONFindings(t *testing.T) {
@@ -219,6 +240,38 @@ func TestPrintJSONFindings(t *testing.T) {
 	printJSONFindings(findings)
 }
 
+func TestPrintSARIFFindings(t *testing.T) {
+	// Test SARIF output format with multiple unique patterns
+	findings := []core.Finding{
+		{
+			Pattern: "test-pattern-1",
+			File:    "test.txt",
+			Line:    1,
+			Content: "test content 1",
+		},
+		{
+			Pattern: "test-pattern-2",
+			File:    "test.txt",
+			Line:    2,
+			Content: "test content 2",
+		},
+		{
+			Pattern: "test-pattern-1", // duplicate pattern to test deduplication
+			File:    "test2.txt",
+			Line:    5,
+			Content: "test content 3",
+		},
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("printSARIFFindings panicked: %v", r)
+		}
+	}()
+
+	printSARIFFindings(findings)
+}
+
 func TestPrintFindingsWithNilStats(t *testing.T) {
 	// Test handling of nil stats
 	findings := []core.Finding{
@@ -236,7 +289,7 @@ func TestPrintFindingsWithNilStats(t *testing.T) {
 		}
 	}()
 
-	printFindings(findings, nil, false)
+	printFindings(findings, nil, false, false)
 }
 
 func TestPrintFindingsWithEmptyFindings(t *testing.T) {
@@ -254,7 +307,7 @@ func TestPrintFindingsWithEmptyFindings(t *testing.T) {
 		}
 	}()
 
-	printFindings(findings, stats, false)
+	printFindings(findings, stats, false, false)
 }
 
 func TestParseCategoriesEdgeCases(t *testing.T) {
@@ -331,7 +384,7 @@ func TestMainIntegration(t *testing.T) {
 		// Test with empty findings
 		findings := []core.Finding{}
 		stats := &core.Stats{}
-		printFindings(findings, stats, false)
+		printFindings(findings, stats, false, false)
 	})
 
 	// Test 4: Format bytes functionality
@@ -600,4 +653,83 @@ func TestPrintJSONFindingsEncodeError(t *testing.T) {
 	findings := []core.Finding{{Pattern: "x", File: "y", Line: 1}}
 	printJSONFindings(findings)
 	r.Close()
+}
+
+// TestPrintSARIFFindingsEncodeError exercises the json.Encode error branch
+// in printSARIFFindings by closing os.Stdout before calling it.
+func TestPrintSARIFFindingsEncodeError(t *testing.T) {
+	origStdout := os.Stdout
+	defer func() { os.Stdout = origStdout }()
+
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	w.Close() // close write end so Encode fails
+
+	findings := []core.Finding{{Pattern: "x", File: "y", Line: 1}}
+	printSARIFFindings(findings)
+	r.Close()
+}
+
+// TestBuildSARIFRulesDeduplication tests that buildSARIFRules deduplicates patterns
+func TestBuildSARIFRulesDeduplication(t *testing.T) {
+	findings := []core.Finding{
+		{Pattern: "pattern-a", File: "f1.txt", Line: 1},
+		{Pattern: "pattern-b", File: "f2.txt", Line: 2},
+		{Pattern: "pattern-a", File: "f3.txt", Line: 3}, // duplicate
+	}
+
+	rules := buildSARIFRules(findings)
+
+	// Should have only 2 unique rules
+	if len(rules) != 2 {
+		t.Errorf("expected 2 rules, got %d", len(rules))
+	}
+
+	// Check the rule IDs
+	ids := make(map[string]bool)
+	for _, r := range rules {
+		if id, ok := r["id"].(string); ok {
+			ids[id] = true
+		}
+	}
+
+	if !ids["pattern-a"] {
+		t.Error("expected pattern-a in rules")
+	}
+	if !ids["pattern-b"] {
+		t.Error("expected pattern-b in rules")
+	}
+}
+
+// TestBuildSARIFResultsEmpty tests buildSARIFResults with empty findings
+func TestBuildSARIFResultsEmpty(t *testing.T) {
+	findings := []core.Finding{}
+	results := buildSARIFResults(findings)
+
+	if len(results) != 0 {
+		t.Errorf("expected 0 results, got %d", len(results))
+	}
+}
+
+// TestBuildSARIFResultsMultiple tests buildSARIFResults with multiple findings
+func TestBuildSARIFResultsMultiple(t *testing.T) {
+	findings := []core.Finding{
+		{Pattern: "pattern-1", File: "file1.txt", Line: 10, Content: "content 1"},
+		{Pattern: "pattern-2", File: "file2.txt", Line: 20, Content: "content 2"},
+	}
+
+	results := buildSARIFResults(findings)
+
+	if len(results) != 2 {
+		t.Errorf("expected 2 results, got %d", len(results))
+	}
+
+	// Verify first result structure
+	r1 := results[0]
+	if r1["ruleId"] != "pattern-1" {
+		t.Errorf("expected ruleId pattern-1, got %v", r1["ruleId"])
+	}
+	if r1["level"] != "error" {
+		t.Errorf("expected level error, got %v", r1["level"])
+	}
 }

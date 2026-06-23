@@ -20,7 +20,7 @@ func TestPrintFindingsFull(t *testing.T) {
 
 	// Just verify the function doesn't panic
 	// Output testing would require proper synchronization
-	printFindings(findings, stats, false)
+	printFindings(findings, stats, false, false)
 }
 
 // TestPrintJSONFindingsFull tests printJSONFindings

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -33,6 +34,8 @@ func TestPatternInterfaceCategory(t *testing.T) {
 		"security-hardening": true,
 		"web-development":    true,
 		"web-security":       true,
+		"compliance":         true,
+		"git-hygiene":        true,
 	}
 
 	for _, p := range patterns {
@@ -66,6 +69,69 @@ func TestPatternInterfaceSatisfaction(t *testing.T) {
 
 		// Test Matches() method exists and is callable
 		// (We don't test actual matching here, just that the method exists)
+	}
+}
+
+// TestValidatePattern tests the ValidatePattern helper function
+func TestValidatePattern(t *testing.T) {
+	tests := []struct {
+		name    string
+		def     PatternDef
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid pattern",
+			def: PatternDef{
+				Name:  "test-pattern",
+				Match: `test\d+`,
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty name",
+			def: PatternDef{
+				Name:  "",
+				Match: `test\d+`,
+			},
+			wantErr: true,
+			errMsg:  "name is required",
+		},
+		{
+			name: "empty match",
+			def: PatternDef{
+				Name:  "test-pattern",
+				Match: "",
+			},
+			wantErr: true,
+			errMsg:  "match regex is required",
+		},
+		{
+			name: "invalid regex",
+			def: PatternDef{
+				Name:  "test-pattern",
+				Match: "[invalid",
+			},
+			wantErr: true,
+			errMsg:  "error parsing regexp",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidatePattern(tt.def)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("ValidatePattern() expected error containing %q, got nil", tt.errMsg)
+				} else if tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
+					t.Errorf("ValidatePattern() error = %v, want error containing %q", err, tt.errMsg)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("ValidatePattern() unexpected error: %v", err)
+				}
+			}
+		})
 	}
 }
 

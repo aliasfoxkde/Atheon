@@ -1,0 +1,3 @@
+name: gcp-project-id
+match: '\bprojects/[a-z0-9-]{6,30}\b'
+enabled: true

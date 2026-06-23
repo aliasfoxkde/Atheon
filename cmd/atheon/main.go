@@ -37,7 +37,8 @@ func run(ctx context.Context, args []string) int {
 	}
 
 	jsonOutput := len(args) > 0 && args[0] == "--json"
-	if jsonOutput {
+	sarifOutput := len(args) > 0 && args[0] == "--sarif"
+	if jsonOutput || sarifOutput {
 		args = args[1:]
 	}
 
@@ -96,7 +97,7 @@ func run(ctx context.Context, args []string) int {
 
 	case "--env":
 		findings := core.ScanEnv(ctx)
-		printFindings(findings, nil, jsonOutput)
+		printFindings(findings, nil, jsonOutput, sarifOutput)
 		if len(findings) > 0 {
 			return 1
 		}
@@ -109,7 +110,7 @@ func run(ctx context.Context, args []string) int {
 			return 1
 		}
 		findings := core.ScanString(ctx, string(data), "stdin")
-		printFindings(findings, nil, jsonOutput)
+		printFindings(findings, nil, jsonOutput, sarifOutput)
 		if len(findings) > 0 {
 			return 1
 		}
@@ -125,7 +126,7 @@ func run(ctx context.Context, args []string) int {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			return 1
 		}
-		printFindings(findings, stats, jsonOutput)
+		printFindings(findings, stats, jsonOutput, sarifOutput)
 		if len(findings) > 0 {
 			return 1
 		}
@@ -149,7 +150,7 @@ func run(ctx context.Context, args []string) int {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			return 1
 		}
-		printFindings(findings, stats, jsonOutput)
+		printFindings(findings, stats, jsonOutput, sarifOutput)
 		if len(findings) > 0 {
 			return 1
 		}
@@ -176,9 +177,13 @@ func parseCategories(args []string) (cats, rest []string, enableAll bool) {
 	return
 }
 
-func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput bool) {
+func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput, sarifOutput bool) {
 	if jsonOutput {
 		printJSONFindings(findings)
+		return
+	}
+	if sarifOutput {
+		printSARIFFindings(findings)
 		return
 	}
 	if len(findings) == 0 {
@@ -210,6 +215,76 @@ func printJSONFindings(findings []core.Finding) {
 	if err := json.NewEncoder(os.Stdout).Encode(items); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 	}
+}
+
+// printSARIFFindings outputs findings in SARIF 2.1.0 format for GitHub Security tab integration.
+func printSARIFFindings(findings []core.Finding) {
+	sarif := map[string]any{
+		"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+		"version": "2.1.0",
+		"runs": []map[string]any{
+			{
+				"tool": map[string]any{
+					"driver": map[string]any{
+						"name":            "Atheon",
+						"version":         version,
+						"informationUri":  "https://github.com/aliasfoxkde/Atheon-Enhanced",
+						"rules":           buildSARIFRules(findings),
+					},
+				},
+				"results": buildSARIFResults(findings),
+			},
+		},
+	}
+	if err := json.NewEncoder(os.Stdout).Encode(sarif); err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+	}
+}
+
+func buildSARIFRules(findings []core.Finding) []map[string]any {
+	seen := make(map[string]bool)
+	var rules []map[string]any
+	for _, f := range findings {
+		if seen[f.Pattern] {
+			continue
+		}
+		seen[f.Pattern] = true
+		rules = append(rules, map[string]any{
+			"id":    f.Pattern,
+			"name":  f.Pattern,
+			"kind":  "rule",
+			"properties": map[string]any{
+				"security-severity": "High",
+			},
+		})
+	}
+	return rules
+}
+
+func buildSARIFResults(findings []core.Finding) []map[string]any {
+	results := make([]map[string]any, 0, len(findings))
+	for _, f := range findings {
+		results = append(results, map[string]any{
+			"ruleId": f.Pattern,
+			"level":  "error",
+			"message": map[string]any{
+				"text": f.Content,
+			},
+			"locations": []map[string]any{
+				{
+					"physicalLocation": map[string]any{
+						"artifactLocation": map[string]any{
+							"uri": f.File,
+						},
+						"region": map[string]any{
+							"startLine": f.Line,
+						},
+					},
+				},
+			},
+		})
+	}
+	return results
 }
 
 func cmdList(args []string) {

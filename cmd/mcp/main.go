@@ -6,10 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/aliasfoxkde/Atheon/core"
 )
@@ -32,6 +35,53 @@ type rpcError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
+
+// rateLimiter implements a simple token bucket rate limiter.
+// Uses stdlib only to avoid external dependencies.
+type rateLimiter struct {
+	mu       sync.Mutex
+	tokens   float64
+	max      float64
+	rate     float64 // tokens per second
+	lastTime time.Time
+}
+
+// newRateLimiter creates a rate limiter allowing maxTokens per second, up to burst.
+func newRateLimiter(tokensPerSecond, burst float64) *rateLimiter {
+	return &rateLimiter{
+		tokens:   burst,
+		max:      burst,
+		rate:     tokensPerSecond,
+		lastTime: time.Now(),
+	}
+}
+
+// Allow checks if a request is permitted under the rate limit.
+// Returns true if allowed, false if rate limited.
+func (rl *rateLimiter) Allow() bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	now := time.Now()
+	elapsed := now.Sub(rl.lastTime).Seconds()
+	rl.lastTime = now
+
+	// Add tokens based on elapsed time
+	rl.tokens += elapsed * rl.rate
+	if rl.tokens > rl.max {
+		rl.tokens = rl.max
+	}
+
+	if rl.tokens < 1 {
+		return false
+	}
+	rl.tokens--
+	return true
+}
+
+// mcpRateLimiter is the global rate limiter for MCP requests.
+// Allows 10 requests per second with a burst of 20.
+var mcpRateLimiter = newRateLimiter(10, 20)
 
 // JSON-RPC method names handled by the MCP server. Extracted as
 // constants so goconst can verify they're not duplicated and so
@@ -138,6 +188,12 @@ func toolList() []map[string]any {
 }
 
 func handleCall(ctx context.Context, params json.RawMessage) (any, *rpcError) {
+	// Check rate limit
+	if !mcpRateLimiter.Allow() {
+		slog.Warn("rate limit exceeded for MCP request")
+		return nil, &rpcError{Code: -32600, Message: "rate limit exceeded"}
+	}
+
 	var p struct {
 		Name      string          `json:"name"`
 		Arguments json.RawMessage `json:"arguments"`

@@ -2,6 +2,8 @@ package core
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
 	"sort"
 )
 
@@ -59,4 +61,19 @@ func All() []Pattern {
 		return sorted[i].Name() < sorted[j].Name()
 	})
 	return sorted
+}
+
+// ValidatePattern checks that def has a valid regex and required fields.
+// It returns nil if the pattern is valid, or an error describing the issue.
+func ValidatePattern(def PatternDef) error {
+	if def.Name == "" {
+		return fmt.Errorf("%w: name is required", ErrInvalidPattern)
+	}
+	if def.Match == "" {
+		return fmt.Errorf("%w: match regex is required", ErrInvalidPattern)
+	}
+	if _, err := regexp.Compile(def.Match); err != nil {
+		return fmt.Errorf("%w: %q: %v", ErrInvalidPattern, def.Name, err)
+	}
+	return nil
 }

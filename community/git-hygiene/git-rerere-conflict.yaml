@@ -1,0 +1,3 @@
+name: git-rerere-conflict
+match: '<<<<<<<\|=======\|>>>>>>>'
+enabled: true

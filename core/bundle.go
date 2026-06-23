@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -83,14 +84,14 @@ func init() {
 // directly so tests can feed in corrupt data to exercise the error paths.
 func initializeWith(data []byte) {
 	if err := loadBundle(data); err != nil {
-		fmt.Fprintf(os.Stderr, "atheon: bundle load failed: %v\n", err)
+		slog.Warn("bundle load failed", "err", err)
 	}
 	SetActiveCategories(nil)
 
 	// Load pattern state after bundle is loaded
 	if err := InitializePatternState(); err != nil {
 		// Non-fatal error, just log warning
-		fmt.Fprintf(os.Stderr, "atheon: pattern state initialization failed: %v\n", err)
+		slog.Warn("pattern state initialization failed", "err", err)
 	}
 }
 
@@ -118,7 +119,7 @@ func loadBundle(data []byte) error {
 	for _, def := range defs {
 		re, err := regexp.Compile(def.Match)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "atheon: skipping %q: %v\n", def.Name, err)
+			slog.Warn("skipping pattern due to regex error", "pattern", def.Name, "err", err)
 			continue
 		}
 		bp := &bundlePattern{name: def.Name, category: def.Category, match: def.Match, enabled: def.Enabled, re: re}
@@ -406,7 +407,7 @@ func EnablePattern(name string) bool {
 		rebuildRegistry()
 		rebuildActiveScanners()
 		if err := syncPatternState(); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to save pattern state: %v\n", err)
+			slog.Warn("failed to save pattern state", "err", err)
 		}
 		return true
 	}
@@ -425,7 +426,7 @@ func DisablePattern(name string) bool {
 		rebuildRegistry()
 		rebuildActiveScanners()
 		if err := syncPatternState(); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to save pattern state: %v\n", err)
+			slog.Warn("failed to save pattern state", "err", err)
 		}
 		return true
 	}
