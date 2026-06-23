@@ -2,9 +2,9 @@ name: Quality Assurance and Testing
 
 on:
   push:
-    branches: [ main, dev/full-feature, 'infra/**' ]
+    branches: [ main, dev/testing, 'infra/**' ]
   pull_request:
-    branches: [ main, dev/full-feature, stable/clean ]
+    branches: [ main, dev/testing ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
