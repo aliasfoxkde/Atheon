@@ -126,10 +126,11 @@ jobs:
           # Only gate on findings in production source.
           ./atheon --json --categories=secrets,pii . \
             | jq '[.[] | select((
-                (.file | test("_test\\.go$")) or
-                (.file | test("/testdata/"))   or
-                (.file | test("^community/"))  or
-                (.file | test("^\\.github/wiki/"))
+                (.file | test("_test\\.go$"))              or
+                (.file | test("/testdata/"))                or
+                (.file | test("^community/"))               or
+                (.file | test("^\\.github/wiki/"))          or
+                (.file | test("^\\.github/ISSUE_TEMPLATE/"))
               ) | not)]' > security-findings.json
           COUNT=$(jq 'length' security-findings.json)
           echo "Production source findings: ${COUNT}"

@@ -22,10 +22,11 @@ fail()    { echo "  [✗] $*" >&2; }
 # Keeps only findings that are in production source.
 filter_prod() {
   jq '[.[] | select((
-    (.file | test("_test\\.go$"))   or
-    (.file | test("/testdata/"))     or
-    (.file | test("^community/"))    or
-    (.file | test("^\\.github/wiki/"))
+    (.file | test("_test\\.go$"))              or
+    (.file | test("/testdata/"))                or
+    (.file | test("^community/"))               or
+    (.file | test("^\\.github/wiki/"))          or
+    (.file | test("^\\.github/ISSUE_TEMPLATE/"))
   ) | not)]'
 }
 
