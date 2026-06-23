@@ -170,3 +170,40 @@ func TestBundleBadOutputPath(t *testing.T) {
 		t.Error("expected error for bad output path, got nil")
 	}
 }
+
+func TestBundleWhitespaceName(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/whitespace.yaml": "name: 'key with space'\nmatch: 'x'\n",
+	})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	_, err := bundle(community, out)
+	if err == nil {
+		t.Error("expected error for whitespace in pattern name, got nil")
+	}
+}
+
+func TestBundleDuplicatePatternName(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/key1.yaml": "name: duplicate-key\nmatch: 'test1'\n",
+		"secrets/key2.yaml": "name: duplicate-key\nmatch: 'test2'\n",
+	})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	_, err := bundle(community, out)
+	if err == nil {
+		t.Error("expected error for duplicate pattern name, got nil")
+	}
+}
+
+func TestBundleInvalidRegex(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/bad.yaml": "name: bad-regex\nmatch: '[invalid'\n",
+	})
+	out := filepath.Join(t.TempDir(), "out.bundle")
+
+	_, err := bundle(community, out)
+	if err == nil {
+		t.Error("expected error for invalid regex, got nil")
+	}
+}

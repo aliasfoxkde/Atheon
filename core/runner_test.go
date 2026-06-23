@@ -316,9 +316,43 @@ func TestScanDir_NonExistent(t *testing.T) {
 	if stats.Files != 0 {
 		t.Errorf("expected 0 files scanned for non-existent directory, got %d", stats.Files)
 	}
-
 	if len(findings) != 0 {
 		t.Errorf("expected 0 findings for non-existent directory, got %d", len(findings))
+	}
+}
+
+// TestScanFile_LargeFile tests that files larger than maxFileSize are skipped
+func TestScanFile_LargeFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	largeFile := filepath.Join(tmpDir, "large.bin")
+
+	// Create a file larger than maxFileSize (10MB)
+	// Use sparse-like approach: write a large chunk
+	f, err := os.Create(largeFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Write 11MB of data
+	data := make([]byte, 11*1024*1024)
+	for i := range data {
+		data[i] = byte(i % 256)
+	}
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		t.Fatal(err)
+	}
+	f.Close()
+
+	findings, stats, err := ScanFile(context.Background(), largeFile)
+	if err != nil {
+		t.Fatalf("ScanFile should not error for large file, got: %v", err)
+	}
+	if len(findings) != 0 {
+		t.Errorf("expected 0 findings for large file, got %d", len(findings))
+	}
+	if stats.Files != 1 {
+		t.Errorf("expected Files=1 (counted even if skipped), got %d", stats.Files)
 	}
 }
 

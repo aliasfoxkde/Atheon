@@ -1,6 +1,9 @@
 package core_test
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -390,5 +393,44 @@ func TestPatternStatePersistence(t *testing.T) {
 				core.DisablePattern(p.Name())
 			}
 		}
+	}
+}
+
+// TestDownloadBundleHTTPError tests DownloadBundle with HTTP error response
+func TestDownloadBundleHTTPError(t *testing.T) {
+	// Create a test server that returns 404
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	// Override bundle download URL
+	restoreURL := core.SetBundleDownloadURL(server.URL)
+	defer restoreURL()
+
+	// DownloadBundle should return error for 404
+	err := core.DownloadBundle(context.Background())
+	if err == nil {
+		t.Error("expected error for HTTP 404 response, got nil")
+	}
+}
+
+// TestDownloadBundleNetworkError tests DownloadBundle with connection failure
+func TestDownloadBundleNetworkError(t *testing.T) {
+	// Create a server that immediately closes connection
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Close connection immediately
+		return
+	}))
+	server.Close() // Close immediately
+
+	// Override with closed server URL
+	restoreURL := core.SetBundleDownloadURL(server.URL)
+	defer restoreURL()
+
+	// DownloadBundle should return error for connection failure
+	err := core.DownloadBundle(context.Background())
+	if err == nil {
+		t.Error("expected error for connection failure, got nil")
 	}
 }
