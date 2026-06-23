@@ -1,16 +1,52 @@
 # Atheon API Documentation
 
-Complete API reference for integrating Atheon into your applications and workflows.
+Complete API reference for integrating Atheon into Go applications and workflows.
 
-## Overview
+## Package
 
-Atheon provides both a CLI interface and a programmatic Go API for pattern matching and security scanning.
+```
+github.com/aliasfoxkde/Atheon-Enhanced/core
+```
 
-## Go Package API
+Go 1.21+ required. All scan functions accept a `context.Context` for cancellation.
 
-### Core Package: `github.com/aliasfoxkde/Atheon/core`
+---
 
-#### Pattern Interface
+## Types
+
+### Finding
+
+```go
+type Finding struct {
+    Pattern string // pattern name that matched
+    File    string // source path, or "env:KEY" for environment scans
+    Line    int    // 1-indexed line number (0 for env scans)
+    Content string // trimmed matching line or, for env scans, the matching value
+}
+```
+
+### Stats
+
+```go
+type Stats struct {
+    Files     int   // files whose contents were scanned (binary/skipped files excluded)
+    Bytes     int64 // total bytes scanned
+    ElapsedMs int64 // wall-clock duration in milliseconds
+}
+```
+
+### PatternDef
+
+```go
+type PatternDef struct {
+    Name     string
+    Category string
+    Pattern  string // regex string
+    Enabled  bool
+}
+```
+
+### Pattern (interface)
 
 ```go
 type Pattern interface {
@@ -22,381 +58,273 @@ type Pattern interface {
 }
 ```
 
-#### Main Functions
+---
 
-##### ScanFile
+## Scan Functions
+
+### ScanFile
+
 ```go
-func ScanFile(path string) ([]Finding, error)
+func ScanFile(ctx context.Context, path string) ([]Finding, *Stats, error)
 ```
-Scans a single file and returns detected patterns.
 
-**Parameters:**
-- `path string`: Path to the file to scan
+Scans a single file. Returns an empty slice (not nil) and zero-value Stats when the
+file has no matches.
 
-**Returns:**
-- `[]Finding`: List of detected findings
-- `error`: Error if file cannot be read
-
-**Example:**
 ```go
-findings, err := core.ScanFile("config.yaml")
+findings, stats, err := core.ScanFile(ctx, "config.yaml")
 if err != nil {
     log.Fatal(err)
 }
-for _, finding := range findings {
-    fmt.Printf("%s: %s\n", finding.Pattern, finding.Line)
-}
+fmt.Printf("%d finding(s) in %d ms\n", len(findings), stats.ElapsedMs)
 ```
 
-##### ScanDir
+### ScanDir
+
 ```go
-func ScanDir(path string) ([]Finding, *Stats, error)
+func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error)
 ```
-Recursively scans a directory and returns detected patterns with statistics.
 
-**Parameters:**
-- `path string`: Path to the directory to scan
+Recursively scans a directory. Respects `.atheonignore` files. Binary files are
+skipped automatically.
 
-**Returns:**
-- `[]Finding`: List of detected findings
-- `*Stats`: Scanning statistics (files scanned, bytes processed, etc.)
-- `error`: Error if directory cannot be read
-
-##### ScanEnv
 ```go
-func ScanEnv() ([]Finding, error)
+findings, stats, err := core.ScanDir(ctx, "/path/to/project")
 ```
-Scans environment variables for sensitive patterns.
 
-##### ScanString
+### ScanString
+
 ```go
-func ScanString(content string) []Finding
+func ScanString(ctx context.Context, content, source string) []Finding
 ```
-Scans a string content for patterns.
 
-##### SetActiveCategories
+Scans an in-memory string. `source` is used as the `File` field in returned
+findings (use any meaningful label, e.g., `"stdin"` or `"request-body"`).
+
 ```go
-func SetActiveCategories(categories []string)
+findings := core.ScanString(ctx, requestBody, "request-body")
 ```
-Sets active categories for filtering. `nil` enables all categories.
 
-##### Register
+### ScanEnv
+
+```go
+func ScanEnv(ctx context.Context) []Finding
+```
+
+Scans the current process environment variables. Each finding has `File` set to
+`"env:VARIABLE_NAME"` and `Line` set to 0.
+
+```go
+findings := core.ScanEnv(ctx)
+```
+
+---
+
+## Pattern Management
+
+### Register
+
 ```go
 func Register(p Pattern)
 ```
-Registers a custom pattern programmatically.
 
-### Finding Structure
+Registers a custom pattern. Custom patterns are included in all subsequent scans.
 
-```go
-type Finding struct {
-    Pattern  string    // Pattern name that matched
-    File    string    // File where match occurred
-    Line    int       // Line number
-    Match   string    // The matched text
-    Context string    // Surrounding context (if available)
-}
-```
+### All
 
-### Stats Structure
-
-```go
-type Stats struct {
-    Files      int64      // Number of files scanned
-    Bytes      int64      // Total bytes processed
-    Duration   time.Duration // Scanning duration
-}
-```
-
-## MCP Server API
-
-### Tool: `scan_directory`
-
-Scans a directory and returns findings.
-
-**Parameters:**
-```json
-{
-  "path": "/path/to/directory",
-  "categories": ["secrets", "pii"],
-  "enabled_only": true
-}
-```
-
-**Returns:**
-```json
-{
-  "findings": [
-    {
-      "pattern": "aws-access-key",
-      "file": "config.yaml",
-      "line": 15,
-      "match": "AKIAIOSFODNN7EXAMPLE"
-    }
-  ],
-  "stats": {
-    "files": 42,
-    "bytes": 1024000,
-    "duration_ms": 150
-  }
-}
-```
-
-### Tool: `scan_string`
-
-Scans a string content for patterns.
-
-**Parameters:**
-```json
-{
-  "content": "string to scan",
-  "categories": ["secrets"]
-}
-```
-
-**Returns:**
-```json
-{
-  "findings": [
-    {
-      "pattern": "api-key",
-      "match": "sk_live_1234567890"
-    }
-  ]
-}
-```
-
-### Tool: `list_patterns`
-
-Lists available patterns with optional filtering.
-
-**Parameters:**
-```json
-{
-  "categories": ["secrets"],
-  "enabled_only": false
-}
-```
-
-**Returns:**
-```json
-{
-  "patterns": [
-    {
-      "name": "aws-access-key",
-      "category": "secrets",
-      "enabled": true,
-      "match": "\\b(?:AKIA|ASIA)[0-9A-Z]{16}\\b"
-    }
-  ]
-}
-```
-
-## Configuration API
-
-### Pattern State Management
-
-#### Enable Pattern
-```go
-func EnablePattern(name string) bool
-```
-Enables a pattern by name. Returns `true` if successful.
-
-#### Disable Pattern
-```go
-func DisablePattern(name string) bool
-```
-Disables a pattern by name. Returns `true` if successful.
-
-#### List Patterns
 ```go
 func All() []Pattern
 ```
-Returns all registered patterns.
 
-#### Get Categories
+Returns all registered patterns (bundle patterns + custom).
+
+### Categories
+
 ```go
 func Categories() []string
 ```
-Returns all available categories.
 
-## Advanced Usage
+Returns the list of distinct category names from the loaded bundle.
 
-### Custom Pattern Registration
+### SetActiveCategories
 
 ```go
-package main
-
-import (
-    "github.com/aliasfoxkde/Atheon/core"
-    "regexp"
-)
-
-type CustomPattern struct {
-    name     string
-    category string
-    re       *regexp.Regexp
-    enabled  bool
-}
-
-func (p *CustomPattern) Name() string        { return p.name }
-func (p *CustomPattern) Category() string    { return p.category }
-func (p *CustomPattern) Matches(line string) bool {
-    return p.enabled && p.re.MatchString(line)
-}
-func (p *CustomPattern) Enabled() bool       { return p.enabled }
-func (p *CustomPattern) SetEnabled(e bool)  { p.enabled = e }
-
-func main() {
-    custom := &CustomPattern{
-        name:     "my-custom-pattern",
-        category: "custom",
-        re:       regexp.MustCompile(`MY_SECRET_KEY`),
-        enabled:  true,
-    }
-
-    core.Register(custom)
-    // Now scan with your custom pattern included
-}
+func SetActiveCategories(cats []string)
 ```
 
-### Category Filtering
+Restricts scanning to the specified categories. Pass `nil` to enable all categories.
 
 ```go
-// Only scan for secrets and PII
+// Scan for secrets and PII only
 core.SetActiveCategories([]string{"secrets", "pii"})
-findings, stats, _ := core.ScanDir("/path/to/scan")
+findings, _, _ := core.ScanDir(ctx, ".")
 
 // Reset to all categories
 core.SetActiveCategories(nil)
 ```
 
-### JSON Output
+### EnablePattern / DisablePattern
 
 ```go
-findings, _, err := core.ScanDir("/path")
-if err != nil {
-    log.Fatal(err)
-}
-
-jsonBytes, err := json.MarshalIndent(findings, "", "  ")
-if err != nil {
-    log.Fatal(err)
-}
-fmt.Println(string(jsonBytes))
+func EnablePattern(name string) bool
+func DisablePattern(name string) bool
 ```
 
-## Error Handling
+Enable or disable a pattern by name. Returns `true` if the pattern was found.
 
-### Common Errors
+### SetPatternEnabled
 
-**File Access Errors:**
 ```go
-findings, err := core.ScanFile("/protected/file")
-if err != nil {
-    if os.IsPermission(err) {
-        log.Printf("Permission denied: %v", err)
-    } else if os.IsNotExist(err) {
-        log.Printf("File not found: %v", err)
-    } else {
-        log.Printf("Error scanning file: %v", err)
-    }
-}
+func SetPatternEnabled(name string, enabled bool) bool
 ```
 
-**Pattern Compilation Errors:**
-Pattern compilation errors are logged but don't stop scanning:
+Single function to enable or disable by name.
+
+### ListEnabledPatterns / ListDisabledPatterns
+
+```go
+func ListEnabledPatterns() []string
+func ListDisabledPatterns() []string
 ```
-atheon: skipping "bad-pattern": invalid regex: error parsing regexp: missing closing bracket
+
+### EnableAllPatterns
+
+```go
+func EnableAllPatterns()
 ```
 
-## Performance Considerations
+Enables every loaded pattern regardless of saved state.
 
-### Memory Efficiency
-Atheon uses streaming and chunked processing for large files:
-- **Large files**: Processed in chunks to minimize memory
-- **Parallel scanning**: Multiple files processed concurrently
-- **Efficient regex**: Pre-compiled patterns for fast matching
+### ValidatePattern
 
-### Speed Optimization
-- **Category filtering**: Reduces patterns to check
-- **File extension filtering**: Skips binary files
-- **Directory exclusion**: Avoids unnecessary scanning
+```go
+func ValidatePattern(def PatternDef) error
+```
 
-### Best Practices
-1. **Use category filtering** when you only need specific pattern types
-2. **Enable appropriate patterns** for your use case
-3. **Configure ignore patterns** to avoid false positives
-4. **Use parallel processing** for large codebases
+Validates a pattern definition — checks that `Name` is non-empty and `Pattern` is
+a valid Go regular expression.
 
-## Integration Examples
+---
 
-### CI/CD Integration
+## Bundle Management
+
+### DownloadBundle
+
+```go
+func DownloadBundle(ctx context.Context) error
+```
+
+Downloads the latest pattern bundle from the release URL and reloads patterns.
+
+### ReloadBundle
+
+```go
+func ReloadBundle()
+```
+
+Re-initializes patterns from the embedded bundle (undoes any runtime enable/disable
+changes).
+
+### InitializePatternState
+
+```go
+func InitializePatternState() error
+```
+
+Persists current enable/disable state to disk so it survives process restarts.
+
+---
+
+## Custom Pattern Example
 
 ```go
 package main
 
 import (
-    "github.com/aliasfoxkde/Atheon/core"
-    "os"
+    "context"
+    "fmt"
+    "regexp"
+
+    "github.com/aliasfoxkde/Atheon-Enhanced/core"
 )
+
+type myPattern struct {
+    re *regexp.Regexp
+}
+
+func (p *myPattern) Name() string             { return "internal-api-token" }
+func (p *myPattern) Category() string         { return "custom" }
+func (p *myPattern) Matches(line string) bool { return p.re.MatchString(line) }
+func (p *myPattern) Enabled() bool            { return true }
+func (p *myPattern) SetEnabled(_ bool)        {}
 
 func main() {
-    // Scan current directory
-    findings, stats, err := core.ScanDir(".")
+    core.Register(&myPattern{re: regexp.MustCompile(`INTERNAL_[A-Z0-9]{32}`)})
+
+    findings, stats, err := core.ScanDir(context.Background(), ".")
     if err != nil {
-        os.Exit(1)
+        panic(err)
     }
-
-    // Fail if critical findings detected
-    critical := 0
-    for _, f := range findings {
-        if isCriticalPattern(f.Pattern) {
-            critical++
-        }
-    }
-
-    if critical > 0 {
-        os.Exit(1)
-    }
-}
-```
-
-### Web Service Integration
-
-```go
-package main
-
-import (
-    "encoding/json"
-    "net/http"
-    "github.com/aliasfoxkde/Atheon/core"
-)
-
-type ScanRequest struct {
-    Content string   `json:"content"`
-    Categories []string `json:"categories"`
-}
-
-func scanHandler(w http.ResponseWriter, r *http.Request) {
-    var req ScanRequest
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        http.Error(w, err.Error(), 400)
-        return
-    }
-
-    // Set categories if provided
-    if len(req.Categories) > 0 {
-        core.SetActiveCategories(req.Categories)
-    }
-
-    findings := core.ScanString(req.Content)
-    json.NewEncoder(w).Encode(findings)
+    fmt.Printf("%d finding(s) across %d file(s) in %d ms\n",
+        len(findings), stats.Files, stats.ElapsedMs)
 }
 ```
 
 ---
 
-**API Version**: 1.0.0
-**Go Version**: 1.21+
-**Last Updated**: 2026-06-19
+## MCP Server
+
+Build and register the MCP server so AI assistants (Claude, Cursor, etc.) can scan
+files and strings on demand:
+
+```bash
+go build -o atheon-mcp ./cmd/mcp
+```
+
+Add to your MCP config (`~/.config/claude/mcp.json` or `.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "atheon": {
+      "command": "/path/to/atheon-mcp"
+    }
+  }
+}
+```
+
+**Tools exposed by the MCP server:**
+
+| Tool | Description |
+|------|-------------|
+| `scan_directory` | Scan a path, optional category filter |
+| `scan_string` | Scan an in-memory string |
+| `list_patterns` | List patterns with optional category filter |
+
+---
+
+## CLI Quick Reference
+
+```bash
+# Scan a directory
+atheon .
+
+# Specific categories
+atheon --categories=secrets,pii .
+
+# JSON output (--json must precede the path)
+atheon --json --categories=secrets . > findings.json
+
+# List loaded patterns and count
+atheon list
+
+# Enable/disable patterns persistently
+atheon enable stripe-api-key
+atheon disable todo-comments
+```
+
+Exit code is 0 when there are no findings, 1 when findings are detected.
+
+---
+
+*Package: `github.com/aliasfoxkde/Atheon-Enhanced/core` — Go 1.21+*

@@ -1,62 +1,111 @@
-#!/bin/bash
-# Self-scanning integration script
-# This script runs Atheon on itself to catch security issues and code quality problems
+#!/usr/bin/env bash
+# Atheon self-scan — run this locally before pushing or from CI.
+#
+# Usage:
+#   .github/scripts/self-scan.sh            # full scan
+#   .github/scripts/self-scan.sh --secrets  # secrets only
+#   .github/scripts/self-scan.sh --quality  # code-quality only
+set -euo pipefail
 
-set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+cd "${REPO_ROOT}"
 
-echo "=== Atheon Self-Scan Integration ==="
+# ── helpers ──────────────────────────────────────────────────────────────────
 
-# Build Atheon first
-echo "Building Atheon..."
-go build -o atheon ./cmd/atheon || { echo "Build failed"; exit 1; }
+info()    { echo "  [info] $*"; }
+success() { echo "  [✓] $*"; }
+warning() { echo "  [⚠] $*"; }
+fail()    { echo "  [✗] $*" >&2; }
 
-# Create scan results directory
-mkdir -p scan-results
+# Filter out test/testdata/community files from JSON findings array.
+# Keeps only findings that are in production source.
+filter_prod() {
+  jq '[.[] | select(
+    (.file | test("_test\\.go$"))   or
+    (.file | test("/testdata/"))     or
+    (.file | test("^community/"))    or
+    (.file | test("^\\.github/wiki/"))
+  ) | not]'
+}
 
-# Scan with different configurations
-echo "Scanning with production profile..."
-./atheon . --profile config/profiles/production.json > scan-results/production-findings.json 2>&1 || true
+# ── build ─────────────────────────────────────────────────────────────────────
 
-echo "Scanning with development profile..."
-./atheon . --profile config/profiles/development.json > scan-results/development-findings.json 2>&1 || true
+echo ""
+echo "=== Atheon Self-Scan ==="
+echo ""
 
-echo "Scanning with all patterns enabled..."
-./atheon . --all > scan-results/all-patterns-findings.json 2>&1 || true
-
-# Analyze results
-echo "=== Scan Analysis ==="
-
-# Count findings by category
-echo "Production profile findings:"
-jq '[.[] | .pattern] | group_by(.) | map({pattern: .[0], count: length}) | sort_by(-.count)' scan-results/production-findings.json || echo "No production findings"
-
-echo "Development profile findings:"
-jq '[.[] | .pattern] | group_by(.) | map({pattern: .[0], count: length}) | sort_by(-.count)' scan-results/development-findings.json || echo "No development findings"
-
-echo "All patterns findings:"
-jq '[.[] | .pattern] | group_by(.) | map({pattern: .[0], count: length}) | sort_by(-.count)' scan-results/all-patterns-findings.json || echo "No all-patterns findings"
-
-# Check for critical security issues
-echo "=== Critical Security Check ==="
-CRITICAL=$(jq '[.[] | select(.pattern | test("api-key|secret|token|password"; "i"))] | length' scan-results/all-patterns-findings.json || echo "0")
-
-if [ "$CRITICAL" -gt 0 ]; then
-    echo "⚠️  Found $CRITICAL potential security issues in codebase"
-    echo "Review findings before committing to main"
-
-    # Show some examples
-    echo "Sample critical findings:"
-    jq '[.[] | select(.pattern | test("api-key|secret|token|password"; "i"))] | .[:5]' scan-results/all-patterns-findings.json
-
-    # Ask for confirmation
-    read -p "Continue despite security warnings? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Commit cancelled due to security concerns"
-        exit 1
-    fi
-else
-    echo "✅ No critical security issues found"
+if [ ! -f ./atheon ]; then
+  info "Building atheon binary..."
+  go build -o atheon ./cmd/atheon
 fi
 
+# Validate pattern bundle.
+COUNT=$(./atheon list | tail -1 | grep -oE '[0-9]+' | head -1)
+info "Pattern bundle: ${COUNT} patterns loaded"
+if [ "${COUNT}" -lt 250 ]; then
+  fail "Expected ≥250 patterns, got ${COUNT} — bundle may be corrupt."
+  exit 1
+fi
+
+# ── scans ─────────────────────────────────────────────────────────────────────
+
+RUN_SECRETS=true
+RUN_QUALITY=true
+
+for arg in "$@"; do
+  case "${arg}" in
+    --secrets) RUN_QUALITY=false ;;
+    --quality) RUN_SECRETS=false ;;
+  esac
+done
+
+EXIT_CODE=0
+
+# ── 1. Secrets scan (blocking) ────────────────────────────────────────────────
+
+if [ "${RUN_SECRETS}" = "true" ]; then
+  echo ""
+  echo "── Secrets & PII scan (production source only) ──"
+  ./atheon --json --categories=secrets,pii . | filter_prod > /tmp/atheon-secrets.json
+  SEC_COUNT=$(jq 'length' /tmp/atheon-secrets.json)
+
+  if [ "${SEC_COUNT}" -gt 0 ]; then
+    fail "Found ${SEC_COUNT} secrets/PII finding(s) in production source:"
+    jq -r '.[] | "  [\(.pattern)] \(.file):\(.line)  \(.match)"' /tmp/atheon-secrets.json
+    EXIT_CODE=1
+  else
+    success "No secrets or PII in production source."
+  fi
+fi
+
+# ── 2. Code-quality scan (informational) ──────────────────────────────────────
+
+if [ "${RUN_QUALITY}" = "true" ]; then
+  echo ""
+  echo "── Code-quality scan (production source, informational) ──"
+  ./atheon --json --categories=code-quality,devops,ai-detection . \
+    | filter_prod > /tmp/atheon-quality.json
+  QC_COUNT=$(jq 'length' /tmp/atheon-quality.json)
+
+  if [ "${QC_COUNT}" -gt 0 ]; then
+    warning "${QC_COUNT} code-quality finding(s) in production source (non-blocking):"
+    jq -r '.[] | "  [\(.pattern)] \(.file):\(.line)"' /tmp/atheon-quality.json | head -20
+    if [ "${QC_COUNT}" -gt 20 ]; then
+      info "  ... and $((QC_COUNT - 20)) more (see /tmp/atheon-quality.json)"
+    fi
+  else
+    success "No code-quality findings in production source."
+  fi
+fi
+
+# ── summary ───────────────────────────────────────────────────────────────────
+
+echo ""
 echo "=== Self-Scan Complete ==="
+
+if [ "${EXIT_CODE}" -ne 0 ]; then
+  fail "Secrets scan FAILED — fix findings before pushing."
+fi
+
+exit "${EXIT_CODE}"

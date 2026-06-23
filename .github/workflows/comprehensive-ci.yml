@@ -2,9 +2,9 @@ name: Comprehensive CI/CD
 
 on:
   push:
-    branches: [ main, dev/full-feature, 'infra/**' ]
+    branches: [ main, 'infra/**' ]
   pull_request:
-    branches: [ main, dev/full-feature, stable/clean ]
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -120,32 +120,29 @@ jobs:
       - name: Build Atheon
         run: go build -o atheon ./cmd/atheon
 
-      - name: Scan codebase with Atheon
+      - name: Scan production source with Atheon
         run: |
-          ./atheon . --all --json > security-findings.json || echo "Security findings detected"
-          echo "Security scan complete"
+          # community/ and test files intentionally contain pattern-matching content.
+          # Only gate on findings in production source.
+          ./atheon --json --categories=secrets,pii . \
+            | jq '[.[] | select(
+                (.file | test("_test\\.go$")) or
+                (.file | test("/testdata/"))   or
+                (.file | test("^community/"))  or
+                (.file | test("^\\.github/wiki/"))
+              ) | not]' > security-findings.json
+          COUNT=$(jq 'length' security-findings.json)
+          echo "Production source findings: ${COUNT}"
 
-      - name: Check for critical findings
+      - name: Gate on production secrets findings
         run: |
-          if [ ! -s security-findings.json ]; then
-            echo "No security findings file or empty file - scan clean"
-            exit 0
-          fi
-
-          # Validate JSON first
-          if ! jq empty security-findings.json >/dev/null 2>&1; then
-            echo "Invalid JSON in security findings - scan may be clean"
-            cat security-findings.json
-            exit 0
-          fi
-
-          CRITICAL=$(jq '[.[] | select(.pattern | contains("api-key") or contains("secret"))] | length' security-findings.json 2>/dev/null || echo "0")
-          if [ "$CRITICAL" -gt 0 ]; then
-            echo "Found $CRITICAL critical security issues"
-            jq '.' security-findings.json
+          COUNT=$(jq 'length' security-findings.json)
+          if [ "${COUNT}" -gt 0 ]; then
+            echo "❌ Found ${COUNT} secrets/PII in production source:"
+            jq -r '.[] | "  [\(.pattern)] \(.file):\(.line)"' security-findings.json
             exit 1
           fi
-          echo "No critical security issues found"
+          echo "✅ No secrets or PII in production source."
 
   performance-benchmarks:
     name: Performance Benchmarks
@@ -208,22 +205,29 @@ jobs:
 
       - name: Run integration tests
         run: |
-          # Test pattern loading
-          go run ./cmd/mcp list --all
+          # Build binary for integration tests
+          go build -o atheon ./cmd/atheon
+
+          # Validate pattern bundle
+          COUNT=$(./atheon list | tail -1 | grep -oE '[0-9]+' | head -1)
+          echo "Pattern bundle: ${COUNT} patterns"
+          if [ "${COUNT}" -lt 250 ]; then
+            echo "ERROR: Expected ≥250 patterns, got ${COUNT}"
+            exit 1
+          fi
 
           # Test configuration profiles
           if [ -d config/profiles ] && [ -n "$(ls config/profiles/*.json 2>/dev/null)" ]; then
             for profile in config/profiles/*.json; do
               echo "Testing profile: $profile"
-              # Validate profile JSON
               jq empty "$profile"
             done
           else
             echo "No configuration profiles found, skipping profile tests"
           fi
 
-          # Test self-scanning (expected to find issues, that's OK)
-          go run ./cmd/mcp . --all > /dev/null || echo "Self-scan found issues as expected"
+          # Self-scan (informational — findings are expected in test files)
+          ./atheon . > /dev/null || echo "Self-scan complete (findings expected in test/community files)"
 
       - name: Test MCP integration
         run: |

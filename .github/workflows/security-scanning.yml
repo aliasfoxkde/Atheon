@@ -208,10 +208,13 @@ jobs:
         run: |
           echo "=== Pattern Quality Validation ==="
 
-          go run ./cmd/mcp list --all | wc -l
-
-          # Check for suspicious patterns
-          go run ./cmd/mcp list --all | grep -i "fake\|test\|example" || echo "No test patterns in main list"
+          go build -o atheon ./cmd/atheon
+          COUNT=$(./atheon list | tail -1 | grep -oE '[0-9]+' | head -1)
+          echo "Pattern bundle: ${COUNT} patterns"
+          if [ "${COUNT}" -lt 250 ]; then
+            echo "ERROR: Expected ≥250 patterns, got ${COUNT}"
+            exit 1
+          fi
 
       - name: Test pattern loading
         run: |

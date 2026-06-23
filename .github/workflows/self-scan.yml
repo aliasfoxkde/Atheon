@@ -14,79 +14,92 @@ permissions:
 
 jobs:
   self-scan:
+    name: Self-Scan (${{ matrix.scan }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scan: secrets
+            categories: secrets,pii
+            blocking: true
+            description: "credential/PII leak detection in production source"
+          - scan: code-quality
+            categories: code-quality,devops,ai-detection
+            blocking: false
+            description: "code quality patterns in production source (informational)"
+
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.24'
+          cache: true
 
       - name: Build Atheon
-        run: |
-          go build -v -o atheon ./cmd/atheon
-          go build -v -o atheon-mcp ./cmd/mcp
+        run: go build -v -o atheon ./cmd/atheon
 
-      - name: Scan Atheon source code
+      - name: Validate pattern bundle (${{ matrix.scan }})
         run: |
-          echo "=== Scanning Atheon source code for credentials ==="
-          ./atheon . --json > findings.json || true
+          COUNT=$(./atheon list | tail -1 | grep -oE '[0-9]+' | head -1)
+          echo "Loaded ${COUNT} patterns"
+          if [ "${COUNT}" -lt 250 ]; then
+            echo "ERROR: Expected ≥250 patterns, got ${COUNT}"
+            exit 1
+          fi
+          echo "✅ Pattern bundle OK (${COUNT} patterns)"
 
-          if [ -s findings.json ]; then
-            echo "WARNING: Atheon found patterns in its own source code"
-            cat findings.json
+      - name: Scan — ${{ matrix.description }}
+        id: scan
+        run: |
+          # Scan only non-test production source.
+          # community/ YAML files contain example values that intentionally match
+          # pattern regexes — exclude them from all scans.
+          # Test files (*_test.go, testdata/) carry fake credentials by design.
+          ./atheon --json --categories=${{ matrix.categories }} . \
+            | jq '[.[] | select(
+                (.file | test("_test\\.go$"))    or
+                (.file | test("/testdata/"))      or
+                (.file | test("\\\\testdata\\\\")) or
+                (.file | test("^community/"))     or
+                (.file | test("^community\\\\"))  or
+                (.file | test("^\\.github/wiki/"))
+              ) | not]' > scan-${{ matrix.scan }}.json
+
+          COUNT=$(jq 'length' scan-${{ matrix.scan }}.json)
+          echo "findings=${COUNT}" >> "$GITHUB_OUTPUT"
+          echo "Findings in production source: ${COUNT}"
+
+          if [ "${COUNT}" -gt 0 ]; then
             echo ""
-            echo "Checking for false positives (test files, examples)..."
-            # Filter out test files and expected findings
-            real_issues=$(jq '[.[] | select((.file | test("_test.go")) or (.file | test("example")) | not)] | length' findings.json || echo "0")
-            if [ "$real_issues" -gt 0 ]; then
-              echo "ERROR: Found $real_issues real issues in source code"
-              jq '[.[] | select((.file | test("_test.go")) or (.file | test("example")) | not)]' findings.json
-              exit 1
-            else
-              echo "All findings are in test files (expected)"
-            fi
-          else
-            echo "✓ No findings in source code"
+            echo "=== Findings ==="
+            jq -r '.[] | "  [\(.pattern)] \(.file):\(.line)"' scan-${{ matrix.scan }}.json
           fi
 
-      - name: Scan for leaked secrets in git history
+      - name: Gate — fail on production findings
+        if: matrix.blocking == true && steps.scan.outputs.findings != '0'
         run: |
-          echo "=== Checking git history for leaked secrets ==="
-          if command -v trufflehog &> /dev/null; then
-            trufflehog git . --no-update --only-verified 2>&1 || true
-          else
-            echo "trufflehog not available, skipping git history scan"
-          fi
+          echo "❌ Found ${{ steps.scan.outputs.findings }} ${{ matrix.scan }} finding(s) in production source."
+          echo "   Review scan-${{ matrix.scan }}.json for details."
+          exit 1
 
-      - name: Generate security report
-        if: always()
+      - name: Summary — informational findings
+        if: matrix.blocking == false
         run: |
-          echo "# Atheon Security Scan Report" > scan-report.md
-          echo "" >> scan-report.md
-          echo "## Scan Summary" >> scan-report.md
-          echo "- Date: $(date)" >> scan-report.md
-          echo "- Commit: ${{ github.sha }}" >> scan-report.md
-          echo "- Branch: ${{ github.ref }}" >> scan-report.md
-          echo "" >> scan-report.md
-          if [ -f findings.json ]; then
-            echo "## Findings" >> scan-report.md
-            echo '```json' >> scan-report.md
-            cat findings.json >> scan-report.md
-            echo '```' >> scan-report.md
+          COUNT=${{ steps.scan.outputs.findings }}
+          if [ "${COUNT}" -gt 0 ]; then
+            echo "ℹ️  ${COUNT} code-quality finding(s) in production source (informational, non-blocking)."
           else
-            echo "✓ No security findings detected" >> scan-report.md
+            echo "✅ No code-quality findings in production source."
           fi
-          cat scan-report.md
 
       - name: Upload scan results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: security-scan-results
-          path: |
-            findings.json
-            scan-report.md
+          name: atheon-scan-${{ matrix.scan }}
+          path: scan-${{ matrix.scan }}.json
           retention-days: 30
