@@ -1,7 +1,3 @@
-# Sponsor Atheon-Enhanced
-# GitHub renders a "Sponsor" button on the repo using these entries.
-# Fill in ko_fi and patreon usernames before merging, then remove these comments.
-
 github: aliasfoxkde
-ko_fi: YOUR_KOFI_USERNAME        # TODO: replace with your Ko-fi username
-patreon: YOUR_PATREON_USERNAME   # TODO: replace with your Patreon username
+ko_fi: aliasfoxkde
+patreon: aliasfoxkde
