@@ -121,3 +121,21 @@ func TestInitLoadsExistingBundle(t *testing.T) {
 		t.Error("expected init-disk-pattern to be loaded")
 	}
 }
+
+// TestInitializeWithLoadBundleError exercises the slog.Warn("bundle load failed")
+// branch in initializeWith by passing invalid gzip data. loadBundle returns an
+// error but initializeWith should not panic — it logs and continues.
+func TestInitializeWithLoadBundleError(t *testing.T) {
+	// Snapshot current allPatterns so we can restore them afterwards.
+	snap := make([]*bundlePattern, len(allPatterns))
+	copy(snap, allPatterns)
+	defer func() {
+		allPatterns = snap
+		_ = loadBundle(embeddedBundle)
+		SetActiveCategories(nil)
+	}()
+
+	// invalid gzip → loadBundle returns ErrBundleParse → slog.Warn branch fires
+	initializeWith([]byte("this is not valid gzip data"))
+	// No panic = pass; allPatterns may be empty but that's acceptable.
+}

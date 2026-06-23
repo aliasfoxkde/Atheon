@@ -280,3 +280,31 @@ func TestMainExercisesInvalidJSONSkipped(t *testing.T) {
 		}
 	}
 }
+
+// TestHandleCallRateLimited exercises the rate-limit denial path in handleCall.
+// It temporarily replaces the global limiter with a zero-token one, then restores it.
+func TestHandleCallRateLimited(t *testing.T) {
+	orig := mcpRateLimiter
+	mcpRateLimiter = newRateLimiter(0, 0) // no tokens, no replenishment
+	defer func() { mcpRateLimiter = orig }()
+
+	params := json.RawMessage(`{"name":"scan_string","arguments":{"content":"hello","source":"test"}}`)
+	_, rerr := handleCall(context.Background(), params)
+	if rerr == nil {
+		t.Error("expected rate-limit rpcError, got nil")
+	}
+	if rerr != nil && rerr.Code != -32600 {
+		t.Errorf("expected code -32600, got %d", rerr.Code)
+	}
+}
+
+// TestHandleCallInvalidTopLevelJSON exercises the json.Unmarshal failure in handleCall.
+func TestHandleCallInvalidTopLevelJSON(t *testing.T) {
+	_, rerr := handleCall(context.Background(), json.RawMessage(`{invalid`))
+	if rerr == nil {
+		t.Error("expected rpcError for invalid top-level JSON")
+	}
+	if rerr != nil && rerr.Code != -32602 {
+		t.Errorf("expected code -32602, got %d", rerr.Code)
+	}
+}

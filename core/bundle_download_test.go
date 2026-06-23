@@ -211,6 +211,52 @@ func TestDownloadBundleNetworkError(t *testing.T) {
 	}
 }
 
+// TestDownloadBundleMockMkdirErrorUserProfile exercises the MkdirAll error
+// branch in ensureAtheonDir on Windows by setting USERPROFILE to a file path.
+func TestDownloadBundleMockMkdirErrorUserProfile(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("USERPROFILE-based test is Windows-only; HOME-based test covers other platforms")
+	}
+	defs := []PatternDef{{Name: "mkdir-err-win", Category: "t", Match: `x`, Enabled: true}}
+	body := buildTestBundleBytes(t, defs)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(body)
+	}))
+	defer srv.Close()
+
+	restore := SetBundleDownloadURL(srv.URL)
+	defer restore()
+
+	tmp := t.TempDir()
+	blocker := filepath.Join(tmp, "blocker")
+	if err := os.WriteFile(blocker, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// USERPROFILE is what os.UserHomeDir() uses on Windows.
+	// Setting it to a file path makes os.MkdirAll(blocker/.atheon) fail.
+	t.Setenv("USERPROFILE", blocker)
+
+	err := DownloadBundle(context.Background())
+	if err == nil {
+		t.Fatal("expected error when USERPROFILE points to a file")
+	}
+}
+
+// TestFetchBundleDataInvalidURL exercises the http.NewRequestWithContext
+// error branch by setting the URL to one with an invalid character.
+func TestFetchBundleDataInvalidURL(t *testing.T) {
+	// A URL containing a null byte (\x00) is rejected by http.NewRequestWithContext.
+	restore := SetBundleDownloadURL("http://\x00invalid-url")
+	defer restore()
+
+	err := DownloadBundle(context.Background())
+	if err == nil {
+		t.Error("expected error from http.NewRequestWithContext with invalid URL")
+	}
+}
+
 // TestDownloadBundleReadAllError exercises the io.ReadAll error branch by
 // using a server that returns chunked transfer encoding and closes mid-stream.
 func TestDownloadBundleReadAllError(t *testing.T) {

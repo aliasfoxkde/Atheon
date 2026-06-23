@@ -1,9 +1,13 @@
 package core_test
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -432,5 +436,154 @@ func TestDownloadBundleNetworkError(t *testing.T) {
 	err := core.DownloadBundle(context.Background())
 	if err == nil {
 		t.Error("expected error for connection failure, got nil")
+	}
+}
+
+// TestDownloadBundleParseError tests DownloadBundle when the server returns non-gzip data.
+func TestDownloadBundleParseError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("this is not gzip data"))
+	}))
+	defer server.Close()
+
+	restoreURL := core.SetBundleDownloadURL(server.URL)
+	defer restoreURL()
+
+	err := core.DownloadBundle(context.Background())
+	if err == nil {
+		t.Error("expected error when response is not a valid gzip bundle, got nil")
+	}
+}
+
+// makeTestBundle creates a minimal valid gzip+JSON bundle with the given pattern names.
+func makeTestBundle(patterns []struct{ name, category, match string }) []byte {
+	type def struct {
+		Name     string `json:"name"`
+		Category string `json:"category"`
+		Match    string `json:"match"`
+		Enabled  bool   `json:"enabled"`
+	}
+	var defs []def
+	for _, p := range patterns {
+		defs = append(defs, def{Name: p.name, Category: p.category, Match: p.match, Enabled: true})
+	}
+	data, _ := json.Marshal(defs)
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	_, _ = gz.Write(data)
+	_ = gz.Close()
+	return buf.Bytes()
+}
+
+// saveRestoreDiskBundle saves ~/.atheon/patterns.bundle (if it exists) and returns
+// a cleanup function that restores it (or deletes it if it did not exist before).
+// This prevents DownloadBundle tests from corrupting the disk state seen by later tests.
+func saveRestoreDiskBundle(t *testing.T) func() {
+	t.Helper()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return func() {}
+	}
+	bundlePath := home + "/.atheon/patterns.bundle"
+	orig, readErr := os.ReadFile(bundlePath)
+	return func() {
+		if readErr != nil {
+			_ = os.Remove(bundlePath)
+		} else {
+			_ = os.WriteFile(bundlePath, orig, 0o600)
+		}
+		core.ReloadBundle()
+	}
+}
+
+// bundleFromPatterns builds a test bundle matching the current in-memory pattern set,
+// optionally dropping dropLast patterns from the end and adding extraNames.
+func bundleFromPatterns(t *testing.T, dropLast int, extra []struct{ name, category, match string }) []byte {
+	t.Helper()
+	patterns := core.All()
+	var pds []struct{ name, category, match string }
+	keep := len(patterns) - dropLast
+	if keep < 0 {
+		keep = 0
+	}
+	for _, p := range patterns[:keep] {
+		pds = append(pds, struct{ name, category, match string }{p.Name(), p.Category(), `\btest\b`})
+	}
+	pds = append(pds, extra...)
+	return makeTestBundle(pds)
+}
+
+// serveBundle starts a test HTTP server that always returns data and returns its URL.
+func serveBundle(t *testing.T, data []byte) (url string, close func()) {
+	t.Helper()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(data)
+	}))
+	return srv.URL, srv.Close
+}
+
+// TestDownloadBundleNoChanges exercises the printBundleDiff default ("no changes") branch.
+// The served bundle has the same pattern names as the current set.
+func TestDownloadBundleNoChanges(t *testing.T) {
+	if len(core.All()) == 0 {
+		t.Skip("no patterns loaded")
+	}
+	restoreDisk := saveRestoreDiskBundle(t)
+	defer restoreDisk()
+
+	bundle := bundleFromPatterns(t, 0, nil) // exact same names → added=[], removed=[]
+	url, closeSrv := serveBundle(t, bundle)
+	defer closeSrv()
+
+	restoreURL := core.SetBundleDownloadURL(url)
+	defer restoreURL()
+
+	if err := core.DownloadBundle(context.Background()); err != nil {
+		t.Logf("DownloadBundle no-changes: %v", err)
+	}
+}
+
+// TestDownloadBundleRemovedOnly exercises the printBundleDiff "removed only" branch.
+// The served bundle drops one pattern and adds no new ones → added=[], removed=[one].
+func TestDownloadBundleRemovedOnly(t *testing.T) {
+	if len(core.All()) < 2 {
+		t.Skip("need at least 2 patterns")
+	}
+	restoreDisk := saveRestoreDiskBundle(t)
+	defer restoreDisk()
+
+	bundle := bundleFromPatterns(t, 1, nil) // drop last pattern → added=[], removed=[dropped]
+	url, closeSrv := serveBundle(t, bundle)
+	defer closeSrv()
+
+	restoreURL := core.SetBundleDownloadURL(url)
+	defer restoreURL()
+
+	if err := core.DownloadBundle(context.Background()); err != nil {
+		t.Logf("DownloadBundle removed-only: %v", err)
+	}
+}
+
+// TestDownloadBundleAddedOnly exercises the printBundleDiff "added" branch with no removals.
+// The served bundle keeps all current patterns and adds one new one → added=[new], removed=[].
+func TestDownloadBundleAddedOnly(t *testing.T) {
+	if len(core.All()) == 0 {
+		t.Skip("no patterns loaded")
+	}
+	restoreDisk := saveRestoreDiskBundle(t)
+	defer restoreDisk()
+
+	extra := []struct{ name, category, match string }{{"test-extra-xyz-unique", "test", `\bxyz\b`}}
+	bundle := bundleFromPatterns(t, 0, extra) // same names + one new → added=[new], removed=[]
+	url, closeSrv := serveBundle(t, bundle)
+	defer closeSrv()
+
+	restoreURL := core.SetBundleDownloadURL(url)
+	defer restoreURL()
+
+	if err := core.DownloadBundle(context.Background()); err != nil {
+		t.Logf("DownloadBundle added-only: %v", err)
 	}
 }

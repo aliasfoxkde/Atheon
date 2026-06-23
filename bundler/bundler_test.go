@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -205,5 +206,47 @@ func TestBundleInvalidRegex(t *testing.T) {
 	_, err := bundle(community, out)
 	if err == nil {
 		t.Error("expected error for invalid regex, got nil")
+	}
+}
+
+// TestBundleToWriterGzipFailure exercises the writeGzipped error path in bundleToWriter.
+type failWriter struct{}
+
+func (failWriter) Write([]byte) (int, error) { return 0, errWriteFail }
+
+var errWriteFail = errors.New("write failed")
+
+func TestBundleToWriterGzipFailure(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/key.yaml": "name: test-key\nmatch: 'AKIAIOSFODNN7EXAMPLE'\n",
+	})
+
+	_, err := bundleToWriter(community, failWriter{})
+	if err == nil {
+		t.Error("expected error from failing writer, got nil")
+	}
+}
+
+// TestWalkPatternsWhitespaceName exercises the whitespace-in-name validation.
+func TestWalkPatternsWhitespaceName(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/bad.yaml": "name: 'bad name'\nmatch: 'foo'\n",
+	})
+
+	_, err := walkPatterns(community)
+	if err == nil {
+		t.Error("expected error for pattern name with whitespace, got nil")
+	}
+}
+
+// TestWalkPatternsMissingName exercises the missing-name-or-match validation.
+func TestWalkPatternsMissingFields(t *testing.T) {
+	community := setupCommunity(t, map[string]string{
+		"secrets/empty.yaml": "name: ''\nmatch: 'foo'\n",
+	})
+
+	_, err := walkPatterns(community)
+	if err == nil {
+		t.Error("expected error for missing name, got nil")
 	}
 }

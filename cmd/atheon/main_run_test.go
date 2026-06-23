@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -274,6 +277,88 @@ func TestRunUpdate(t *testing.T) {
 	code := run(context.Background(), []string{"update"})
 	// Either succeeds or fails; just don't panic
 	_ = code
+}
+
+// TestRunUpdateSuccess exercises the success path of the update command
+// (fmt.Println("patterns updated.") + return 0) using a local test server.
+func TestRunUpdateSuccess(t *testing.T) {
+	type pd struct {
+		Name     string `json:"name"`
+		Category string `json:"category"`
+		Match    string `json:"match"`
+		Enabled  bool   `json:"enabled"`
+	}
+	defs := []pd{{"update-ok-pattern", "test", `\bOK\b`, true}}
+
+	data, _ := json.Marshal(defs)
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	_, _ = gz.Write(data)
+	_ = gz.Close()
+	body := buf.Bytes()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(body)
+	}))
+	defer srv.Close()
+
+	restoreURL := core.SetBundleDownloadURL(srv.URL)
+	defer restoreURL()
+
+	// Save and restore the on-disk bundle so the test is non-destructive.
+	home, _ := os.UserHomeDir()
+	diskBundle := filepath.Join(home, ".atheon", "patterns.bundle")
+	origBundle, origErr := os.ReadFile(diskBundle)
+	defer func() {
+		if origErr == nil {
+			_ = os.WriteFile(diskBundle, origBundle, 0o600)
+		} else {
+			_ = os.Remove(diskBundle)
+		}
+		core.ReloadBundle()
+	}()
+
+	if code := run(context.Background(), []string{"update"}); code != 0 {
+		t.Errorf("expected exit 0 from update with valid local server, got %d", code)
+	}
+}
+
+// TestRunStdinNoFindings exercises the stdin return-0 branch when content
+// has no pattern matches.
+func TestRunStdinNoFindings(t *testing.T) {
+	orig := os.Stdin
+	defer func() { os.Stdin = orig }()
+
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	go func() {
+		// Empty input — no lines to scan, so no findings.
+		_ = w.Close()
+	}()
+	os.Stdin = r
+
+	if code := run(context.Background(), []string{"-"}); code != 0 {
+		t.Errorf("expected exit 0 for clean stdin, got %d", code)
+	}
+}
+
+// TestRunDefaultFileCancelledCtx exercises the error branch in run's default
+// path when the context is already cancelled before calling ScanFile/ScanDir.
+func TestRunDefaultFileCancelledCtx(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // pre-cancel so ScanFile returns ctx.Err()
+
+	tmp := filepath.Join(t.TempDir(), "test.txt")
+	if err := os.WriteFile(tmp, []byte("no secrets"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if code := run(ctx, []string{tmp}); code != 1 {
+		t.Errorf("expected exit 1 for cancelled context, got %d", code)
+	}
 }
 
 // TestRunUpdateDownloadError exercises the update DownloadBundle error
