@@ -93,13 +93,120 @@ Also present (check status): `pr/155-157-scan-errors`, `pr/177-fix-build-and-ci-
 
 ---
 
-## Code Quality: main.go Coverage Gap
+## GitHub Settings: What to Set Up
 
-A previous Codecov report flagged `main.go` at 5.88% patch coverage (16 missing lines). This is from the CLI-layer functions (`printSARIFFindings`, `buildSARIFRules`, `buildSARIFResults`, `cmdList`, `printHelp`, `redact`, `formatBytes`) which are exercised by integration tests but not unit tests with coverage instrumentation.
+Assessed for this specific project — Go CLI + pattern library, public open-source, single maintainer.
 
-**To fix:** Add a `cmd/atheon/main_test.go` that tests the CLI output functions directly — invoke `printFindings`, `printJSONFindings`, `printSARIFFindings` with captured stdout. This is straightforward table-driven test work.
+### ✅ GitHub Pages → Build and Deployment
 
-> **Recommendation:** Target this in the next sprint. Patch coverage below 80% will block PRs once Codecov is properly configured. Addressing it proactively avoids pressure later.
+**Should you set it up? Yes.**
+
+The `docs/` folder already contains substantial documentation. GitHub Pages publishes it as a browsable website with zero extra tooling.
+
+**Setup (2 minutes):**
+1. Settings → Pages → Source → **Deploy from a branch**
+2. Branch: `main` · Folder: `/docs`
+3. Save — the site goes live at `https://aliasfoxkde.github.io/Atheon-Enhanced/`
+
+GitHub auto-detects Jekyll and renders `.md` files as HTML. To customize the theme, add `docs/_config.yml`:
+
+```yaml
+theme: jekyll-theme-cayman
+title: Atheon-Enhanced
+description: Pattern-matching engine for secrets, PII, and code quality
+```
+
+> **Recommendation:** Do this now. A docs site significantly improves discoverability and makes the project look more professional. All the content already exists.
+
+---
+
+### ✅ Secrets and Variables → Actions Variables
+
+**Should you set it up? Yes — Variables only. Secrets already covered by `CODECOV_TOKEN`.**
+
+`go-version: '1.23'` appears 15+ times across workflows. The 70% coverage threshold is in 6 places. The 250-pattern count gate is in 2 places. These are maintenance liabilities — one Go release means 15 edits.
+
+**Variables to create** (Settings → Secrets and variables → Actions → Variables tab → New repository variable):
+
+| Variable | Value | Used in |
+|----------|-------|---------|
+| `GO_VERSION` | `1.23` | All workflow `go-version:` pins |
+| `COVERAGE_THRESHOLD` | `70` | Coverage check steps in ci.yml, quality-assurance.yml |
+| `MIN_PATTERN_COUNT` | `250` | Pattern count validation in self-scan.yml, security-scanning.yml |
+
+**Reference in workflows** with `${{ vars.GO_VERSION }}` — note `vars.` not `secrets.`.
+
+> **Recommendation:** Create these three Variables, then open a single PR to replace the hardcoded values across all workflows. When Go 1.24 becomes the standard pin, it's one edit instead of fifteen.
+
+---
+
+### ✅ Environments
+
+**Should you set it up? Yes — one environment: `release`.**
+
+The scheduled release workflow (`.github/workflows/scheduled-release.yml`) currently runs on the 10th and 21st with no human gate. A protection rule prevents accidental automated releases if a workflow bug fires early.
+
+**Setup:**
+1. Settings → Environments → New environment → name it `release`
+2. Under **Deployment protection rules**, enable **Required reviewers** → add yourself (`aliasfoxkde`)
+3. In `.github/workflows/scheduled-release.yml`, add `environment: release` to the release job
+
+That's it — every release will pause for your approval before creating the GitHub release tag.
+
+> **Recommendation:** Also create a `staging` environment linked to the `dev/testing` branch if you ever add a deployment step there. Not needed now, but naming it early avoids confusion later.
+
+---
+
+### ✅ Copilot Cloud Agent (Conditional)
+
+**Should you set it up? Yes, if you have a GitHub Copilot subscription.**
+
+GitHub Copilot's cloud agent can automatically respond to new issues with suggested context, triage labels, or draft answers. For Atheon, the highest-value use case is **auto-responding to false positive reports** — the agent can look up the matching pattern YAML and explain why it fired.
+
+**Setup:**
+1. Settings → Copilot → Policies → Enable **Copilot in GitHub.com**
+2. Under **Copilot for Issues**, enable auto-triage
+3. Optionally add a `.github/copilot-instructions.md` to prime the agent with Atheon context:
+
+```markdown
+This repo is a Go pattern-matching engine. Patterns live in community/<category>/<name>.yaml.
+When responding to false positive reports, look up the pattern name in community/ and explain
+the regex. Suggest tightening the match with keyword context requirements.
+```
+
+> **Recommendation:** If you have Copilot, enable it. False positive issue responses are the bottleneck for community trust — automated first responses with pattern context save significant maintainer time.
+
+---
+
+### ⏸ Webhooks — Low Priority
+
+**Should you set it up? Only if you have a Discord/Slack community.**
+
+Webhooks send POST requests to an external URL on repo events (push, PR open, release, etc.). The main use case for this project would be a Discord bot announcement when a new release is published.
+
+If you start a Discord server: Settings → Webhooks → Add webhook → paste the Discord webhook URL → select **Releases** event only. Everything else (PRs, pushes) is noisy and not worth the signal-to-noise cost.
+
+> **Recommendation:** Skip for now. Set it up when/if you create a community Discord or Slack.
+
+---
+
+### ⏸ Deploy Keys — Not Needed
+
+**Should you set it up? No.**
+
+Deploy keys are SSH keypairs granting read or read/write access to a single repo from an external system. All CI/CD in this project uses `GITHUB_TOKEN` (automatic, scoped to the workflow run) which is already configured with the right permissions in each workflow's `permissions:` block.
+
+Deploy keys would only be needed if an external system outside GitHub Actions needed to push to this repo. Nothing in this project requires that.
+
+---
+
+### ⏸ Code Review Limits — Premature
+
+**Should you set it up? Not yet.**
+
+Code review limits (Settings → Moderation → Code review limits) restrict PR comment/approval ability to collaborators and repository members only, preventing strangers from approving PRs.
+
+This is valuable for high-traffic projects where random users submit approvals. With current contribution volume, it adds friction without benefit. Revisit when community PR volume picks up.
 
 ---
 
