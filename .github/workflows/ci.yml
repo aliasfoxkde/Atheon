@@ -56,11 +56,13 @@ jobs:
           files: report.xml
 
       - name: Check coverage threshold
+        env:
+          COVERAGE_THRESHOLD: ${{ vars.COVERAGE_THRESHOLD || '70' }}
         run: |
           coverage=$(go tool cover -func=coverage.out | grep total: | awk '{print $3}' | sed 's/%//' | cut -d. -f1)
-          echo "Coverage: $coverage%"
-          if [ "$coverage" -lt 70 ]; then
-            echo "Coverage $coverage% is below minimum 70%"
+          echo "Coverage: $coverage% (threshold: ${COVERAGE_THRESHOLD}%)"
+          if [ "$coverage" -lt "$COVERAGE_THRESHOLD" ]; then
+            echo "Coverage $coverage% is below minimum ${COVERAGE_THRESHOLD}%"
             exit 1
           fi
 
@@ -137,7 +139,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6.5.2

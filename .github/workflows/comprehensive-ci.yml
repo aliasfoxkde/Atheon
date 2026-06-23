@@ -87,7 +87,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
 
       - name: Run go vet
@@ -114,7 +114,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
 
       - name: Build Atheon
@@ -156,7 +156,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
 
       - name: Run benchmarks
@@ -201,7 +201,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
 
       - name: Run integration tests

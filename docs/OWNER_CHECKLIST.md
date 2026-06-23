@@ -1,7 +1,7 @@
 # Owner Checklist & Recommendations
 
 Comprehensive list of setup tasks, pending work, and recommendations for `aliasfoxkde/Atheon-Enhanced`.
-Last updated: 2026-06-23. See also: [docs/integrations/mcp.md](integrations/mcp.md) | [docs/integrations/github-agents.md](integrations/github-agents.md)
+Last updated: 2026-06-23. See also: [docs/integrations/mcp.md](integrations/mcp.md) | [docs/integrations/github-agents.md](integrations/github-agents.md) | [docs/integrations/pre-commit.md](integrations/pre-commit.md) | [docs/patterns/contributing-patterns.md](patterns/contributing-patterns.md)
 
 ---
 
@@ -229,43 +229,52 @@ Cross-reference against any branch you plan to delete. If the branch name appear
 
 ## Automation Gaps
 
-### Dependabot
+### ✅ Dependabot — configured
 
-No Dependabot configuration exists. GitHub Actions and Go modules are not automatically updated.
+`.github/dependabot.yml` is now in place. Dependabot will open weekly PRs to update Go modules and pinned GitHub Actions hashes.
 
-Create `.github/dependabot.yml`:
+### ✅ goreleaser — configured
 
-```yaml
-version: 2
-updates:
-  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+`.goreleaser.yml` is at the repo root. On each `v*-enhanced` tag push, `publish.yml` invokes goreleaser to produce signed, checksummed binaries for linux/mac/windows (amd64 + arm64). Both `atheon` and `atheon-mcp` are included.
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-```
+**Note:** The homebrew and scoop taps referenced in `.goreleaser.yml` require `GH_PAT` secret and the `aliasfoxkde/homebrew-Atheon-Enhanced` / `aliasfoxkde/scoop-Atheon-Enhanced` repos to exist. Create those repos (they can be empty initially) and add a PAT with repo write access as the `GH_PAT` secret. Until then, goreleaser will build binaries but skip tap updates.
 
-> **Recommendation:** Add this. Actions pinned to hashes (as this repo does) won't auto-update without Dependabot — security patches to actions like `checkout` and `setup-go` will be missed.
+### ✅ SECURITY.md — created
 
-### goreleaser
+`SECURITY.md` is at the repo root with responsible disclosure policy, supported versions, and response timeline.
 
-Binary releases are currently manual (the scheduled release workflow creates GitHub releases but does not attach compiled binaries). Adding goreleaser would produce signed, checksummed binaries for linux/mac/windows/arm automatically on each release.
+### ✅ Actions Variables — document and create
 
-Create `.goreleaser.yml` at the repo root and update the release workflow to call `goreleaser release`. The goreleaser action is free for open-source projects.
+All workflow files now use `${{ vars.GO_VERSION || '1.23' }}` and `${{ vars.COVERAGE_THRESHOLD || '70' }}` with hardcoded fallbacks. Create the variables in GitHub Settings to control these centrally:
 
-> **Recommendation:** Medium priority. Users can build from source with `go build`, but binary releases significantly lower the barrier for non-Go users.
+**Settings → Secrets and variables → Actions → Variables tab → New repository variable**
 
-### SECURITY.md
+| Variable | Value | Effect |
+|----------|-------|--------|
+| `GO_VERSION` | `1.23` | Go version for all build/test/lint jobs |
+| `COVERAGE_THRESHOLD` | `70` | Minimum coverage % gate in CI and quality-assurance |
+| `MIN_PATTERN_COUNT` | `250` | (future use) Pattern count gate |
 
-No responsible disclosure policy exists. GitHub recommends this file in the repo root (or `docs/` or `.github/`).
+### ✅ Release version scheme — fixed
 
-> **Recommendation:** Add a short `SECURITY.md` with: supported versions, how to report a vulnerability (private disclosure email or GitHub private advisory), and expected response time. This is a one-time 15-minute task.
+`scheduled-release.yml` now auto-increments the patch version from the last `v*-enhanced` tag (e.g., `v1.3.0-enhanced` → `v1.3.1-enhanced`) instead of the previous broken `0.4.$(date +%y%m%d)` scheme.
+
+### ✅ Release environment gate — configured
+
+The `release` job in `scheduled-release.yml` now has `environment: release`. Create the environment in GitHub Settings with yourself as required reviewer so each release pauses for approval.
+
+**Settings → Environments → New environment → `release` → Required reviewers → add `aliasfoxkde`**
+
+### ✅ Community pattern review — automated
+
+`.github/workflows/community-pattern-review.yml` runs on PRs that touch `community/**/*.yaml`. It:
+1. Validates YAML schema (required fields, severity values)
+2. Calls GitHub Models API (GPT-4o-mini, free with `GITHUB_TOKEN`) to review regex breadth and test case coverage
+3. Posts a review comment on the PR
+
+### ✅ Copilot instructions — created
+
+`.github/copilot-instructions.md` provides Atheon context to GitHub Copilot cloud agent for issue triage, false positive responses, and PR review guidance.
 
 ---
 
@@ -341,14 +350,18 @@ See [docs/integrations/github-agents.md](integrations/github-agents.md) for the 
 
 ---
 
-## Documentation Gaps
+## Documentation
 
-| Missing doc | Priority | Notes |
-|-------------|---------|-------|
-| `docs/patterns/contributing-patterns.md` | High | End-to-end guide: YAML schema, test cases, FP risk, PR process |
-| `SECURITY.md` | High | Responsible disclosure policy |
-| `docs/integrations/pre-commit.md` | Medium | How to install the pre-commit hook from `.hooks/` |
-| `docs/integrations/github-models-pattern-review.md` | Medium | Workflow for AI-assisted pattern review using GitHub Models API |
+| Doc | Status | Notes |
+|-----|--------|-------|
+| `docs/patterns/contributing-patterns.md` | ✅ Created | YAML schema, RE2 constraints, FP testing, PR checklist |
+| `SECURITY.md` | ✅ Created | Responsible disclosure, supported versions, response SLA |
+| `docs/integrations/pre-commit.md` | ✅ Created | Hook installation, what runs when, troubleshooting |
+| `docs/integrations/mcp.md` | ✅ Created | Claude Desktop, VS Code, Cursor, Windsurf setup |
+| `docs/integrations/github-agents.md` | ✅ Created | GitHub Models API, Agentic Workflows, Copilot Extensions |
+| `.github/copilot-instructions.md` | ✅ Created | Copilot cloud agent context for issue triage |
+| `docs/development.md` | ✅ Created | Branch strategy, local setup, release process |
+| `docs/OWNER_CHECKLIST.md` | ✅ (this file) | Setup tasks, recommendations, maintenance |
 
 ---
 

@@ -49,6 +49,8 @@ jobs:
           fi
 
       - name: Check coverage
+        env:
+          COVERAGE_THRESHOLD: ${{ vars.COVERAGE_THRESHOLD || '70' }}
         run: |
           # Check if coverage file exists (tests may have been cancelled or failed)
           if [ ! -f coverage.out ]; then
@@ -57,10 +59,10 @@ jobs:
           fi
 
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | cut -d. -f1)
-          echo "Coverage: $COVERAGE%"
+          echo "Coverage: $COVERAGE% (threshold: ${COVERAGE_THRESHOLD}%)"
           # Use cut -d. -f1 to truncate decimal before comparison for cross-platform compatibility
-          if [ "$COVERAGE" -lt 70 ]; then
-            echo "❌ Coverage $COVERAGE% is below 70% threshold"
+          if [ "$COVERAGE" -lt "$COVERAGE_THRESHOLD" ]; then
+            echo "❌ Coverage $COVERAGE% is below ${COVERAGE_THRESHOLD}% threshold"
             exit 1
           fi
           echo "✅ Coverage $COVERAGE% meets threshold"
@@ -86,7 +88,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
 
       - name: Run basic tests (no race detection on Windows)
@@ -125,7 +127,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
 
       - name: Go vet static analysis
@@ -192,7 +194,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
 
       - name: Run benchmarks
@@ -209,7 +211,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
 
       - name: Build binaries
@@ -303,7 +305,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
 
       - name: Generate coverage report
