@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -96,7 +97,7 @@ func syncPatternState() error {
 func InitializePatternState() error {
 	state, err := loadPatternState()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "warning: failed to load pattern state: %v\n", err)
+		slog.Warn("failed to load pattern state", "err", err)
 		return err
 	}
 

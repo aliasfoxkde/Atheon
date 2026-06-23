@@ -1,0 +1,3 @@
+name: fmt-println-prod
+match: 'fmt\.Print(ln|lnf)?\s*\('
+enabled: true

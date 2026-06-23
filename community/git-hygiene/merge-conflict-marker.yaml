@@ -1,0 +1,3 @@
+name: merge-conflict-marker
+match: '<<<<<<<|=======|>>>>>>>'
+enabled: true

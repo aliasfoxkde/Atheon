@@ -1,0 +1,3 @@
+name: sleep-in-test
+match: 'time\.Sleep\s*\('
+enabled: true

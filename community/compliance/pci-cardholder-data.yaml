@@ -1,0 +1,3 @@
+name: pci-cardholder-data
+match: '(card[-_]holder|cardholder|pan|card[-_]number)\s*[:=]\s*\d'
+enabled: true

@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -21,6 +22,10 @@ var binaryExts = map[string]bool{
 	".pdf": true, ".zip": true, ".tar": true, ".gz": true,
 	".exe": true, ".bin": true, ".so": true, ".dylib": true,
 }
+
+// maxFileSize is the maximum file size to scan (10MB default).
+// Files larger than this are skipped to prevent memory exhaustion.
+const maxFileSize = 10 * 1024 * 1024
 
 func loadIgnorePatternsMatcher(root string) []*ignoreMatcher {
 	var matchers []*ignoreMatcher
@@ -66,6 +71,15 @@ func ScanFile(ctx context.Context, path string) ([]Finding, *Stats, error) {
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
+	}
+	// Check file size to prevent memory exhaustion
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, nil, err
+	}
+	if info.Size() > maxFileSize {
+		slog.Warn("skipping file exceeds size limit", "path", path, "size", info.Size(), "limit", maxFileSize)
+		return []Finding{}, &Stats{Files: 1, Bytes: info.Size()}, nil
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -245,10 +259,14 @@ func scanLines(ctx context.Context, content, file string) []Finding {
 			}
 			for _, p := range cs.patterns {
 				if p.Matches(line) {
+					lineNum := i + 1
+					if lineNum == 0 {
+						lineNum = 1
+					}
 					findings = append(findings, Finding{
 						Pattern: p.Name(),
 						File:    file,
-						Line:    i + 1,
+						Line:    lineNum,
 						Content: strings.TrimSpace(line),
 					})
 				}

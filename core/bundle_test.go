@@ -12,6 +12,18 @@ type patternCase struct {
 	nonMatches []string
 }
 
+// TestReloadBundle exercises ReloadBundle to restore embedded bundle state
+func TestReloadBundle(t *testing.T) {
+	// Just exercise ReloadBundle - it should reset to embedded bundle
+	core.ReloadBundle()
+
+	// Verify patterns are still accessible after reload
+	patterns := core.All()
+	if len(patterns) == 0 {
+		t.Error("expected patterns after ReloadBundle")
+	}
+}
+
 func TestRegisteredPatterns(t *testing.T) {
 	cases := map[string]patternCase{
 		"ssn": {
