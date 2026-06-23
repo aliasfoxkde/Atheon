@@ -226,10 +226,10 @@ func printSARIFFindings(findings []core.Finding) {
 			{
 				"tool": map[string]any{
 					"driver": map[string]any{
-						"name":            "Atheon",
-						"version":         version,
-						"informationUri":  "https://github.com/aliasfoxkde/Atheon-Enhanced",
-						"rules":           buildSARIFRules(findings),
+						"name":           "Atheon",
+						"version":        version,
+						"informationUri": "https://github.com/aliasfoxkde/Atheon-Enhanced",
+						"rules":          buildSARIFRules(findings),
 					},
 				},
 				"results": buildSARIFResults(findings),
@@ -250,9 +250,9 @@ func buildSARIFRules(findings []core.Finding) []map[string]any {
 		}
 		seen[f.Pattern] = true
 		rules = append(rules, map[string]any{
-			"id":    f.Pattern,
-			"name":  f.Pattern,
-			"kind":  "rule",
+			"id":   f.Pattern,
+			"name": f.Pattern,
+			"kind": "rule",
 			"properties": map[string]any{
 				"security-severity": "High",
 			},
