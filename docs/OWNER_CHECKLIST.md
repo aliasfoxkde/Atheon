@@ -1,7 +1,7 @@
 # Owner Checklist & Recommendations
 
 Comprehensive list of setup tasks, pending work, and recommendations for `aliasfoxkde/Atheon-Enhanced`.
-Last updated: 2026-06-23.
+Last updated: 2026-06-23. See also: [docs/integrations/mcp.md](integrations/mcp.md) | [docs/integrations/github-agents.md](integrations/github-agents.md)
 
 ---
 
@@ -178,6 +178,62 @@ Current count: 255 patterns across all categories.
 
 ---
 
+## MCP Server (`atheon-mcp`)
+
+The MCP server source is at `cmd/mcp/` but no `atheon-mcp.exe` binary is built locally yet.
+
+**Build it:**
+```bash
+go build -o atheon-mcp.exe ./cmd/mcp   # Windows
+go build -o atheon-mcp ./cmd/mcp        # Linux/macOS
+```
+
+**Configure with Claude Desktop / VS Code / Cursor:** See [docs/integrations/mcp.md](integrations/mcp.md) for full per-client setup instructions.
+
+**Distribute to users:** Add `atheon-mcp` as a release artifact via goreleaser (see Automation Gaps below) so users without Go can download and use it.
+
+---
+
+## GitHub AI Agents & Models Integration
+
+See [docs/integrations/github-agents.md](integrations/github-agents.md) for the full guide. Summary of what's available free for public repos:
+
+| Feature | Status | Cost | Best use for Atheon |
+|---------|--------|------|---------------------|
+| GitHub Models API | Live | Free (rate-limited) | Auto-review new community pattern PRs |
+| GitHub Agentic Workflows | Technical preview | Free in preview | PR summarization, pattern suggestion |
+| MCP in Copilot Chat | Live | Free (needs Copilot) | Users scanning code via chat |
+| Copilot Workspace | Live | Paid | Reviewing complex upstream PRs |
+
+**Recommended first step:** Add a `community-pattern-review.yml` workflow that calls GitHub Models API (`GITHUB_TOKEN` auth, no extra secrets) to review new pattern YAML files for regex breadth and missing test cases on each PR. Zero cost, immediate value.
+
+---
+
+## Should You Use Cheaper AI Models for This Work?
+
+**Short answer: Yes, selectively.**
+
+| Task | Recommended model | Why |
+|------|------------------|-----|
+| Writing/updating docs | Haiku 4.5 or GPT-4o-mini | Structured, low-ambiguity task — fast and cheap |
+| Expanding pattern library (new YAML patterns) | Haiku 4.5 | Templated output, clear schema |
+| Reviewing PRs for obvious issues | GPT-4o-mini via GitHub Models | Free with `GITHUB_TOKEN` |
+| Coverage improvement (adding test stubs) | Haiku 4.5 | Mechanical — copy existing test structure |
+| Debugging CI failures / jq/regex issues | Sonnet 4.6 | Requires reasoning over multi-file context |
+| Architectural decisions | Sonnet 4.6 or Opus 4.7 | Needs full project context and judgment |
+| Security pattern design (FP analysis) | Sonnet 4.6 | Subtle — cheap models tend to miss edge cases |
+
+**How to route:** In Claude Code, use `/effort low` for docs and test-stub tasks (routes to faster, cheaper processing). Use the default for debugging and architecture.
+
+**What "cheap AI" gets wrong on this codebase:**
+- jq filter syntax (the `select((COND) | not)` vs `select(COND) | not` bug happened in a low-context state)
+- Regex edge cases in patterns (false positive risk is subtle)
+- Multi-file CI debugging (needs full workflow + script context simultaneously)
+
+**Rule of thumb:** If the output is templated and verifiable by a linter or test, cheap is fine. If the output requires judgment that a human would need to think about, use the stronger model.
+
+---
+
 ## Documentation Gaps
 
 | Missing doc | Priority | Notes |
@@ -185,8 +241,7 @@ Current count: 255 patterns across all categories.
 | `docs/patterns/contributing-patterns.md` | High | End-to-end guide: YAML schema, test cases, FP risk, PR process |
 | `SECURITY.md` | High | Responsible disclosure policy |
 | `docs/integrations/pre-commit.md` | Medium | How to install the pre-commit hook from `.hooks/` |
-| `docs/integrations/vscode.md` | Low | Using Atheon with VS Code tasks or the MCP server |
-| `docs/api/mcp.md` | Medium | MCP server endpoints, message format, client examples |
+| `docs/integrations/github-models-pattern-review.md` | Medium | Workflow for AI-assisted pattern review using GitHub Models API |
 
 ---
 
