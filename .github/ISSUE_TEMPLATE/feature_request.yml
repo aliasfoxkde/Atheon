@@ -1,0 +1,55 @@
+name: Feature Request
+description: Suggest an idea or enhancement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature requests are welcome. The more context you give, the better we can evaluate fit and priority.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation where you hit this limitation.
+      placeholder: When scanning a monorepo, I have no way to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like to see? CLI flags, config options, behavior changes.
+      placeholder: A `--exclude-dir` flag that...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      placeholder: I tried using `.atheonignore` but it doesn't support...
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - CLI / UX
+        - Pattern engine / matching
+        - Pattern library
+        - CI/CD integration
+        - MCP server
+        - Configuration / profiles
+        - Documentation
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Examples, links, related issues, mockups.
