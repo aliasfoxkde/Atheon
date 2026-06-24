@@ -208,7 +208,17 @@ docs/
 ├── CONFIGURATION_GUIDE.md (profile usage)
 ├── BRANCH_STRATEGY.md (branch documentation)
 ├── TESTING_GUIDE.md (testing procedures)
-└── CHANGELOG.md (version history)
+├── CHANGELOG.md (version history)
+├── ANALYSIS_REPORT.md (audit findings, 2026-06-23)
+├── PLAN.md / TASKS.md / PROGRESS.md (sprint tracking)
+├── architecture/
+│   ├── PATTERN_CATEGORIES.md
+│   ├── SYSTEM_ARCHITECTURE.md
+│   └── decisions/             ← ADRs (Architecture Decision Records)
+│       ├── 0001-pattern-yaml-format.md
+│       ├── 0002-ci-workflow-consolidation.md
+│       └── 0003-mcp-server-design.md
+└── reports/                   ← historical planning + per-feature deep dives
 ```
 
 ### **Code Organization**
