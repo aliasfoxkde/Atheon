@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: ${{ matrix.go-version }}
           cache: true
@@ -80,7 +80,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: '1.23'
           cache: true
@@ -90,13 +90,19 @@ jobs:
 
       - name: staticcheck
         run: |
-          go install honnef.co/go/tools/cmd/staticcheck@2024.1
+          # staticcheck 2024.1 predates Go 1.24 and emits internal import
+          # version errors against the standard library shipped with Go 1.24.
+          # v0.6.1 supports Go 1.23-1.24. v0.7.0 requires Go 1.25.
+          go install honnef.co/go/tools/cmd/staticcheck@v0.6.1
           staticcheck ./...
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6.5.2
+        uses: golangci/golangci-lint-action@db582008a42febd596419635a5abc9d9815daa9c # v9.2.1
         with:
-          version: v1.64.8
+          # golangci-lint-action >= v7 requires golangci-lint v2. The action
+          # default (latest v2 release) requires Go ≥ 1.24, so we pin to v2.5.0
+          # which still supports Go 1.23 — matching the rest of the lint job.
+          version: v2.5.0
           args: --timeout=5m
 
       - name: Format check
@@ -113,10 +119,13 @@ jobs:
         # goimports groups stdlib/third-party/local imports. gofmt handles
         # whitespace only, so goimports catches missing/extra imports that
         # gofmt won't.
+        # Pin to v0.30.0 — setup-go v6 sets GOTOOLCHAIN=local, which forces
+        # the runner's Go 1.23 toolchain; the latest x/tools (v0.46+) requires
+        # Go ≥ 1.25 and would fail to install. v0.30.0 supports Go 1.23.
         run: |
           if ! command -v goimports >/dev/null 2>&1; then
             echo "::group::Installing goimports"
-            go install golang.org/x/tools/cmd/goimports@latest
+            go install golang.org/x/tools/cmd/goimports@v0.30.0
             echo "::endgroup::"
           fi
           UNFORMATTED="$(goimports -l .)"
@@ -166,7 +175,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: '1.23'
           cache: true
@@ -214,7 +223,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: '1.23'
           cache: true
@@ -263,7 +272,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: '1.23'
           cache: true
@@ -346,7 +355,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: '1.23'
           cache: true
