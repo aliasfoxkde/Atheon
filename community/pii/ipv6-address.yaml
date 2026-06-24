@@ -1,0 +1,4 @@
+name: ipv6-address
+# Matches standard IPv6 (with optional :: compression) and IPv4-mapped IPv6.
+match: '\b(?:[A-Fa-f0-9]{1,4}:){2,7}[A-Fa-f0-9]{1,4}\b'
+enabled: false

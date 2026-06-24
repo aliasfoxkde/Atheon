@@ -1,0 +1,4 @@
+name: canada-social-insurance-number
+# Canadian SIN: 9 digits, typically formatted 123-456-789 or 123 456 789.
+match: '\b\d{3}[- ]\d{3}[- ]\d{3}\b'
+enabled: false
