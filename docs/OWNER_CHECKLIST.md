@@ -33,14 +33,15 @@ No secrets are currently configured. Several CI features are silently degraded u
 
 ## IMMEDIATE: Open Pull Requests to Merge
 
-Both PRs are CI-tested and ready.
+PRs currently in CI — will auto-merge once checks pass:
 
 | PR | Branch | What it does |
 |----|--------|-------------|
-| [#53](https://github.com/aliasfoxkde/Atheon-Enhanced/pull/53) | `feat/codecov-integration` | Codecov v5.4.2, live README badge, `codecov.yml` config |
-| [#54](https://github.com/aliasfoxkde/Atheon-Enhanced/pull/54) | `fix/funding-yml-github-sponsors` | Removes unenrolled `github: aliasfoxkde` from FUNDING.yml |
+| [#77](https://github.com/aliasfoxkde/Atheon-Enhanced/pull/77) | `feat/docs-phase-a-restoration` | Fill planning docs, AGENTS.md, fix broken links, sync counts |
+| [#78](https://github.com/aliasfoxkde/Atheon-Enhanced/pull/78) | `fix/post-audit-cleanup` | Parameterize security.yml go-version, add release environment gate, fix stale doc references |
+| [#79](https://github.com/aliasfoxkde/Atheon-Enhanced/pull/79) | `fix/remaining-gaps-phase2` | Pattern counts (274), debug docs fix, wiki workflow, sync.yml docs |
 
-> **Recommendation:** Merge #54 first (1-line fix, unblocks the Sponsor button error). Then merge #53 after adding `CODECOV_TOKEN` so the badge works immediately on merge.
+> PRs #53 and #54 were merged earlier in this session.
 
 ---
 
@@ -212,18 +213,19 @@ This is valuable for high-traffic projects where random users submit approvals. 
 
 ## Stale Branch Cleanup
 
-After enabling "Automatically delete head branches," future merged PRs clean themselves up. For existing stale branches:
+After enabling "Automatically delete head branches," future merged PRs clean themselves up. 13 stale merged branches were deleted in the 2026-06-24 audit pass. Remaining:
 
-**Branches safe to delete** (no open upstream PR association):
-- `stable/clean` — protected; remove protection first (see above), then delete
-- `pr/177-v2-clean` — verify no open upstream PR, then delete
-- `pr/177-fix-build-and-ci-lint-schema-timeout` — verify no open upstream PR, then delete
+**Branches requiring owner action:**
+- `stable/clean` — has a protection rule preventing deletion. Steps:
+  1. Settings → Branches → find the `stable/clean` protection rule → delete it
+  2. Then: `git push origin --delete stable/clean`
+  3. Also: delete or disable `.github/workflows/sync.yml` (it syncs to this branch and is currently non-functional due to the protection rule)
 
-**To verify before deleting any `pr/*` branch:**
+**`pr/*` branches — check before touching:**
 ```bash
 gh api "repos/HoraDomu/Atheon/pulls?state=open&per_page=50" -q '.[] | .head.ref'
 ```
-Cross-reference against any branch you plan to delete. If the branch name appears, do not delete it.
+Only the 4 currently-open upstream PRs have active `pr/*` branches: `pr/158-deterministic-list`, `pr/156-json-flag`, `pr/146-147-148-perf`, `pr/149-patterns-expansion`. Do not delete those. Any other `pr/*` branch can be verified and deleted if its upstream PR is closed.
 
 ---
 
@@ -278,19 +280,43 @@ Security: fork PRs are blocked by `if: github.event.pull_request.head.repo.full_
 
 `.github/copilot-instructions.md` provides Atheon context to GitHub Copilot cloud agent for issue triage, false positive responses, and PR review guidance.
 
+### ✅ Wiki publishing — automated
+
+`.github/workflows/wiki.yml` publishes `.github/wiki/*.md` to the GitHub Wiki tab on every push to main. The workflow is a no-op if the wiki has not been enabled yet.
+
+**Enable the Wiki (one-time):** Settings → Features → Wikis → enable. Then create at least one page via the GitHub UI (this initializes the wiki repo). After that, the workflow will sync automatically.
+
+### ⚠ sync.yml — non-functional until stable/clean protection removed
+
+`.github/workflows/sync.yml` attempts to push to `stable/clean`, which has a branch protection rule. The workflow will fail if triggered. See "Stale Branch Cleanup" above for the owner action required.
+
 ---
 
 ## Pattern Library Roadmap
 
-Current count: 255 patterns across all categories.
+Current count: 274 patterns across all categories (verified 2026-06-24).
 
-| Category | Estimated count | Growth opportunity |
-|----------|-----------------|--------------------|
-| secrets | ~80 | Cloud provider tokens, new SaaS APIs |
-| pii | ~40 | Regional ID formats (EU, AU, CA) |
-| code-quality | ~60 | Language-specific anti-patterns |
-| devops | ~50 | Kubernetes, Terraform, GitHub Actions misconfigs |
-| ai-detection | ~25 | Emerging AI prompt injection patterns |
+| Category | Actual count | Growth opportunity |
+|----------|-------------|-------------------|
+| secrets | 68 | Cloud provider tokens, new SaaS APIs |
+| code-quality | 35 | Language-specific anti-patterns |
+| accessibility | 19 | WCAG 2.2 AA/AAA patterns |
+| security-hardening | 18 | Insecure function calls, weak crypto |
+| web-security | 15 | XSS, SQLi, CORS misconfigs |
+| pii | 15 | Regional ID formats (EU, AU, CA) |
+| cloud-native | 14 | Kubernetes, Terraform, AWS misconfigs |
+| web-development | 12 | Frontend anti-patterns |
+| performance | 12 | Algorithmic anti-patterns |
+| devops | 9 | CI/CD bypass flags, pipeline secrets |
+| api-integration | 9 | Insecure API usage |
+| ai-detection | 9 | AI-generated code markers, prompt injection |
+| frameworks | 8 | Django, Node.js, React anti-patterns |
+| healthcare | 7 | HIPAA-relevant data patterns |
+| finance | 6 | PCI-relevant patterns |
+| pwa | 5 | Progressive web app patterns |
+| data-visualization | 5 | Chart library misuse |
+| git-hygiene | 4 | Git secrets, credential leaks |
+| compliance | 4 | GDPR, CCPA patterns |
 
 > **Recommendation:** Use real-world project scans (Atheon on your own codebases) as the primary signal for which patterns have the most false positives. The self-scan CI loop will surface these automatically. Prioritize tightening over expanding — a pattern that fires accurately on 5 cases is more valuable than one that fires noisily on 50.
 

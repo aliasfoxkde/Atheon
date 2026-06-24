@@ -231,11 +231,14 @@ git config user.email "your.email@example.com"
 ### Debug Build
 
 ```bash
-# Build with debug symbols
-go build -gcflags="all=-N -l" -o atheon-debug .
+# Build with debug symbols (disables inlining and optimizations for dlv)
+go build -gcflags="all=-N -l" -o atheon-debug ./cmd/atheon
 
-# Run with debug output
-./atheon-debug --debug-level=2 scan .
+# Attach Delve debugger
+dlv exec ./atheon-debug -- scan .
+
+# Verbose test output with -v; use -run to target a specific test
+go test -v -run TestScanFile ./core/
 ```
 
 ### Test Debugging
