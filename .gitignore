@@ -12,3 +12,4 @@
 # generated
 *.out
 /coverage.html
+dist/
