@@ -16,8 +16,11 @@ type Finding struct {
 // number of files whose contents were scanned (binary files and skipped
 // directories are excluded); Bytes is the total number of bytes scanned;
 // ElapsedMs is the wall-clock duration of the scan in milliseconds.
+// Errors collects any per-file read errors encountered during a ScanDir
+// walk so the caller can surface them instead of silently dropping them.
 type Stats struct {
 	Files     int
 	Bytes     int64
 	ElapsedMs int64
+	Errors    []error
 }

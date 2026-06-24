@@ -152,9 +152,11 @@ func SetActiveCategories(cats []string) {
 
 	byCategory := map[string][]Pattern{}
 	for _, p := range allPatterns {
-		if !p.enabled {
-			continue
-		}
+		// Enabled filtering is enforced later in rebuildActiveScanners / via
+		// p.Matches; gating here would silently drop disabled patterns from
+		// the per-category map and double-disable them. Skipping this check
+		// keeps the category view complete and lets ListEnabledPatterns /
+		// ListDisabledPatterns reflect the actual on-disk state.
 		if len(cats) > 0 && !catSet[p.category] {
 			continue
 		}
