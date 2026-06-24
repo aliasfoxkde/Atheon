@@ -139,7 +139,9 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 	results := make([][]Finding, len(paths))
 	sizes := make([]int64, len(paths))
 	scanned := make([]bool, len(paths))
+	scanErrors := make([]error, len(paths))
 	var wg sync.WaitGroup
+	var errMu sync.Mutex
 	// I/O-bound file reads saturate well below CPU count; cap at 2× CPUs with
 	// a minimum of 4 and a ceiling of 64 to avoid overwhelming shared runners.
 	workers := min(max(runtime.NumCPU()*2, 4), 64)
@@ -162,6 +164,9 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 			}
 			data, err := os.ReadFile(p)
 			if err != nil {
+				errMu.Lock()
+				scanErrors[i] = err
+				errMu.Unlock()
 				return
 			}
 			results[i] = scanLines(ctx, string(data), p)
@@ -174,9 +179,13 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 	var findings []Finding
 	var totalBytes int64
 	var filesScanned int
+	var errs []error
 	for i := range results {
 		if scanned[i] {
 			filesScanned++
+		}
+		if scanErrors[i] != nil {
+			errs = append(errs, scanErrors[i])
 		}
 		findings = append(findings, results[i]...)
 		totalBytes += sizes[i]
@@ -186,6 +195,7 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 		Files:     filesScanned,
 		Bytes:     totalBytes,
 		ElapsedMs: time.Since(start).Milliseconds(),
+		Errors:    errs,
 	}, nil
 }
 
