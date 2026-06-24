@@ -562,13 +562,13 @@ gh pr create --base main --head feat/my-feature
 - **Purpose**: Tracks upstream HoraDomu/Atheon:main exactly
 - **Usage**: Reference for upstream changes, starting point for features
 - **Patterns**: 57 upstream patterns only
-- **Installation**: `go install github.com/aliasfoxkde/Atheon-Enhanced@stable/clean`
+- **Installation**: `go install github.com/aliasfoxkde/Atheon@stable/clean`
 
 ### **`main` Branch** (Production Build)
 - **Purpose**: Production-ready with all enhancements
 - **Usage**: User-facing installation, production deployment
 - **Patterns**: 255 patterns across 19 categories
-- **Installation**: `go install github.com/aliasfoxkde/Atheon-Enhanced@latest`
+- **Installation**: `go install github.com/aliasfoxkde/Atheon@latest`
 
 </details>
 

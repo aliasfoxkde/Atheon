@@ -139,7 +139,8 @@ Patterns are organized into categories:
 - regexp: Pattern matching
 - compress/gzip: Bundle compression
 - encoding/json: Pattern serialization
-- os/filepath: File system operations
+- path/filepath: Cross-platform path manipulation
+- os: File system operations
 
 **External Dependencies:**
 - github.com/sabhiram/go-gitignore: Gitignore compliance

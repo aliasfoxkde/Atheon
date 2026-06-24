@@ -13,7 +13,7 @@ func TestVersionFlag(t *testing.T) {
 
 	out, err := exec.Command(bin, "--version").CombinedOutput()
 	if err != nil {
-		t.Logf("--version flag error: %v", err)
+		t.Fatalf("--version flag error: %v\noutput: %s", err, out)
 	}
 
 	if !strings.Contains(string(out), "atheon") {
