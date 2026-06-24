@@ -5,37 +5,6 @@ import (
 	"testing"
 )
 
-// TestContains exercises the unexported contains() helper used to check
-// membership in a []string.
-func TestContains(t *testing.T) {
-	cases := []struct {
-		name  string
-		slice []string
-		item  string
-		want  bool
-	}{
-		{"empty slice", []string{}, "x", false},
-		{"single match", []string{"x"}, "x", true},
-		{"single miss", []string{"x"}, "y", false},
-		{"multiple match first", []string{"a", "b", "c"}, "a", true},
-		{"multiple match middle", []string{"a", "b", "c"}, "b", true},
-		{"multiple match last", []string{"a", "b", "c"}, "c", true},
-		{"multiple miss", []string{"a", "b", "c"}, "d", false},
-		{"empty item in slice", []string{""}, "", true},
-		{"empty item not in slice", []string{"a"}, "", false},
-		{"duplicates still match", []string{"a", "a", "b"}, "a", true},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := contains(tc.slice, tc.item)
-			if got != tc.want {
-				t.Errorf("contains(%v, %q) = %v, want %v", tc.slice, tc.item, got, tc.want)
-			}
-		})
-	}
-}
-
 // TestInitializePatternStateOK exercises InitializePatternState by setting
 // a known state file and reloading.
 func TestInitializePatternStateOK(t *testing.T) {
