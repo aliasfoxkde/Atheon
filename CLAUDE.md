@@ -1,0 +1,1 @@
+/home/mkinney/CLAUDE.md
