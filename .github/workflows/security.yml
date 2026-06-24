@@ -162,7 +162,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          # govulncheck runs against the local Go toolchain's standard
+          # library, so we pin to the latest 1.24.x to pick up security
+          # fixes (e.g. GO-2025-4007 in crypto/x509, fixed in 1.24.9).
+          # The test matrix still exercises 1.21-1.24 for compatibility.
+          go-version: '1.24'
           cache: true
 
       - name: Run govulncheck
