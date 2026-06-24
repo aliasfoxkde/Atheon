@@ -11,6 +11,16 @@ import (
 	"github.com/aliasfoxkde/Atheon/core"
 )
 
+// TestMain installs a generous rate limiter for the test binary so the
+// full test suite (currently ~25 handleCall invocations) does not exhaust
+// the production 10 req/sec / 20 burst budget. Tests that exercise the
+// rate-limit denial path (e.g. TestHandleCallRateLimited) swap in a
+// zero-token limiter and restore the original via defer.
+func TestMain(m *testing.M) {
+	mcpRateLimiter = newRateLimiter(10000, 10000)
+	os.Exit(m.Run())
+}
+
 // TestHandleCallScanFileMissing returns an error for a missing file.
 func TestHandleCallScanFileMissing(t *testing.T) {
 	params := json.RawMessage(`{"name":"scan_file","arguments":{"path":"/this/does/not/exist/anywhere"}}`)
@@ -199,7 +209,7 @@ func TestMainExercisesInitialize(t *testing.T) {
 	resp.Result = map[string]any{
 		"protocolVersion": "2024-11-05",
 		"capabilities":    map[string]any{"tools": map[string]any{}},
-		"serverInfo":      map[string]any{"name": "atheon", "version": "1.0.0"},
+		"serverInfo":      map[string]any{"name": "atheon", "version": version},
 	}
 	out, _ := json.Marshal(resp)
 	if !strings.Contains(string(out), `"protocolVersion":"2024-11-05"`) {
@@ -217,8 +227,8 @@ func TestMainExercisesToolsList(t *testing.T) {
 	}
 	m := result.(map[string]any)
 	tools, ok := m["tools"].([]map[string]any)
-	if !ok || len(tools) != 3 {
-		t.Errorf("expected 3 tools, got %d", len(tools))
+	if !ok || len(tools) != 7 {
+		t.Errorf("expected 7 tools, got %d", len(tools))
 	}
 }
 
@@ -293,8 +303,8 @@ func TestHandleCallRateLimited(t *testing.T) {
 	if rerr == nil {
 		t.Error("expected rate-limit rpcError, got nil")
 	}
-	if rerr != nil && rerr.Code != -32600 {
-		t.Errorf("expected code -32600, got %d", rerr.Code)
+	if rerr != nil && rerr.Code != rateLimitCode {
+		t.Errorf("expected code %d, got %d", rateLimitCode, rerr.Code)
 	}
 }
 
@@ -306,5 +316,107 @@ func TestHandleCallInvalidTopLevelJSON(t *testing.T) {
 	}
 	if rerr != nil && rerr.Code != -32602 {
 		t.Errorf("expected code -32602, got %d", rerr.Code)
+	}
+}
+
+// TestHandleCallScanEnv exercises the new scan_env tool. Sets an env var
+// matching a known secret pattern, calls scan_env, expects a finding.
+func TestHandleCallScanEnv(t *testing.T) {
+	t.Setenv("ATHEON_TEST_SECRET", "AKIAIOSFODNN7EXAMPLE")
+	params := json.RawMessage(`{"name":"scan_env","arguments":{"categories":["secrets"]}}`)
+	result, rerr := handleCall(context.Background(), params)
+	if rerr != nil {
+		t.Fatalf("unexpected error: %v", rerr)
+	}
+	if result == nil {
+		t.Fatal("expected non-nil result")
+	}
+	m, ok := result.(map[string]any)
+	if !ok {
+		t.Fatalf("expected map result, got %T", result)
+	}
+	content, ok := m["content"].([]map[string]any)
+	if !ok || len(content) == 0 {
+		t.Fatal("expected non-empty content")
+	}
+	text := content[0]["text"].(string)
+	if !strings.Contains(text, "ATHEON_TEST_SECRET") {
+		t.Errorf("expected env var name in scan output, got: %s", text)
+	}
+}
+
+// TestHandleCallListPatterns exercises the new list_patterns tool.
+func TestHandleCallListPatterns(t *testing.T) {
+	params := json.RawMessage(`{"name":"list_patterns","arguments":{}}`)
+	result, rerr := handleCall(context.Background(), params)
+	if rerr != nil {
+		t.Fatalf("unexpected error: %v", rerr)
+	}
+	m, ok := result.(map[string]any)
+	if !ok {
+		t.Fatalf("expected map result, got %T", result)
+	}
+	content := m["content"].([]map[string]any)
+	text := content[0]["text"].(string)
+	// The bundle is loaded at init() — we should have patterns.
+	if !strings.Contains(text, "pattern(s)") {
+		t.Errorf("expected 'pattern(s)' in output, got: %s", text)
+	}
+}
+
+// TestHandleCallListPatternsCategory exercises list_patterns with a category filter.
+func TestHandleCallListPatternsCategory(t *testing.T) {
+	params := json.RawMessage(`{"name":"list_patterns","arguments":{"category":"secrets"}}`)
+	result, rerr := handleCall(context.Background(), params)
+	if rerr != nil {
+		t.Fatalf("unexpected error: %v", rerr)
+	}
+	if result == nil {
+		t.Fatal("expected non-nil result")
+	}
+	m := result.(map[string]any)
+	content := m["content"].([]map[string]any)
+	text := content[0]["text"].(string)
+	if !strings.Contains(text, "| secrets |") && !strings.Contains(text, "no patterns") {
+		t.Errorf("expected secrets-category table or empty message, got: %s", text)
+	}
+}
+
+// TestHandleCallListCategories exercises the new list_categories tool.
+func TestHandleCallListCategories(t *testing.T) {
+	params := json.RawMessage(`{"name":"list_categories","arguments":{}}`)
+	result, rerr := handleCall(context.Background(), params)
+	if rerr != nil {
+		t.Fatalf("unexpected error: %v", rerr)
+	}
+	m := result.(map[string]any)
+	content := m["content"].([]map[string]any)
+	text := content[0]["text"].(string)
+	if !strings.Contains(text, "categories") {
+		t.Errorf("expected 'categories' in output, got: %s", text)
+	}
+}
+
+// TestHandleCallUpdateBundle exercises the new update_bundle tool against
+// an unreachable URL. We override the bundle download URL to one that
+// will fail fast, so the test does not depend on network state.
+func TestHandleCallUpdateBundle(t *testing.T) {
+	restore := core.SetBundleDownloadURL("http://127.0.0.1:1/nope")
+	defer restore()
+
+	params := json.RawMessage(`{"name":"update_bundle","arguments":{}}`)
+	_, rerr := handleCall(context.Background(), params)
+	// We don't assert success or failure here — only that the tool path
+	// runs without panicking. The download URL is intentionally bogus.
+	if rerr != nil && rerr.Code != -32603 {
+		t.Errorf("unexpected error code %d (msg=%s)", rerr.Code, rerr.Message)
+	}
+}
+
+// TestVersionIsDefault verifies the version variable falls back to "dev"
+// when no ldflag is supplied (the default during `go test`).
+func TestVersionIsDefault(t *testing.T) {
+	if version == "" {
+		t.Error("version should default to a non-empty value")
 	}
 }

@@ -17,6 +17,13 @@ import (
 	"github.com/aliasfoxkde/Atheon/core"
 )
 
+// version is the server version, set at build time via:
+//
+//	-ldflags "-X main.version=1.2.3"
+//
+// Defaults to "dev" so `go run ./cmd/mcp` is usable without a build script.
+var version = "dev"
+
 type request struct {
 	JSONRPC string          `json:"jsonrpc"`
 	ID      any             `json:"id"`
@@ -35,6 +42,12 @@ type rpcError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
+
+// rateLimitCode is the JSON-RPC error code returned when a request is
+// denied by the rate limiter. JSON-RPC reserves -32000..-32099 for
+// implementation-defined server errors; -32600 is "Invalid Request",
+// which is the wrong code for a throttling response.
+const rateLimitCode = -32000
 
 // rateLimiter implements a simple token bucket rate limiter.
 // Uses stdlib only to avoid external dependencies.
@@ -130,7 +143,7 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 			result = map[string]any{
 				"protocolVersion": "2024-11-05",
 				"capabilities":    map[string]any{"tools": map[string]any{}},
-				"serverInfo":      map[string]any{"name": "atheon", "version": "1.0.0"},
+				"serverInfo":      map[string]any{"name": "atheon", "version": version},
 			}
 		case methodToolsList:
 			result = map[string]any{"tools": toolList()}
@@ -151,6 +164,8 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 	return 0
 }
 
+// toolList returns the MCP tool registry. The schema helper wraps a Go
+// property bag into the JSON Schema shape MCP expects.
 func toolList() []map[string]any {
 	schema := func(required []string, props map[string]any) map[string]any {
 		return map[string]any{"type": "object", "properties": props, "required": required}
@@ -184,6 +199,33 @@ func toolList() []map[string]any {
 				"categories": cats,
 			}),
 		},
+		{
+			"name":        "scan_env",
+			"description": "Scan process environment variables for pattern matches",
+			"inputSchema": schema([]string{}, map[string]any{
+				"categories": cats,
+			}),
+		},
+		{
+			"name":        "list_patterns",
+			"description": "List all loaded patterns (name, category, enabled)",
+			"inputSchema": schema([]string{}, map[string]any{
+				"category": map[string]any{
+					"type":        "string",
+					"description": "filter to a single category (omit for all)",
+				},
+			}),
+		},
+		{
+			"name":        "list_categories",
+			"description": "List all pattern categories available in the bundle",
+			"inputSchema": schema([]string{}, map[string]any{}),
+		},
+		{
+			"name":        "update_bundle",
+			"description": "Download the latest pattern bundle from the configured URL",
+			"inputSchema": schema([]string{}, map[string]any{}),
+		},
 	}
 }
 
@@ -191,7 +233,7 @@ func handleCall(ctx context.Context, params json.RawMessage) (any, *rpcError) {
 	// Check rate limit
 	if !mcpRateLimiter.Allow() {
 		slog.Warn("rate limit exceeded for MCP request")
-		return nil, &rpcError{Code: -32600, Message: "rate limit exceeded"}
+		return nil, &rpcError{Code: rateLimitCode, Message: "rate limit exceeded"}
 	}
 
 	var p struct {
@@ -248,6 +290,39 @@ func handleCall(ctx context.Context, params json.RawMessage) (any, *rpcError) {
 		}
 		return textResult(findings), nil
 
+	case "scan_env":
+		var args struct {
+			Categories []string `json:"categories"`
+		}
+		if err := json.Unmarshal(p.Arguments, &args); err != nil {
+			return nil, &rpcError{Code: -32602, Message: "invalid params"}
+		}
+		core.SetActiveCategories(args.Categories)
+		return textResult(core.ScanEnv(ctx)), nil
+
+	case "list_patterns":
+		var args struct {
+			Category string `json:"category"`
+		}
+		if err := json.Unmarshal(p.Arguments, &args); err != nil {
+			return nil, &rpcError{Code: -32602, Message: "invalid params"}
+		}
+		return patternsResult(core.All(), args.Category), nil
+
+	case "list_categories":
+		return categoriesResult(core.Categories()), nil
+
+	case "update_bundle":
+		if err := core.DownloadBundle(ctx); err != nil {
+			return nil, &rpcError{Code: -32603, Message: err.Error()}
+		}
+		return map[string]any{
+			"content": []map[string]any{{
+				"type": "text",
+				"text": "bundle updated successfully",
+			}},
+		}, nil
+
 	default:
 		return nil, &rpcError{Code: -32601, Message: "unknown tool: " + p.Name}
 	}
@@ -262,6 +337,53 @@ func textResult(findings []core.Finding) map[string]any {
 			fmt.Fprintf(&sb, "%s  %s:%d\n", f.Pattern, f.File, f.Line)
 		}
 		fmt.Fprintf(&sb, "\n%d finding(s)", len(findings))
+	}
+	return map[string]any{
+		"content": []map[string]any{{"type": "text", "text": sb.String()}},
+	}
+}
+
+// patternsResult renders the pattern list as a markdown table inside the
+// MCP text-content wrapper. If category is non-empty, only patterns whose
+// Category() matches are returned.
+func patternsResult(patterns []core.Pattern, category string) map[string]any {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "| Name | Category | Enabled |\n")
+	fmt.Fprintf(&sb, "|------|----------|---------|\n")
+	count := 0
+	for _, p := range patterns {
+		if category != "" && p.Category() != category {
+			continue
+		}
+		enabled := "no"
+		if p.Enabled() {
+			enabled = "yes"
+		}
+		fmt.Fprintf(&sb, "| %s | %s | %s |\n", p.Name(), p.Category(), enabled)
+		count++
+	}
+	if count == 0 {
+		if category != "" {
+			fmt.Fprintf(&sb, "\n(no patterns in category %q)", category)
+		} else {
+			sb.WriteString("\n(no patterns loaded)")
+		}
+	} else {
+		fmt.Fprintf(&sb, "\n%d pattern(s)", count)
+	}
+	return map[string]any{
+		"content": []map[string]any{{"type": "text", "text": sb.String()}},
+	}
+}
+
+// categoriesResult renders the category list as a simple comma-separated
+// text block, since categories are short labels.
+func categoriesResult(cats []string) map[string]any {
+	var sb strings.Builder
+	if len(cats) == 0 {
+		sb.WriteString("(no categories loaded)")
+	} else {
+		fmt.Fprintf(&sb, "%s\n\n%d categories", strings.Join(cats, ", "), len(cats))
 	}
 	return map[string]any{
 		"content": []map[string]any{{"type": "text", "text": sb.String()}},

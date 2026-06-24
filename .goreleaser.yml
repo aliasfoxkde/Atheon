@@ -41,6 +41,7 @@ builds:
     binary: atheon-mcp
     ldflags:
       - -s -w
+      - -X main.version={{.Version}}
 
 archives:
   - formats:
