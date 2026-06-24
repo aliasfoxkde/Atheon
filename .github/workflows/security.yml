@@ -100,6 +100,60 @@ jobs:
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────
+  # Security anti-pattern grep — restored from removed security-scanning.yml
+  # Catches dangerous functions, sensitive-data-in-logs, etc.
+  # ─────────────────────────────────────────────────────────────────────
+  security-antipatterns:
+    name: Security Anti-Patterns
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Dangerous function grep
+        run: |
+          # exec/system/eval in production code are red flags. They are
+          # legitimate in tooling (e.g. atheon's os/exec) but should be
+          # flagged for human review.
+          HITS=$(grep -rn 'exec\|system\|eval' core/*.go 2>/dev/null | grep -v "_test.go" || true)
+          if [ -n "$HITS" ]; then
+            echo "⚠️ Dangerous function usage in production core:"
+            echo "$HITS"
+          else
+            echo "✅ No dangerous function usage"
+          fi
+
+      - name: Sensitive data in logs check
+        run: |
+          HITS=$(grep -rnE '(log|fmt\.Print).*\b(password|secret|token|api[_-]?key)\b' core/*.go 2>/dev/null | grep -v "_test.go" || true)
+          if [ -n "$HITS" ]; then
+            echo "❌ Possible sensitive-data-in-logs:"
+            echo "$HITS"
+            exit 1
+          fi
+          echo "✅ No sensitive data in logs"
+
+      - name: Validate error returns
+        # Naked `return err` (without context) is a code smell — wrapped
+        # errors carry a %w for errors.Is/As. This is a warning, not a
+        # hard fail: many of the existing sites are valid.
+        run: |
+          NAKED=$(grep -rn '^\s*return err$' core/*.go 2>/dev/null || true)
+          if [ -n "$NAKED" ]; then
+            echo "⚠️ Naked 'return err' (no context):"
+            echo "$NAKED"
+          else
+            echo "✅ All error returns carry context"
+          fi
+
+  # ─────────────────────────────────────────────────────────────────────
   # Atheon self-scan — code-quality (informational)
   # ─────────────────────────────────────────────────────────────────────
   self-scan-quality:
@@ -163,10 +217,13 @@ jobs:
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           # govulncheck runs against the local Go toolchain's standard
-          # library, so we pin to the latest 1.24.x to pick up security
-          # fixes (e.g. GO-2025-4007 in crypto/x509, fixed in 1.24.9).
+          # library, so we pin to the latest 1.25.x to pick up security
+          # fixes that aren't in 1.24.x (e.g. GO-2026-4947/4946 in
+          # crypto/x509, GO-2026-4918 in net/http, GO-2026-4870 in
+          # crypto/tls, GO-2026-4602 in os, GO-2026-4601 in net/url —
+          # all fixed in go1.25.8+).
           # The test matrix still exercises 1.21-1.24 for compatibility.
-          go-version: '1.24'
+          go-version: '1.25'
           cache: true
 
       - name: Run govulncheck

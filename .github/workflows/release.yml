@@ -20,12 +20,21 @@ on:
 permissions:
   contents: write
 
+# Cancel in-progress release runs when a new tag lands or a new dispatch
+# comes in. Prevents two concurrent GoReleaser runs from racing on the
+# same GitHub release (which creates duplicate releases / flaky uploads).
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   release:
     name: Build & Publish Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    # Only run on the canonical repo. Forks with workflow_dispatch enabled
+    # would otherwise try to push tags they don't own.
     if: github.repository == 'aliasfoxkde/Atheon-Enhanced'
 
     steps:
@@ -39,18 +48,25 @@ jobs:
           if [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
           else
-            # Calculate next version based on date: v0.YY.MM.DD format.
+            # Calculate next version based on date: 0.YY.MM.DD format.
             # Cleaner than the prior `0.4.YYMMDD` format.
             DATE_VERSION="0.$(date +%y).$(date +%m).$(date +%d)"
             VERSION="${DATE_VERSION}"
           fi
+          # Strip any leading "v" the operator may have typed.
+          VERSION="${VERSION#v}"
+          # Validate: semver-ish (digits and dots only, must start with digit).
+          if ! [[ "$VERSION" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "::error::Invalid version: '$VERSION' (expected digits-and-dots like 0.4.1)"
+            exit 1
+          fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "Building release: ${VERSION}"
+          echo "Building release: v${VERSION}"
 
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: '1.24'
 
       - name: Validate before tagging
         run: |
@@ -58,6 +74,16 @@ jobs:
           # The -p 1 flag is MANDATORY for the test command.
           go test ./... -p 1 -timeout 15m
           echo "✅ All checks passed — safe to tag"
+
+      - name: Check tag does not already exist
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "::error::Tag v${{ steps.version.outputs.version }} already exists."
+            exit 1
+          fi
+          echo "exists=false" >> $GITHUB_OUTPUT
 
       - name: Create version tag
         run: |
@@ -79,7 +105,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    # Only run on the canonical repo, on tag push. The release job
+    # pushes the tag, which re-triggers this workflow as a 'push' event
+    # — that's how dispatch/schedule get their goreleaser run.
+    if: >
+      github.repository == 'aliasfoxkde/Atheon-Enhanced' &&
+      github.event_name == 'push' &&
+      startsWith(github.ref, 'refs/tags/v')
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -89,7 +121,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
-          go-version: '1.23'
+          go-version: '1.24'
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # v6.4.0
