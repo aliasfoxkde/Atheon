@@ -2,7 +2,11 @@
 
 ## Overview
 
-Atheon Enhanced now supports **225 patterns** across **19 categories**, providing comprehensive coverage of modern development challenges. This documentation describes each category, its patterns, and use cases.
+Atheon Enhanced now supports **255 patterns** across **19 categories**, providing comprehensive coverage of modern development challenges. This documentation describes each category, its patterns, and use cases.
+
+> **Note on counts**: These counts are auto-generated from `community/**/*.yaml` and verified
+> via `scripts/pattern-count.sh`. The number 225 was a stale figure that has since been
+> corrected; the per-category counts below may also drift over time as patterns are added.
 
 ## Pattern Categories
 

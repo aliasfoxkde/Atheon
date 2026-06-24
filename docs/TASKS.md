@@ -1,7 +1,9 @@
-# Task List - {{PROJECT_NAME}}
+# Task List — Atheon-Enhanced
 
-**Version**: 1.0.0
-**Last Updated**: {{DATE}}
+**Project**: aliasfoxkde/Atheon-Enhanced
+**Last Updated**: 2026-06-23
+**Detail**: [ANALYSIS_REPORT.md](ANALYSIS_REPORT.md) is the canonical source of truth for
+all phases below.
 
 ---
 
@@ -15,214 +17,165 @@
 
 ---
 
-## Phase 1: Foundation {{PHASE_STATUS}}
+## Phase A — Trust restoration [IN PROGRESS]
 
-### 1.1 Project Setup
+> Make every docs number match reality. Fix broken links. Fill the planning docs.
 
-- [ ] Initialize Git repository
-- [ ] Create GitHub repository
-- [ ] Set up Claude Code symbolic link
-- [ ] Configure .gitignore
-- [ ] Create initial README.md
-- [ ] Set up LICENSE file
-- [ ] Configure GitHub templates (CODEOWNERS, dependabot, etc.)
+### A.1 Planning docs (this file's siblings)
 
-**Estimated Time**: 1-2 hours
-**Dependencies**: None
-**Priority**: Critical
+- [x] A.1.1 Fill `docs/PLAN.md` with real Atheon-Enhanced content
+- [x] A.1.2 Fill `docs/TASKS.md` (this file)
+- [x] A.1.3 Fill `docs/PROGRESS.md`
+- [x] A.1.4 Remove the duplicate template copies in `docs/planning/`
 
----
+### A.2 Pattern-count consistency
 
-### 1.2 Documentation Structure
+- [ ] A.2.1 Update `README.md` to actual 252 patterns / 18 categories
+- [ ] A.2.2 Update `docs/FAQ.md` (currently says 225 / 57)
+- [ ] A.2.3 Update `docs/INSTALL.md` (currently says 190)
+- [ ] A.2.4 Update `docs/development/SETUP.md` (currently says "Expected: 87")
+- [ ] A.2.5 Update `docs/architecture/PATTERN_CATEGORIES.md` (currently says 225)
+- [ ] A.2.6 Update README's pattern-distribution table (currently totals ~177; actual 252)
 
-- [ ] Create docs/ directory structure
-- [ ] Create PRD.md (Product Requirements Document)
-- [ ] Create TASKS.md (this file)
-- [ ] Create PLAN.md (project plan)
-- [ ] Create PROGRESS.md (progress tracking)
-- [ ] Create CHANGELOG.md
-- [ ] Create USAGE.md
-- [ ] Create CONTRIBUTE.md
+### A.3 Broken doc links
 
-**Estimated Time**: 2-3 hours
-**Dependencies**: 1.1
-**Priority**: High
+- [ ] A.3.1 Stub or remove references in `docs/README.md` to:
+  - `docs/reports/MCP_INTEGRATION_ANALYSIS.md` (does not exist)
+  - `docs/reports/SECURITY_TESTING.md` (does not exist)
+  - `docs/reports/FINALIZATION_SUMMARY.md` (does not exist)
+  - `docs/reports/TEST_COVERAGE.md` (does not exist)
+  - `docs/tests/TEST_HARNESS_STATUS.md` (does not exist)
+  - `docs/contributors.md` (does not exist)
 
----
+### A.4 Doc hygiene
 
-## Phase 2: Planning & Research {{PHASE_STATUS}}
+- [ ] A.4.1 Remove `--debug-level=2` example from `docs/development/SETUP.md` (no such flag)
+- [ ] A.4.2 Pick one canonical `BRANCH_STRATEGY.md`; remove or redirect the other
+- [ ] A.4.3 Update `docs/architecture/SYSTEM_ARCHITECTURE.md` "Code Organization" section to
+      match actual files (no `streaming.go`, no `quality_enforcement.go`, no `config/defaults/`)
 
-### 2.1 Pre-Planning Research
+### A.5 Root-level contract docs (per user CLAUDE.md)
 
-- [ ] Research similar projects
-- [ ] Analyze technical options
-- [ ] Document architectural decisions
-- [ ] Create technology stack justification
-
-**Estimated Time**: 4-8 hours
-**Dependencies**: 1.2
-**Priority**: High
+- [x] A.5.1 Create `CHANGELOG_RECENT.md` at `docs/`
+- [x] A.5.2 Create `AGENTS.md` at repo root
 
 ---
 
-### 2.2 Requirements Analysis
+## Phase B — CI consolidation [PENDING]
 
-- [ ] Gather user requirements
-- [ ] Define functional requirements
-- [ ] Define non-functional requirements
-- [ ] Create user stories
-- [ ] Define success criteria
+> Cut CI minutes, eliminate duplication across the 10 workflows.
 
-**Estimated Time**: 4-6 hours
-**Dependencies**: 2.1
-**Priority**: High
-
----
-
-## Phase 3: Architecture & Design {{PHASE_STATUS}}
-
-### 3.1 System Architecture
-
-- [ ] Design system architecture
-- [ ] Create data model
-- [ ] Design API contracts
-- [ ] Define component structure
-- [ ] Create architecture diagrams
-
-**Estimated Time**: 8-12 hours
-**Dependencies**: 2.2
-**Priority**: High
+- [ ] B.1 Consolidate 10 workflows → 4 (`ci.yml`, `security.yml`, `release.yml`, `sync.yml`)
+- [ ] B.2 Drop `auto-merge.yml` if GitHub native auto-merge is enabled
+- [ ] B.3 Fix `gofmt` check in `quality-assurance.yml` to use `gofmt -l`
+- [ ] B.4 Verify all `go test` invocations have `-p 1`
+- [ ] B.5 Drop `continue-on-error: true` from Codecov upload
+- [ ] B.6 Fix `scheduled-release.yml` tag format (`0.4.YYMMDD` is technically valid but odd)
 
 ---
 
-### 3.2 Database Design
+## Phase C — MCP completeness [PENDING]
 
-- [ ] Design database schema
-- [ ] Create entity relationships
-- [ ] Define indexes and constraints
-- [ ] Plan migrations
+> Make MCP server match the API docs.
 
-**Estimated Time**: 4-6 hours
-**Dependencies**: 3.1
-**Priority**: High
-
----
-
-## Phase 4: Implementation {{PHASE_STATUS}}
-
-### 4.1 Core Features
-
-- [ ] {{FEATURE_1}}
-  - [ ] Subtask 1
-  - [ ] Subtask 2
-  - [ ] Tests
-- [ ] {{FEATURE_2}}
-  - [ ] Subtask 1
-  - [ ] Subtask 2
-  - [ ] Tests
-- [ ] {{FEATURE_3}}
-  - [ ] Subtask 1
-  - [ ] Subtask 2
-  - [ ] Tests
-
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 3.1, 3.2
-**Priority**: High
+- [ ] C.1 Add `list_patterns` MCP tool
+- [ ] C.2 Add `list_categories` MCP tool
+- [ ] C.3 Add `scan_env` MCP tool
+- [ ] C.4 Add `update_bundle` MCP tool
+- [ ] C.5 Inject version via ldflag into `serverInfo`
+- [ ] C.6 Change rate-limit error code from -32600 to -32000
 
 ---
 
-## Phase 5: Testing {{PHASE_STATUS}}
+## Phase D — Pattern expansion [PENDING]
 
-### 5.1 Unit Tests
+> Reach 300+ patterns, fix `frameworks/` empty category.
 
-- [ ] Achieve 80%+ code coverage
-- [ ] Test all critical paths
-- [ ] Test edge cases
-- [ ] Test error handling
+### D.1 Top-tier SaaS secrets (10 patterns)
 
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 4.1
-**Priority**: High
+- [ ] D.1.1 `anthropic-api-key` — `sk-ant-*`
+- [ ] D.1.2 `openai-project-key` — `sk-proj-*`
+- [ ] D.1.3 `github-fine-grained-pat` — `github_pat_*`
+- [ ] D.1.4 `supabase-service-key` — `eyJ...` JWT form
+- [ ] D.1.5 `vercel-edge-config-token`
+- [ ] D.1.6 `cloudflare-r2-token`
+- [ ] D.1.7 `slack-workflow-token` — `xoxw-*`
+- [ ] D.1.8 `bitbucket-app-password` — `ATBB*`
+- [ ] D.1.9 `hashicorp-vault-token` — `hvs.*` / `hvb.*`
+- [ ] D.1.10 `onepassword-service-account`
 
----
+### D.2 PII patterns (5)
 
-### 5.2 Integration Tests
+- [ ] D.2.1 `email-address`
+- [ ] D.2.2 `ipv4-literal`
+- [ ] D.2.3 `ipv6-literal`
+- [ ] D.2.4 `passport-number` (international variants)
+- [ ] D.2.5 `ssn-strong` (with format validation)
 
-- [ ] Test API endpoints
-- [ ] Test database operations
-- [ ] Test external integrations
-- [ ] Test data flow
+### D.3 Frameworks restore
 
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 5.1
-**Priority**: High
-
----
-
-### 5.3 E2E Tests
-
-- [ ] Test critical user flows
-- [ ] Test authentication/authorization
-- [ ] Test error scenarios
-- [ ] Test performance
-
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 5.2
-**Priority**: Medium
+- [ ] D.3.1 Either restore 3 patterns (`django`, `nodejs`, `react`) OR delete `community/frameworks/`
 
 ---
 
-## Phase 6: Deployment {{PHASE_STATUS}}
+## Phase E — Architecture hygiene [PENDING]
 
-### 6.1 CI/CD Setup
-
-- [ ] Configure GitHub Actions
-- [ ] Set up automated testing
-- [ ] Set up automated deployment
-- [ ] Configure staging environment
-
-**Estimated Time**: 4-6 hours
-**Dependencies**: 5.3
-**Priority**: Medium
+- [ ] E.1 Create `docs/architecture/decisions/` directory
+- [ ] E.2 Write `ADR-001-re2-regex.md`
+- [ ] E.3 Write `ADR-002-gzip-bundle.md`
+- [ ] E.4 Write `ADR-003-parallel-tests-must-be-1.md`
+- [ ] E.5 Either create `core/streaming.go` (extract from runner.go) or fix SYSTEM_ARCHITECTURE.md
 
 ---
 
-### 6.2 Production Deployment
+## Phase F — Future features [PENDING]
 
-- [ ] Deploy to production
-- [ ] Configure monitoring
-- [ ] Set up alerts
-- [ ] Document deployment process
-
-**Estimated Time**: 2-4 hours
-**Dependencies**: 6.1
-**Priority**: Medium
+- [ ] F.1 Pattern metadata (severity, description, references) — wire-format change
+- [ ] F.2 `--baseline` filter for incremental scans
+- [ ] F.3 SBOM generation in release workflow
+- [ ] F.4 LSP mode for IDE integration (VS Code / Cursor)
+- [ ] F.5 `--lsp-mode` JSON-RPC bridge
 
 ---
 
-## Bug Fixes & Improvements
+## Bug Fixes & Improvements (open)
 
-### Bugs
-- [ ] {{BUG_1}}
-- [ ] {{BUG_2}}
+### Bugs (engine layer — none currently known)
+- [ ] (no open bugs reported in the audited code)
 
-### Improvements
-- [ ] {{IMPROVEMENT_1}}
-- [ ] {{IMPROVEMENT_2}}
+### Documentation bugs (see Phase A)
+- [x] Unfilled template placeholders in `docs/PLAN.md`, `docs/TASKS.md`, `docs/PROGRESS.md`
+- [ ] Stale pattern counts in 5+ files
+- [ ] 6 broken doc links in `docs/README.md`
+
+### Improvements (housekeeping)
+- [ ] Add `scripts/pattern-count.sh` to generate a single source of truth for counts
+- [ ] Wire the `.github/wiki/` markdown files into a Wiki publish workflow (currently 3 files
+      sitting unused in `.github/wiki/`)
+- [ ] Add `docs/RELEASE.md` runbook for cutting a release
 
 ---
 
 ## Notes
 
-{{NOTES_SECTION}}
+This task list supersedes the prior template copy in `docs/planning/TASKS.md`. That file should
+be removed (tracked as A.1.4).
+
+The IMPROVEMENT_PLAN.md at `docs/reports/IMPROVEMENT_PLAN.md` was a partial-execution plan from
+PR #45. This `TASKS.md` is the live task list going forward.
 
 ---
 
 ## Progress Summary
 
-- **Total Tasks**: {{TOTAL_TASKS}}
-- **Completed**: {{COMPLETED_TASKS}}
-- **In Progress**: {{IN_PROGRESS_TASKS}}
-- **Pending**: {{PENDING_TASKS}}
-- **Blocked**: {{BLOCKED_TASKS}}
-- **Completion**: {{COMPLETION_PERCENTAGE}}%
+| Phase | Tasks | Completed | In Progress | Pending |
+|-------|-------|-----------|-------------|---------|
+| Phase A (docs trust) | 15 | 5 | 0 | 10 |
+| Phase B (CI consolidation) | 6 | 0 | 0 | 6 |
+| Phase C (MCP completeness) | 6 | 0 | 0 | 6 |
+| Phase D (patterns) | 18 | 0 | 0 | 18 |
+| Phase E (architecture) | 5 | 0 | 0 | 5 |
+| Phase F (future features) | 5 | 0 | 0 | 5 |
+| **Total** | **55** | **5** | **0** | **50** |
+
+**Completion**: 9% (5/55) as of 2026-06-23.

@@ -60,7 +60,7 @@ go build -o bundler/bundler ./bundler
 # Verify installation
 ./atheon --version
 ./atheon list | wc -l
-# Expected: 87 patterns
+# Expected: 255+ patterns (use ./scripts/pattern-count.sh for exact total)
 ```
 
 ### 4. Development Tools
@@ -231,12 +231,15 @@ git config user.email "your.email@example.com"
 ### Debug Build
 
 ```bash
-# Build with debug symbols
-go build -gcflags="all=-N -l" -o atheon-debug .
+# Build with debug symbols (gcflags disable optimizations and inlining)
+go build -gcflags="all=-N -l" -o atheon-debug ./cmd/atheon
 
-# Run with debug output
-./atheon-debug --debug-level=2 scan .
+# Run with verbose stderr (slog text handler) — set log level via env if needed
+ATHEON_LOG=debug ./atheon-debug ./some-path
 ```
+
+> The CLI does not currently expose a `--debug-level` flag; debugging is via build flags
+> and slog verbosity. If you need a runtime debug flag, see [TASKS.md §F](../../TASKS.md).
 
 ### Test Debugging
 

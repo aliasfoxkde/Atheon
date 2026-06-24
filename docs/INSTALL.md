@@ -38,7 +38,7 @@ git config core.hooksPath scripts/hooks
 # Check version
 atheon --version
 
-# Check pattern count (should be 190+)
+# Check pattern count (should be 255+)
 atheon list | wc -l
 
 # List categories
@@ -69,8 +69,9 @@ atheon . --categories=ai-detection,secrets
 
 - **Module**: github.com/aliasfoxkde/Atheon
 - **Go Version**: 1.21+
-- **Patterns**: 190 total patterns
+- **Patterns**: 255 total patterns
 - **Categories**: 19 categories
+- **Counts source of truth**: `scripts/pattern-count.sh`
 - **Platforms**: Linux, macOS, Windows
 
 ## 🔧 Platform-Specific Notes
@@ -114,7 +115,7 @@ rm -f ~/.atheon/patterns.bundle
 
 ### Verify Pattern Loading
 ```bash
-# Should show 190+ patterns
+# Should show 255+ patterns
 atheon list | wc -l
 
 # Should show 19 categories
@@ -124,7 +125,7 @@ atheon list categories
 ## 🎯 Next Steps
 
 1. **Configure Atheon** for your needs
-2. **Explore patterns**: `atheon list` to see all 223 patterns
+2. **Explore patterns**: `atheon list` to see all 255 patterns
 3. **Set up CI/CD integration**: see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 4. **Contribute patterns**: see [CONTRIBUTING.md](../.github/CONTRIBUTING.md)
 

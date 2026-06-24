@@ -213,22 +213,58 @@ docs/
 
 ### **Code Organization**
 ```
-core/                    (Core scanning engine)
-├── patterns.bundle      (Embedded pattern database)
-├── streaming.go         (Memory-efficient scanning)
-├── pattern_state.go     (Pattern persistence)
-└── quality_enforcement.go (Quality patterns)
+core/                    (Core scanning engine — no external deps)
+├── patterns.bundle      (Embedded gzip+JSON pattern database; //go:embed)
+├── pattern.go           (Pattern interface, registry, ValidatePattern, sentinel errors)
+├── bundle.go            (Bundle load, enable/disable, DownloadBundle, SetActiveCategories)
+├── runner.go            (ScanFile, ScanDir, ScanString, ScanEnv — the public surface)
+├── ignore.go            (.atheonignore, .gitignore compilation and matching)
+├── pattern_state.go     (Persisted enabled/disabled state in ~/.atheon/pattern_state.json)
+└── finding.go           (Finding, Stats result types)
 
-config/                  (Configuration profiles)
-├── profiles/            (User-facing profiles)
-└── defaults/            (Default configurations)
+cmd/
+├── atheon/              (CLI binary — flags, subcommands, JSON/SARIF/human output)
+└── mcp/                 (MCP server — stdio JSON-RPC, rate-limited tool dispatch)
 
-community/               (Pattern contributions)
-├── secrets/             (Security patterns)
-├── code-quality/        (Quality patterns)
-├── ai-detection/        (AI-generated code patterns)
-└── devops/              (DevOps patterns)
+bundler/                 (YAML → gzip+JSON bundle compiler; invoked via `go run ./bundler`)
+
+config/
+└── profiles/            (User-facing configuration profiles: production, pipeline,
+                          mcp-integration, development)
+
+community/               (Pattern contributions; one YAML per pattern, category = directory)
+├── secrets/             (58 patterns — credential/API-key/token detection)
+├── code-quality/        (35 patterns — maintenance and quality issues)
+├── accessibility/       (19 patterns — WCAG, ARIA, keyboard nav)
+├── security-hardening/  (18 patterns — auth, crypto, CSRF, XSS, injection)
+├── web-security/        (15 patterns — web-app vulnerabilities)
+├── cloud-native/        (14 patterns — Docker, K8s, Terraform, serverless)
+├── performance/         (12 patterns — N+1, caching, lazy-loading)
+├── web-development/     (12 patterns — React/Next.js, TypeScript, bundling)
+├── pii/                 (11 patterns — emails, IDs, health records)
+├── ai-detection/        (9 patterns — AI-generated code markers)
+├── api-integration/     (9 patterns — REST/GraphQL, auth, rate-limit, error-handling)
+├── devops/              (9 patterns — CI/CD, Docker, GitHub workflows)
+├── healthcare/          (7 patterns — HIPAA, NPI, PHI fields)
+├── finance/             (6 patterns — payment, routing, account numbers)
+├── pwa/                 (5 patterns — service workers, manifests, offline)
+├── data-visualization/  (5 patterns — charts, color, mobile)
+├── compliance/          (4 patterns — GDPR, HIPAA, PCI, retention)
+├── git-hygiene/         (4 patterns — conflict markers, fixup commits)
+└── frameworks/          (3 patterns across django/, nodejs/, react/ subdirs)
+
+scripts/
+├── pattern-count.sh     (Single source of truth for pattern counts)
+├── install-hooks.sh     (Wire up pre-commit/pre-push hooks)
+├── build.sh             (Local build helper)
+├── coverage.sh          (Generate coverage report)
+└── hooks/               (Pre-commit and pre-push hook scripts)
 ```
+
+> **Verified 2026-06-23**: 255 patterns across 19 categories. Run
+> `./scripts/pattern-count.sh` to regenerate the table above; the engine and bundler
+> tolerate this drift without recompilation of `core/` because patterns are loaded at
+> init time.
 
 ## 🎯 Success Metrics
 
