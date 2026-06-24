@@ -103,6 +103,46 @@ jobs:
           fi
           echo "✅ Code is properly formatted"
 
+      - name: goimports check
+        # goimports groups stdlib/third-party/local imports. gofmt handles
+        # whitespace only, so goimports catches missing/extra imports that
+        # gofmt won't.
+        run: |
+          if ! command -v goimports >/dev/null 2>&1; then
+            echo "::group::Installing goimports"
+            go install golang.org/x/tools/cmd/goimports@latest
+            echo "::endgroup::"
+          fi
+          UNFORMATTED="$(goimports -l .)"
+          if [ -n "$UNFORMATTED" ]; then
+            echo "❌ goimports found issues in:"
+            echo "$UNFORMATTED"
+            exit 1
+          fi
+          echo "✅ goimports clean"
+
+      - name: Code quality grep
+        # Restored from the removed comprehensive-ci.yml code-quality job:
+        # catches TODO comments and debug statements that escape code review.
+        run: |
+          # TODO in production (non-test) core/*.go
+          TODOS=$(grep -rn "TODO" core/*.go 2>/dev/null | grep -v "_test.go" || true)
+          if [ -n "$TODOS" ]; then
+            echo "❌ TODO comments in production code:"
+            echo "$TODOS"
+            exit 1
+          fi
+          echo "✅ No TODO comments in production code"
+
+          # fmt.Debug / log.Debug in production (non-test) core/*.go
+          DEBUGS=$(grep -rn "fmt\.Debug\|log\.Debug" core/*.go 2>/dev/null | grep -v "_test.go" || true)
+          if [ -n "$DEBUGS" ]; then
+            echo "❌ Debug statements in production code:"
+            echo "$DEBUGS"
+            exit 1
+          fi
+          echo "✅ No debug statements in production code"
+
   # ─────────────────────────────────────────────────────────────────────
   # Build — cross-platform binaries
   # ─────────────────────────────────────────────────────────────────────
@@ -204,6 +244,78 @@ jobs:
           # MCP server reads JSON-RPC from stdin; verify it can start and parse.
           timeout 5s ./atheon-mcp < /dev/null || true
           echo "MCP server started and exited cleanly"
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Performance benchmarks — restore lost comprehensive-ci job
+  # ─────────────────────────────────────────────────────────────────────
+  benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Run benchmarks
+        # 3s benchtime was the original comprehensive-ci setting. Output
+        # is always uploaded for trend tracking, even on failure.
+        run: |
+          go test -bench=. -benchmem -benchtime=3s ./core/ 2>&1 | tee benchmark-results.txt
+          # github.CodeSearchLanguage tells the action to highlight this as a result.
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: benchmark-results
+          path: benchmark-results.txt
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Documentation completeness — restore lost comprehensive-ci job
+  # ─────────────────────────────────────────────────────────────────────
+  docs:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Verify branch strategy doc
+        run: |
+          if [ ! -f docs/BRANCH_STRATEGY.md ]; then
+            echo "❌ docs/BRANCH_STRATEGY.md is missing"
+            exit 1
+          fi
+          for branch in 'stable/clean' 'main' 'dev/full-feature'; do
+            if ! grep -qF "$branch" docs/BRANCH_STRATEGY.md; then
+              echo "❌ Branch $branch not documented in BRANCH_STRATEGY.md"
+              exit 1
+            fi
+          done
+          echo "✅ All branches documented"
+
+      - name: Verify profile documentation
+        run: |
+          if [ -d config/profiles ] && [ -n "$(ls config/profiles/*.json 2>/dev/null)" ]; then
+            for profile in config/profiles/*.json; do
+              name=$(basename "$profile" .json)
+              if ! grep -qF "$name" docs/BRANCH_STRATEGY.md; then
+                echo "❌ Profile $name not documented in BRANCH_STRATEGY.md"
+                exit 1
+              fi
+            done
+            echo "✅ All profiles documented"
+          else
+            echo "No config profiles found, skipping profile documentation check"
+          fi
 
   # ─────────────────────────────────────────────────────────────────────
   # Test result reporting — JUnit XML + Codecov

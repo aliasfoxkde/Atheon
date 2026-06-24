@@ -100,6 +100,60 @@ jobs:
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────
+  # Security anti-pattern grep — restored from removed security-scanning.yml
+  # Catches dangerous functions, sensitive-data-in-logs, etc.
+  # ─────────────────────────────────────────────────────────────────────
+  security-antipatterns:
+    name: Security Anti-Patterns
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Dangerous function grep
+        run: |
+          # exec/system/eval in production code are red flags. They are
+          # legitimate in tooling (e.g. atheon's os/exec) but should be
+          # flagged for human review.
+          HITS=$(grep -rn 'exec\|system\|eval' core/*.go 2>/dev/null | grep -v "_test.go" || true)
+          if [ -n "$HITS" ]; then
+            echo "⚠️ Dangerous function usage in production core:"
+            echo "$HITS"
+          else
+            echo "✅ No dangerous function usage"
+          fi
+
+      - name: Sensitive data in logs check
+        run: |
+          HITS=$(grep -rnE '(log|fmt\.Print).*\b(password|secret|token|api[_-]?key)\b' core/*.go 2>/dev/null | grep -v "_test.go" || true)
+          if [ -n "$HITS" ]; then
+            echo "❌ Possible sensitive-data-in-logs:"
+            echo "$HITS"
+            exit 1
+          fi
+          echo "✅ No sensitive data in logs"
+
+      - name: Validate error returns
+        # Naked `return err` (without context) is a code smell — wrapped
+        # errors carry a %w for errors.Is/As. This is a warning, not a
+        # hard fail: many of the existing sites are valid.
+        run: |
+          NAKED=$(grep -rn '^\s*return err$' core/*.go 2>/dev/null || true)
+          if [ -n "$NAKED" ]; then
+            echo "⚠️ Naked 'return err' (no context):"
+            echo "$NAKED"
+          else
+            echo "✅ All error returns carry context"
+          fi
+
+  # ─────────────────────────────────────────────────────────────────────
   # Atheon self-scan — code-quality (informational)
   # ─────────────────────────────────────────────────────────────────────
   self-scan-quality:
