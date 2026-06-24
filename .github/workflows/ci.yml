@@ -213,6 +213,11 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: always()
+    permissions:
+      # EnricoMi/publish-unit-test-result-action creates check runs via
+      # the workflow's GITHUB_TOKEN; without checks:write it returns 403.
+      contents: read
+      checks: write
 
     steps:
       - name: Checkout code

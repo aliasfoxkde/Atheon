@@ -229,13 +229,31 @@ func toolList() []map[string]any {
 	}
 }
 
+// toolHandler is the signature every per-tool dispatcher implements.
+// Extracted so handleCall stays under the lint funlen limit and each
+// tool's parse-and-execute logic is independently testable.
+type toolHandler func(ctx context.Context, args json.RawMessage) (any, *rpcError)
+
+// toolHandlers maps each tool name to its handler. Lookups via map keep
+// handleCall flat instead of an ever-growing switch.
+var toolHandlers = map[string]toolHandler{
+	"scan_string":     handleScanString,
+	"scan_file":       handleScanFile,
+	"scan_dir":        handleScanDir,
+	"scan_env":        handleScanEnv,
+	"list_patterns":   handleListPatterns,
+	"list_categories": handleListCategories,
+	"update_bundle":   handleUpdateBundle,
+}
+
+// handleCall parses the JSON-RPC params envelope, looks up the tool
+// handler, and dispatches. Rate-limit and envelope validation live here
+// so every tool inherits them.
 func handleCall(ctx context.Context, params json.RawMessage) (any, *rpcError) {
-	// Check rate limit
 	if !mcpRateLimiter.Allow() {
 		slog.Warn("rate limit exceeded for MCP request")
 		return nil, &rpcError{Code: rateLimitCode, Message: "rate limit exceeded"}
 	}
-
 	var p struct {
 		Name      string          `json:"name"`
 		Arguments json.RawMessage `json:"arguments"`
@@ -243,89 +261,102 @@ func handleCall(ctx context.Context, params json.RawMessage) (any, *rpcError) {
 	if err := json.Unmarshal(params, &p); err != nil {
 		return nil, &rpcError{Code: -32602, Message: "invalid params"}
 	}
-
-	switch p.Name {
-	case "scan_string":
-		var args struct {
-			Content    string   `json:"content"`
-			Source     string   `json:"source"`
-			Categories []string `json:"categories"`
-		}
-		if err := json.Unmarshal(p.Arguments, &args); err != nil {
-			return nil, &rpcError{Code: -32602, Message: "invalid params"}
-		}
-		if args.Source == "" {
-			args.Source = "stdin"
-		}
-		core.SetActiveCategories(args.Categories)
-		return textResult(core.ScanString(ctx, args.Content, args.Source)), nil
-
-	case "scan_file":
-		var args struct {
-			Path       string   `json:"path"`
-			Categories []string `json:"categories"`
-		}
-		if err := json.Unmarshal(p.Arguments, &args); err != nil {
-			return nil, &rpcError{Code: -32602, Message: "invalid params"}
-		}
-		core.SetActiveCategories(args.Categories)
-		findings, _, err := core.ScanFile(ctx, args.Path)
-		if err != nil {
-			return nil, &rpcError{Code: -32603, Message: err.Error()}
-		}
-		return textResult(findings), nil
-
-	case "scan_dir":
-		var args struct {
-			Path       string   `json:"path"`
-			Categories []string `json:"categories"`
-		}
-		if err := json.Unmarshal(p.Arguments, &args); err != nil {
-			return nil, &rpcError{Code: -32602, Message: "invalid params"}
-		}
-		core.SetActiveCategories(args.Categories)
-		findings, _, err := core.ScanDir(ctx, args.Path)
-		if err != nil {
-			return nil, &rpcError{Code: -32603, Message: err.Error()}
-		}
-		return textResult(findings), nil
-
-	case "scan_env":
-		var args struct {
-			Categories []string `json:"categories"`
-		}
-		if err := json.Unmarshal(p.Arguments, &args); err != nil {
-			return nil, &rpcError{Code: -32602, Message: "invalid params"}
-		}
-		core.SetActiveCategories(args.Categories)
-		return textResult(core.ScanEnv(ctx)), nil
-
-	case "list_patterns":
-		var args struct {
-			Category string `json:"category"`
-		}
-		if err := json.Unmarshal(p.Arguments, &args); err != nil {
-			return nil, &rpcError{Code: -32602, Message: "invalid params"}
-		}
-		return patternsResult(core.All(), args.Category), nil
-
-	case "list_categories":
-		return categoriesResult(core.Categories()), nil
-
-	case "update_bundle":
-		if err := core.DownloadBundle(ctx); err != nil {
-			return nil, &rpcError{Code: -32603, Message: err.Error()}
-		}
-		return map[string]any{
-			"content": []map[string]any{{
-				"type": "text",
-				"text": "bundle updated successfully",
-			}},
-		}, nil
-
-	default:
+	h, ok := toolHandlers[p.Name]
+	if !ok {
 		return nil, &rpcError{Code: -32601, Message: "unknown tool: " + p.Name}
 	}
+	return h(ctx, p.Arguments)
+}
+
+// invalidParams is a small helper so every tool handler returns the
+// same JSON-RPC error shape on argument parse failure.
+func invalidParams(err error) *rpcError {
+	return &rpcError{Code: -32602, Message: "invalid params: " + err.Error()}
+}
+
+func handleScanString(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
+	var args struct {
+		Content    string   `json:"content"`
+		Source     string   `json:"source"`
+		Categories []string `json:"categories"`
+	}
+	if err := json.Unmarshal(raw, &args); err != nil {
+		return nil, invalidParams(err)
+	}
+	if args.Source == "" {
+		args.Source = "stdin"
+	}
+	core.SetActiveCategories(args.Categories)
+	return textResult(core.ScanString(ctx, args.Content, args.Source)), nil
+}
+
+func handleScanFile(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
+	var args struct {
+		Path       string   `json:"path"`
+		Categories []string `json:"categories"`
+	}
+	if err := json.Unmarshal(raw, &args); err != nil {
+		return nil, invalidParams(err)
+	}
+	core.SetActiveCategories(args.Categories)
+	findings, _, err := core.ScanFile(ctx, args.Path)
+	if err != nil {
+		return nil, &rpcError{Code: -32603, Message: err.Error()}
+	}
+	return textResult(findings), nil
+}
+
+func handleScanDir(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
+	var args struct {
+		Path       string   `json:"path"`
+		Categories []string `json:"categories"`
+	}
+	if err := json.Unmarshal(raw, &args); err != nil {
+		return nil, invalidParams(err)
+	}
+	core.SetActiveCategories(args.Categories)
+	findings, _, err := core.ScanDir(ctx, args.Path)
+	if err != nil {
+		return nil, &rpcError{Code: -32603, Message: err.Error()}
+	}
+	return textResult(findings), nil
+}
+
+func handleScanEnv(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
+	var args struct {
+		Categories []string `json:"categories"`
+	}
+	if err := json.Unmarshal(raw, &args); err != nil {
+		return nil, invalidParams(err)
+	}
+	core.SetActiveCategories(args.Categories)
+	return textResult(core.ScanEnv(ctx)), nil
+}
+
+func handleListPatterns(_ context.Context, raw json.RawMessage) (any, *rpcError) {
+	var args struct {
+		Category string `json:"category"`
+	}
+	if err := json.Unmarshal(raw, &args); err != nil {
+		return nil, invalidParams(err)
+	}
+	return patternsResult(core.All(), args.Category), nil
+}
+
+func handleListCategories(_ context.Context, _ json.RawMessage) (any, *rpcError) {
+	return categoriesResult(core.Categories()), nil
+}
+
+func handleUpdateBundle(ctx context.Context, _ json.RawMessage) (any, *rpcError) {
+	if err := core.DownloadBundle(ctx); err != nil {
+		return nil, &rpcError{Code: -32603, Message: err.Error()}
+	}
+	return map[string]any{
+		"content": []map[string]any{{
+			"type": "text",
+			"text": "bundle updated successfully",
+		}},
+	}, nil
 }
 
 func textResult(findings []core.Finding) map[string]any {
