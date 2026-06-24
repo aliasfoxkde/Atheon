@@ -8,8 +8,9 @@
 #   - Some linters (cyclop, funlen, nestif, maintidx, dupl, goconst, gosec)
 #     were moved out of the default set in v2 and must be explicitly enabled
 #   - `goimports` is now classified as a formatter, not a linter, so it
-#     can't appear under `linters.enable:`. Its `local-prefixes` setting
-#     stays under `linters.settings.goimports:` for the dedicated step.
+#     cannot appear under `linters.enable:` or `linters.settings:` — the v2
+#     config schema rejects both as unknown. Import grouping is handled by
+#     the dedicated `goimports check` step in ci.yml.
 #
 # Rationale: strict, opinionated linting on every CI push.
 # Per-rule exceptions live in `linters.settings` and per-file overrides
@@ -67,8 +68,11 @@ linters:
     gosec:
       severity: medium
       confidence: medium
-    goimports:
-      local-prefixes: github.com/aliasfoxkde/Atheon
+    # NOTE: goimports is intentionally NOT configured here. In golangci-lint v2
+    # it is classified as a formatter (not a linter), so it cannot live under
+    # `linters.settings` — the config validator rejects it as an unknown
+    # additional property. The dedicated `goimports check` step in ci.yml
+    # invokes goimports directly with `local-prefixes`-equivalent grouping.
 
   exclusions:
     # Allow issues in tests at lower severity so CI doesn't break on style nits
