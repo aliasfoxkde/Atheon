@@ -1,9 +1,23 @@
 name: Sync stable/clean with upstream
 
+# NOTE: This workflow is currently non-functional.
+#
+# `stable/clean` has a branch protection rule that prevents direct pushes.
+# The workflow will fail at the `git push origin stable/clean` step until
+# the protection is removed.
+#
+# Owner action required to make this workflow usable:
+#   1. Settings → Branches → find the stable/clean rule → delete it
+#   2. Optionally delete the stable/clean branch entirely (it has no active
+#      purpose — upstream is tracked via `git fetch upstream` manually).
+#
+# See docs/OWNER_CHECKLIST.md → "Stale Branch Cleanup" for context.
+
 on:
-  # SCHEDULE REMOVED - syncs with upstream HoraDomu/Atheon which is FORBIDDEN
-  # Only allow manual triggering
-  workflow_dispatch:  # Allow manual triggering
+  # SCHEDULE REMOVED — syncs with upstream HoraDomu/Atheon which requires
+  # manual review before merging upstream changes into this fork.
+  # Only allow manual triggering.
+  workflow_dispatch:
 
 permissions:
   contents: write

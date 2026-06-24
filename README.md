@@ -6,7 +6,7 @@
 
 ![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Patterns](https://img.shields.io/badge/patterns-255-blueviolet)
+![Patterns](https://img.shields.io/badge/patterns-274-blueviolet)
 ![Categories](https://img.shields.io/badge/categories-19-orange)
 ![CI](https://github.com/aliasfoxkde/Atheon-Enhanced/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/aliasfoxkde/Atheon-Enhanced/graph/badge.svg)](https://codecov.io/gh/aliasfoxkde/Atheon-Enhanced)
@@ -33,7 +33,7 @@
 ### **Enhanced aliasfoxkde/Atheon (Atheon-Enhanced)** - Feature-Rich Testing Build
 - **Purpose**: Experimental "nightly build" testing the limits of pattern matching
 - **Focus**: Performance optimizations, advanced features, comprehensive pattern coverage
-- **Patterns**: 255 patterns across 19 categories (community-driven, comprehensive coverage)
+- **Patterns**: 274 patterns across 19 categories (community-driven, comprehensive coverage)
 - **Update cadence**: Frequent updates with latest features and enhancements
 - **Best for**: Power users, CI/CD integration, comprehensive security scanning
 
@@ -56,7 +56,7 @@
 <summary><b>📊 Enhanced Features vs Official Release</b></summary>
 
 ### **What's Enhanced in This Testing Build?**
-- **255 patterns** across 19 categories - comprehensive coverage
+- **274 patterns** across 19 categories - comprehensive coverage
 - **2-3x faster** with streaming API and performance optimizations
 - **10x less memory** usage with chunked file scanning
 - **MCP integration** with state persistence and category filtering
@@ -398,7 +398,7 @@ atheon --profile config/profiles/pipeline.json ./my-project
 - ✅ **Performance Benchmarks**: Track improvements over time
 
 ### **Expanded Pattern Library**
-- ✅ **255 patterns** across 19 categories
+- ✅ **274 patterns** across 19 categories
 - ✅ **New categories**: Accessibility, Performance, Web Development, API Integration, Security Hardening, Cloud-Native, PWA, Data Visualization
 - ✅ **Enhanced coverage**: Modern web development, security best practices, performance optimization
 - ✅ **AI Detection Patterns**: AI-generated code identification, template detection, safety bypasses
@@ -450,7 +450,7 @@ atheon --profile config/profiles/pipeline.json ./my-project
 
 | Feature | Official HoraDomu/Atheon | Enhanced aliasfoxkde/Atheon |
 |---------|----------------------|---------------------------|
-| Pattern Count | 57 | 255 |
+| Pattern Count | 57 | 274 |
 | Categories | 5 | 19 |
 | Memory Usage | Full file loading | Chunked streaming (10x reduction) |
 | Performance | Baseline | 2-3x faster |
@@ -496,7 +496,7 @@ atheon --profile config/profiles/pipeline.json ./my-project
 ### **Quality Metrics**
 - **Test Coverage**: 97%+ across core, cmd/atheon, and bundler packages
 - **CI/CD Pass Rate**: >95%
-- **Pattern Validation**: All 255 patterns tested and functional
+- **Pattern Validation**: All 274 patterns tested and functional
 - **Pattern Coverage**: 19 categories with modern development support
 - **Lint Warnings**: 0 (golangci-lint clean)
 
@@ -567,7 +567,7 @@ gh pr create --base main --head feat/my-feature
 ### **`main` Branch** (Production Build)
 - **Purpose**: Production-ready with all enhancements
 - **Usage**: User-facing installation, production deployment
-- **Patterns**: 255 patterns across 19 categories
+- **Patterns**: 274 patterns across 19 categories
 - **Installation**: `go install github.com/aliasfoxkde/Atheon@latest`
 
 </details>
@@ -671,7 +671,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ MCP integration with advanced features
 
 ### **Use Enhanced aliasfoxkde/Atheon (Atheon-Enhanced) when you want**:
-- ✅ 255 patterns across 19 categories (comprehensive coverage)
+- ✅ 274 patterns across 19 categories (comprehensive coverage)
 - ✅ 2-3x performance improvements
 - ✅ 10x memory reduction for large files
 - ✅ MCP integration with advanced features

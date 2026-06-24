@@ -37,7 +37,7 @@
 | Task | Status | Phase | Notes |
 |------|--------|-------|-------|
 | A.1 — Fill planning docs | ✅ | A | PLAN/TASKS/PROGRESS, ANALYSIS_REPORT, CHANGELOG_RECENT, AGENTS |
-| A.2 — Sync pattern counts | ✅ | A | 6 doc files updated to 255 patterns / 19 categories |
+| A.2 — Sync pattern counts | ✅ | A | 6 doc files updated to 274 patterns / 19 categories |
 | A.3 — Fix broken doc links | ✅ | A | docs/README.md, BRANCH_STRATEGY redirect, stub files |
 | A.4 — Doc hygiene | ✅ | A | debug-level, SYSTEM_ARCHITECTURE rewrite, BRANCH_STRATEGY |
 | A.5 — Root-level contract docs | ✅ | A | CHANGELOG_RECENT, AGENTS |

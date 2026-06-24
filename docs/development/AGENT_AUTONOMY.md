@@ -91,6 +91,6 @@ This project embraces autonomous AI agents operating with:
 ## Metrics
 
 - Test Coverage: 97.8%
-- Pattern Count: 225 patterns across 19 categories
+- Pattern Count: 274 patterns across 19 categories
 - Workflow Files: 8 workflow configurations
 - Code Scanning Alerts: 0 open (all dismissed/fixed)
