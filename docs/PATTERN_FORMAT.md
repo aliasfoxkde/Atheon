@@ -198,7 +198,7 @@ match: '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}'
 
 Before committing a pattern:
 
-1. **Test locally**: `go test ./...`
+1. **Test locally**: `go test ./... -p 1` (the `-p 1` flag is required — `core` has package-level state in `init()` that is not safe under parallel package execution)
 2. **Manual testing**: `atheon --file <test-file>`
 3. **Bundle generation**: `go run ./bundler community core/patterns.bundle`
 4. **Pattern validation**: Verify pattern is loaded correctly

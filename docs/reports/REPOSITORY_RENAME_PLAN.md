@@ -216,7 +216,8 @@ gh pr create --repo HoraDomu/Atheon --base stable/clean
 #### Step 4: Verification (Critical)
 ```bash
 # Run full test suite
-go test ./...
+# The -p 1 flag is MANDATORY: see core init() state note in docs/development/SETUP.md.
+go test ./... -p 1
 
 # Check imports work
 go mod tidy

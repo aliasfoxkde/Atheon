@@ -308,7 +308,8 @@ git checkout stable/clean
 git log upstream/main --oneline | head -10
 
 # Test compatibility
-go test ./...
+# The -p 1 flag is MANDATORY: see AUDIT notes on core init() state.
+go test ./... -p 1
 
 # Update main when safe
 git checkout main

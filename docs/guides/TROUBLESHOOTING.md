@@ -23,7 +23,8 @@ Comprehensive troubleshooting guide for common issues and their solutions.
    # Update test to include new categories
    # Ensure core/pattern_test.go includes:
    # "ai-detection", "devops", "django", "nodejs", "react"
-   go test ./... -v
+   # The -p 1 flag is MANDATORY: core has package-level state in init().
+   go test ./... -p 1 -v
    ```
 
 3. **Build fails with import errors**
@@ -197,7 +198,9 @@ GOOS=windows GOARCH=amd64 go build -o atheon.exe
 
 ```bash
 # Check current coverage
-go test ./... -coverprofile=coverage.out
+# The -p 1 flag is MANDATORY: core has package-level state in init() that
+# is not safe under parallel package execution.
+go test ./... -p 1 -coverprofile=coverage.out
 go tool cover -func=coverage.out | grep total
 
 # Run specific test packages
@@ -365,13 +368,14 @@ find . -maxdepth 3 -type f | ./atheon - --file-list
 gh run view --log-failed
 
 # Test locally with same Go version
-go test ./... -v -race -coverprofile=coverage.out
+# The -p 1 flag is MANDATORY: see AUDIT/CHANGELOG notes on core init() state.
+go test ./... -p 1 -v -race -coverprofile=coverage.out
 
 # Check for Windows-specific issues
 # PowerShell compatibility issues with bash scripts
 
 # Verify all tests pass
-go test ./... -v
+go test ./... -p 1 -v
 ```
 
 ### Pre-commit Hook Failures
@@ -395,7 +399,8 @@ git config user.email "your.email@example.com"
 go fmt ./...
 
 # 3. Test coverage
-go test ./... -v -coverprofile=coverage.out
+# The -p 1 flag is MANDATORY: see core init() state note above.
+go test ./... -p 1 -v -coverprofile=coverage.out
 
 # 4. Static analysis
 go vet ./...
@@ -527,7 +532,8 @@ atheon --help
 atheon --categories=secrets --file README.md
 
 # Health check
-go test ./... -v
+# The -p 1 flag is MANDATORY: see core init() state note above.
+go test ./... -p 1 -v
 go vet ./...
 ```
 

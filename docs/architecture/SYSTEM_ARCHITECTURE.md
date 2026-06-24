@@ -55,7 +55,7 @@ Maintain an enhanced version of Atheon that provides production-ready features w
 
 2. Development & Testing
    ├─ Implementation
-   ├─ Local testing (go test ./...)
+   ├─ Local testing (go test ./... -p 1)
    ├─ Pattern validation (atheon list --all)
    └─ Documentation updates
 
@@ -254,7 +254,8 @@ community/               (Pattern contributions)
 
 ### **CI/CD Failures**
 - **Debug**: Check logs for specific failure points
-- **Local Validation**: Run `go test ./...` and `go vet ./...` locally
+- **Local Validation**: Run `go test ./... -p 1` and `go vet ./...` locally
+  (the `-p 1` flag is required — `core` has package-level state in `init()`)
 - **Pattern Issues**: Validate patterns with `atheon list --all`
 
 ### **Performance Regressions**

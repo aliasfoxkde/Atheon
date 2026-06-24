@@ -100,7 +100,7 @@ test/test-improvement     # Test enhancements
 
 2. Development & Testing
    - Implement feature
-   - Test locally (go test ./...)
+   - Test locally (go test ./... -p 1)
    - Run with config/profiles/development.json
    - Validate patterns (atheon list --all)
 

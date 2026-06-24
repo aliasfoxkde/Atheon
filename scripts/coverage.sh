@@ -38,7 +38,9 @@ LOG="$OUT_DIR/test.log"
 SUM="$OUT_DIR/summary.txt"
 
 # Run tests with coverage, tee log so the user sees progress and we capture output.
-go test ./... -coverprofile="$COV" 2>&1 | tee "$LOG"
+# The -p 1 flag is MANDATORY: core has package-level state in init() that is
+# not safe under parallel package execution.
+go test ./... -p 1 -coverprofile="$COV" 2>&1 | tee "$LOG"
 
 # Per-package summary
 go tool cover -func="$COV" | tee "$SUM"

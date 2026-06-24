@@ -266,13 +266,15 @@ rm ~/.atheon/pattern_state.json
 **Run specific tests:**
 ```bash
 # Run all tests
-go test ./...
+# (The -p 1 flag is MANDATORY: core has package-level state in init() that
+# is not safe under parallel package execution.)
+go test ./... -p 1
 
 # Run specific package
 go test ./core
 
 # Run with coverage
-go test -cover ./...
+go test -cover ./... -p 1
 ```
 
 ### Build issues
