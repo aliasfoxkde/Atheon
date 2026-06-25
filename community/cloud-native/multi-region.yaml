@@ -1,3 +1,3 @@
 name: multi-region
-match: 'region.*primary.*region.*backup|replication.*cross.*region|geo.*location.*routing'severity: medium
+match: 'region.*primary.*region.*backup|replication.*cross.*region|geo.*location.*routing'
 severity: medium

@@ -1,3 +1,3 @@
 name: git-hard-reset
-match: '(?i)git reset.*--hard|hard.*reset.*git'severity: low
+match: '(?i)git reset.*--hard|hard.*reset.*git'
 severity: low

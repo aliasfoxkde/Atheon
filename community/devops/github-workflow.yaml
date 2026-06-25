@@ -1,3 +1,3 @@
 name: github-workflow
-match: '(?i)(on:\s*\[|steps:|jobs:|github.*action|workflow|\.github/workflows)'severity: medium
+match: '(?i)(on:\s*\[|steps:|jobs:|github.*action|workflow|\.github/workflows)'
 severity: medium

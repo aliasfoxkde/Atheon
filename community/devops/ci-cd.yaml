@@ -1,3 +1,3 @@
 name: ci-cd
-match: '(?i)(jenkins|travis|circleci|github.*actions|workflow|pipeline)'severity: medium
+match: '(?i)(jenkins|travis|circleci|github.*actions|workflow|pipeline)'
 severity: medium

@@ -1,3 +1,3 @@
 name: auto-confirm
-match: '(?i)(--yes|--assume-yes|-y|auto.*confirm|confirm.*auto)'severity: low
+match: '(?i)(--yes|--assume-yes|-y|auto.*confirm|confirm.*auto)'
 severity: low

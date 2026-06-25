@@ -1,3 +1,3 @@
 name: dockerfile
-match: '(?i)(FROM|dockerfile|docker.*build|docker.*compose)'severity: medium
+match: '(?i)(FROM|dockerfile|docker.*build|docker.*compose)'
 severity: medium
