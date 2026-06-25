@@ -109,6 +109,95 @@ func BenchmarkScanStringEmpty(b *testing.B) {
 	}
 }
 
+// BenchmarkLoadBundle measures the gzip-decode + JSON-unmarshal + regex-
+// compile cost of the embedded 274-pattern bundle. This is the cold-start
+// cost paid once per process startup, so any regression here is felt by
+// every invocation.
+//
+// Run with: go test -bench=BenchmarkLoadBundle -benchmem ./core/
+func BenchmarkLoadBundle(b *testing.B) {
+	data := append([]byte(nil), embeddedBundle...)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		// Each iteration re-loads on top of existing state, which is fine —
+		// loadBundle appends/replaces the registry. We restore the snapshot
+		// once after the loop to keep side effects bounded.
+		if err := loadBundle(data); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+// BenchmarkCompileIgnoreFile measures regex compilation cost for a
+// realistic .atheonignore file with directory globs and path-anchored
+// patterns. This runs once per scan on a fresh directory and is the
+// dominant setup cost when scanning small repos.
+func BenchmarkCompileIgnoreFile(b *testing.B) {
+	tmp := b.TempDir()
+	ignorePath := filepath.Join(tmp, ".atheonignore")
+	content := `# generated ignore file
+node_modules/
+.git/
+*.min.js
+*.test.go
+vendor/
+build/
+dist/
+*.generated.*
+**/__snapshots__/**
+coverage.out
+docs/_build/
+.python-cache/
+.venv/
+`
+	if err := os.WriteFile(ignorePath, []byte(content), 0o600); err != nil {
+		b.Fatal(err)
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		if _, err := compileIgnoreFile(ignorePath); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+// BenchmarkIgnoreMatcherMatch measures the per-path cost of checking a
+// path against a compiled matcher. The hot path inside ScanDir calls
+// this once per file and once per directory.
+func BenchmarkIgnoreMatcherMatch(b *testing.B) {
+	tmp := b.TempDir()
+	ignorePath := filepath.Join(tmp, ".atheonignore")
+	if err := os.WriteFile(ignorePath, []byte("node_modules/\n.git/\n*.min.js\nvendor/\n"), 0o600); err != nil {
+		b.Fatal(err)
+	}
+	m, err := compileIgnoreFile(ignorePath)
+	if err != nil {
+		b.Fatal(err)
+	}
+	candidates := []string{
+		"src/main.go",
+		"node_modules/lodash/index.js",
+		"internal/foo/bar/baz_test.go",
+		".git/HEAD",
+		"dist/app.bundle.min.js",
+		"vendor/github.com/foo/bar.go",
+		"docs/index.md",
+		"deeply/nested/path/with/many/segments/file.yaml",
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		for _, c := range candidates {
+			_ = m.matchesPath(c)
+		}
+	}
+}
+
 // itoa is a tiny strconv.Itoa shim that keeps this file import-free.
 func itoa(i int) string {
 	if i == 0 {

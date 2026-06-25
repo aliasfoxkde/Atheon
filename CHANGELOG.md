@@ -8,6 +8,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Pattern severity wired end-to-end: each `community/*.yaml` declares
+  `severity: low|medium|high|critical`. Defaults applied by category
+  (secrets/pii/web-security/compliance/security-hardening = high;
+  code-quality/performance/accessibility/web-development = low; all others = medium).
+  Severity flows through `Pattern → bundlePattern → Finding → SARIF`.
+- SARIF severity mapping: CVSS-like scores (9.5/7.5/5.0/2.5) and levels
+  (error/warning/note) derived per-pattern, plus a `security-severity-label`
+  property for human readability. Replaces hard-coded
+  `security-severity: "High"` / `level: "error"` for every result.
+- `Pattern.Severity()` interface method and `normalizeSeverity()` helper that
+  coerces empty/typo'd values to `medium` so downstream code stays safe.
+- Hot-path benchmarks: `BenchmarkLoadBundle` (gzip decode + 274-pattern
+  compile), `BenchmarkCompileIgnoreFile` and `BenchmarkIgnoreMatcherMatch`
+  (recursive regex on `.atheonignore`), and `BenchmarkRedact` (per-finding
+  redact on the `--json` output path). Run with `go test -bench=. ./core/`
+  and `./cmd/atheon/`.
+- `scanErrorsPresent()` helper: bumps exit code when a scan silently dropped
+  files (permission denied, unreadable). Closes a data-loss gap where a
+  partial failure was reported as success.
+- Pre-commit hook now surfaces bundler warnings (per-file skip reasons) on
+  the same line as the success message, so contributors see when a pattern
+  was dropped without a manual re-run.
+- `atheon list --category=<bogus>` now errors with the known-category list,
+  instead of silently filtering to zero matches.
+
+### Changed
+- Bundler (`go run ./bundler`) no longer aborts on broken pattern files.
+  Malformed YAML, missing fields, whitespace in pattern names, duplicate
+  names, and invalid regex are logged to stderr and the file is skipped.
+  This mirrors `loadBundle`'s runtime tolerance.
+- 67 community patterns had pre-existing regex corruption (severity text
+  embedded in the `match:` value); these were repaired so all 274 patterns
+  ship cleanly.
+
+### Fixed
+- `community-pattern-review` workflow SIGPIPE: `git diff ... | head -10`
+  exited 141 under `set -euo pipefail` when `head` closed the pipe early.
+  Disabled pipefail around that pipeline only — captured files unchanged.
+- `gofmt` alignment in `cmd/atheon/main.go` (the SARIF map literal had a
+  misaligned key after the severity wiring change).
+
+### Removed
+- Dead scripts: `scripts/doc-validate.sh`, `scripts/doc-exemptions.sh`,
+  `scripts/doc-categorize.sh`. No callers existed anywhere in the repo;
+  deleting them removes a code-maintenance violation.
+
+## [0.5.0] - 2026-06-25
+
+### Added
 - New patterns in PII category: national-id, dob-format, gender-field, health-record-id, tax-id-ein
 - New patterns in Secrets category: cloudflare-token, okta-api-token, pagerduty-api-key, heroku-api-key, travis-ci-token, circleci-token, sonarqube-token, artifactory-token, firebase-api-key, vercel-token
 - New patterns in Cloud-native category: aws-arn, gcp-project-id, azure-connection-string, k8s-imagepullsecret, helm-secret-value
@@ -95,7 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/aliasfoxkde/Atheon-Enhanced/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/aliasfoxkde/Atheon-Enhanced/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/aliasfoxkde/Atheon-Enhanced/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/aliasfoxkde/Atheon-Enhanced/releases/tag/v0.4.0
 [0.3.0]: https://github.com/aliasfoxkde/Atheon-Enhanced/releases/tag/v0.3.0
 [0.2.0]: https://github.com/aliasfoxkde/Atheon-Enhanced/releases/tag/v0.2.0

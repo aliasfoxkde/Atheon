@@ -94,11 +94,23 @@ fi
 # --- Bundle rebuild on pattern changes ---
 if [ -n "$STAGED_PATTERNS" ]; then
     echo "  Pattern files changed — rebuilding bundle..."
-    if go run ./bundler > /dev/null 2>&1; then
+    BUNDLE_LOG=$(mktemp)
+    if go run ./bundler > /dev/null 2> "$BUNDLE_LOG"; then
         git add core/patterns.bundle
         echo "  ✓ Bundle rebuilt"
+        # Even on success, surface any per-file skip warnings so the
+        # contributor sees when a pattern was dropped (regex corruption,
+        # duplicate name, missing field). Otherwise a broken YAML slips
+        # in silently and the bundled pattern count drifts.
+        if [ -s "$BUNDLE_LOG" ]; then
+            echo "  ! Bundler warnings (file skipped):"
+            sed 's/^/      /' "$BUNDLE_LOG"
+        fi
+        rm -f "$BUNDLE_LOG"
     else
         echo "ERROR: Bundle rebuild failed"
+        cat "$BUNDLE_LOG"
+        rm -f "$BUNDLE_LOG"
         exit 1
     fi
 fi

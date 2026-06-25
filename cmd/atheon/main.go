@@ -88,8 +88,7 @@ func run(ctx context.Context, args []string) int {
 		return 0
 
 	case "list":
-		cmdList(args[1:])
-		return 0
+		return cmdList(args[1:])
 
 	case "--help", "help", "-h":
 		printHelp()
@@ -127,7 +126,7 @@ func run(ctx context.Context, args []string) int {
 			return 1
 		}
 		printFindings(findings, stats, jsonOutput, sarifOutput)
-		if len(findings) > 0 {
+		if len(findings) > 0 || scanErrorsPresent(stats) {
 			return 1
 		}
 		return 0
@@ -151,7 +150,7 @@ func run(ctx context.Context, args []string) int {
 			return 1
 		}
 		printFindings(findings, stats, jsonOutput, sarifOutput)
-		if len(findings) > 0 {
+		if len(findings) > 0 || scanErrorsPresent(stats) {
 			return 1
 		}
 		return 0
@@ -205,6 +204,24 @@ func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput, sarif
 		fmt.Printf("scanned %d file(s)  %s  %dms\n",
 			stats.Files, formatBytes(stats.Bytes), stats.ElapsedMs)
 	}
+	// Surface per-file read errors so silent data loss (permission denied,
+	// unreadable files) is visible — a scan that "succeeds" with half the
+	// tree skipped should not return exit 0 without warning. JSON/SARIF
+	// paths stay clean (errors don't pollute the structured stream).
+	if !jsonOutput && !sarifOutput && stats != nil && len(stats.Errors) > 0 {
+		fmt.Fprintf(os.Stderr, "\n%d file(s) could not be read:\n", len(stats.Errors))
+		for _, e := range stats.Errors {
+			fmt.Fprintf(os.Stderr, "  %v\n", e)
+		}
+	}
+}
+
+// scanErrorsPresent reports whether a scan silently dropped files. The
+// caller can use this to bump the process exit code so CI consumers see
+// the partial failure even when they don't read stderr (e.g. when only
+// stdout is captured by a CI artifact).
+func scanErrorsPresent(stats *core.Stats) bool {
+	return stats != nil && len(stats.Errors) > 0
 }
 
 func printJSONFindings(findings []core.Finding) {
@@ -322,12 +339,12 @@ func buildSARIFResults(findings []core.Finding) []map[string]any {
 	return results
 }
 
-func cmdList(args []string) {
+func cmdList(args []string) int {
 	if len(args) > 0 && args[0] == "categories" {
 		for _, c := range core.Categories() {
 			fmt.Println(c)
 		}
-		return
+		return 0
 	}
 
 	var categoryFilter string
@@ -341,6 +358,28 @@ func cmdList(args []string) {
 			showEnabled = true
 		case a == "--disabled":
 			showDisabled = true
+		}
+	}
+
+	// Validate --category against known categories. Without this check,
+	// a typo (e.g. `--category=secrets ` or `--category=secret`) silently
+	// filters to zero matches and the user sees "0 pattern(s)" — which
+	// looks like the category has no patterns, not that the name was wrong.
+	if categoryFilter != "" {
+		known := false
+		for _, c := range core.Categories() {
+			if c == categoryFilter {
+				known = true
+				break
+			}
+		}
+		if !known {
+			fmt.Fprintf(os.Stderr, "error: unknown category %q\n", categoryFilter)
+			fmt.Fprintln(os.Stderr, "known categories:")
+			for _, c := range core.Categories() {
+				fmt.Fprintf(os.Stderr, "  %s\n", c)
+			}
+			return 1
 		}
 	}
 
@@ -366,6 +405,7 @@ func cmdList(args []string) {
 		fmt.Printf("%s [%s] [%s]\n", p.Name(), p.Category(), status)
 	}
 	fmt.Printf("\n%d pattern(s)\n", len(filtered))
+	return 0
 }
 
 func printHelp() {
