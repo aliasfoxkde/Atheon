@@ -112,10 +112,14 @@ func TestMemorySafety(t *testing.T) {
 		done <- true
 	}()
 
+	// 30s accommodates -race overhead on the CI runner (the comment above
+	// cited a ~10x inflation estimate; observed at ~15x on the GitHub
+	// Actions runner, so 30s leaves a safety margin without masking a
+	// genuine hang). Without -race this completes in <1s.
 	select {
 	case <-done:
 		// Large input handled successfully
-	case <-time.After(10 * time.Second):
+	case <-time.After(30 * time.Second):
 		t.Error("Large input caused timeout/hang")
 	}
 }

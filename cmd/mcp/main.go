@@ -106,10 +106,39 @@ const (
 )
 
 func main() {
+	configureLogging()
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	code := run(ctx, os.Stdin, os.Stdout)
 	cancel() // explicit: os.Exit skips deferred cancel
 	os.Exit(code)
+}
+
+// configureLogging mirrors cmd/atheon's setup so MCP server logs are
+// configurable via the same env vars (ATHEON_LOG_FORMAT, ATHEON_LOG_LEVEL).
+// Without this, slog's default text handler is used and downstream
+// aggregators have to parse key=value pairs from a non-deterministic
+// format.
+func configureLogging() {
+	var level slog.Level
+	switch strings.ToLower(os.Getenv("ATHEON_LOG_LEVEL")) {
+	case "debug":
+		level = slog.LevelDebug
+	case "warn", "warning":
+		level = slog.LevelWarn
+	case "error":
+		level = slog.LevelError
+	default:
+		level = slog.LevelInfo
+	}
+	opts := &slog.HandlerOptions{Level: level}
+
+	var handler slog.Handler
+	if strings.EqualFold(os.Getenv("ATHEON_LOG_FORMAT"), "json") {
+		handler = slog.NewJSONHandler(os.Stderr, opts)
+	} else {
+		handler = slog.NewTextHandler(os.Stderr, opts)
+	}
+	slog.SetDefault(slog.New(handler))
 }
 
 // run executes the JSON-RPC loop reading from r and writing to w, returning
@@ -131,6 +160,16 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 			fmt.Fprintf(os.Stderr, "atheon-mcp: malformed JSON-RPC request: %v\n", err)
 			continue
 		}
+		// Per-request structured log so MCP traffic is observable in ELK /
+		// Loki / Datadog. Gated at Debug so the default Info level stays
+		// quiet for the common case. Use fmt.Sprintf for ID since the
+		// field is `any` and JSON-encoding a nil ID emits "null" which is
+		// technically correct but harder to grep than "<notif>".
+		idStr := "<notif>"
+		if req.ID != nil {
+			idStr = fmt.Sprintf("%v", req.ID)
+		}
+		slog.Debug("mcp request", "method", req.Method, "id", idStr)
 		if req.Method == "initialized" {
 			continue
 		}

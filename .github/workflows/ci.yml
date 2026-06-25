@@ -53,8 +53,12 @@ jobs:
       - name: Run tests
         # The -p 1 flag is MANDATORY: core has package-level state in init() that
         # is not safe under parallel package execution.
+        # -race is enabled at the CI floor so race regressions are caught at
+        # PR time rather than after release; Wave 8 PR #93 promotion.
+        # -timeout 20m accommodates the -race overhead (roughly 5-10x slower
+        # than non-race on contention-free code, more on heavy contention).
         run: |
-          go test ./... -p 1 -timeout 15m -coverprofile=coverage.out
+          go test ./... -p 1 -race -timeout 20m -coverprofile=coverage.out
 
       - name: Check coverage threshold
         env:
@@ -64,9 +68,12 @@ jobs:
           # keeps the gate meaningful without external setup.
           COVERAGE_THRESHOLD: ${{ vars.COVERAGE_THRESHOLD || '70' }}
         run: |
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | cut -d. -f1)
+          # Float arithmetic — the previous `cut -d. -f1` truncation meant
+          # 79.9% silently passed an 80% gate. Use awk's float comparison
+          # so 79.9 < 80 correctly fails.
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Coverage: ${COVERAGE}%"
-          if [ "${COVERAGE}" -lt "${COVERAGE_THRESHOLD}" ]; then
+          if awk -v c="$COVERAGE" -v t="$COVERAGE_THRESHOLD" 'BEGIN{exit !(c+0 < t+0)}'; then
             echo "❌ Coverage ${COVERAGE}% is below ${COVERAGE_THRESHOLD}% threshold"
             exit 1
           fi

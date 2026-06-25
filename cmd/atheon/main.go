@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
@@ -17,10 +18,41 @@ import (
 var version = "dev"
 
 func main() {
+	configureLogging()
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	code := run(ctx, os.Args[1:])
 	cancel() // explicit: os.Exit skips deferred cancel
 	os.Exit(code)
+}
+
+// configureLogging sets the default slog handler based on env vars so
+// operators can pipe logs to ELK / Loki / Datadog without code changes.
+// ATHEON_LOG_FORMAT=json   — JSON-structured records (one per line)
+// ATHEON_LOG_FORMAT=text   — human-readable text (default)
+// ATHEON_LOG_LEVEL=debug   — surface slog.Debug calls; default is info
+// Called once from main() so all downstream package logs inherit the
+// configured handler via slog.Default().
+func configureLogging() {
+	var level slog.Level
+	switch strings.ToLower(os.Getenv("ATHEON_LOG_LEVEL")) {
+	case "debug":
+		level = slog.LevelDebug
+	case "warn", "warning":
+		level = slog.LevelWarn
+	case "error":
+		level = slog.LevelError
+	default:
+		level = slog.LevelInfo
+	}
+	opts := &slog.HandlerOptions{Level: level}
+
+	var handler slog.Handler
+	if strings.EqualFold(os.Getenv("ATHEON_LOG_FORMAT"), "json") {
+		handler = slog.NewJSONHandler(os.Stderr, opts)
+	} else {
+		handler = slog.NewTextHandler(os.Stderr, opts)
+	}
+	slog.SetDefault(slog.New(handler))
 }
 
 // run executes the CLI with the given args and returns the exit code.

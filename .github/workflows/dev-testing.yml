@@ -39,9 +39,11 @@ jobs:
             echo "⚠️  No coverage file — tests may have failed"
             exit 0
           fi
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | cut -d. -f1)
+          # Float arithmetic — matches the main ci.yml coverage gate so a
+          # 49.9% dev build correctly fails a 50% floor.
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Coverage: $COVERAGE%"
-          if [ "$COVERAGE" -lt 50 ]; then
+          if awk -v c="$COVERAGE" -v t=50 'BEGIN{exit !(c+0 < t+0)}'; then
             echo "❌ Coverage $COVERAGE% below dev threshold of 50%"
             exit 1
           fi

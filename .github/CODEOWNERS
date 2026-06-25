@@ -4,5 +4,23 @@
 * @aliasfoxkde
 
 # CI/CD and release workflows — extra scrutiny
-.github/ @aliasfoxkde
-.goreleaser.yml @aliasfoxkde
+/.github/ @aliasfoxkde
+/.goreleaser.yml @aliasfoxkde
+
+# Pattern engine — regex correctness and bundle integrity are the project's
+# product. Maintainer-only review; co-maintainers can extend if added.
+/core/ @aliasfoxkde
+/bundler/ @aliasfoxkde
+
+# CLI and MCP entry points — wire-protocol changes (JSON-RPC, JSON, SARIF
+# output) need maintainer review because they affect every downstream user.
+/cmd/ @aliasfoxkde
+
+# Pattern community — co-maintainers welcome. Each category subdirectory
+# is reviewed by whoever owns that category (aliasfoxkde for all currently).
+# Adding a co-maintainer for a specific category: `/community/<cat>/ @co-maintainer`.
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+/community/ @aliasfoxkde
+
+# Documentation — wider review acceptable; treat as low-risk.
+/docs/ @aliasfoxkde

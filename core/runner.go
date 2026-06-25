@@ -104,6 +104,7 @@ func ScanFile(ctx context.Context, path string) ([]Finding, *Stats, error) {
 // WaitGroup drains.
 func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 	start := time.Now()
+	slog.Debug("scan started", "root", root)
 	ignoreMatcher := loadIgnorePatternsMatcher(root)
 	var paths []string
 
@@ -190,6 +191,8 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 		findings = append(findings, results[i]...)
 		totalBytes += sizes[i]
 	}
+
+	slog.Debug("scan complete", "root", root, "files", filesScanned, "findings", len(findings), "elapsed_ms", time.Since(start).Milliseconds())
 
 	return findings, &Stats{
 		Files:     filesScanned,

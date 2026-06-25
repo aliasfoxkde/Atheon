@@ -323,12 +323,16 @@ func SetBundleDownloadURL(url string) func() {
 // On any non-success HTTP status code, DownloadBundle returns an error wrapping
 // ErrBundleDownload so callers can use errors.Is.
 func DownloadBundle(ctx context.Context) error {
+	start := time.Now()
+	slog.Info("bundle download started", "url", *bundleDownloadURL.Load())
 	oldPatterns := currentPatternNames()
 
 	data, err := fetchBundleData(ctx)
 	if err != nil {
 		return err
 	}
+	slog.Info("bundle download complete", "bytes", len(data), "elapsed_ms", time.Since(start).Milliseconds())
+
 	dir, err := ensureAtheonDir()
 	if err != nil {
 		return err
