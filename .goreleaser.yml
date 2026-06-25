@@ -21,6 +21,11 @@ builds:
       - goos: windows
         goarch: arm64
     binary: atheon
+    flags:
+      # -trimpath strips the GOPATH/GOROOT filesystem prefixes from
+      # recorded paths so binaries built on different machines produce
+      # identical output. Required for reproducible-builds attestation.
+      - -trimpath
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
@@ -40,6 +45,8 @@ builds:
       - goos: windows
         goarch: arm64
     binary: atheon-mcp
+    flags:
+      - -trimpath
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
@@ -56,6 +63,15 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
+# SBOM — generate SPDX-JSON for every release artifact. Downstream
+# consumers (Sigstore, in-toto, govulncheck) parse SPDX directly. The
+# file lands alongside the binaries in the GitHub release.
+sboms:
+  - id: spdx
+    artifacts: binary
+    documents:
+      - "${artifact}.spdx.json"
+
 release:
   github:
     owner: aliasfoxkde
@@ -69,7 +85,7 @@ release:
 # both 404) and a GH_PAT secret with push access to those repos.
 #
 # Additionally, goreleaser v2 deprecated the singular `brews:` and `scoops:`
-# blocks in favor of split homebrew_taps/homebrew_casks/scoops forms — even
+# blocks in favor of split homebrew_taps/homebrew_casks/scoops forms - even
 # those now live behind flags that aren't on by default. To re-enable:
 #   1. Create the tap/bucket repo(s)
 #   2. Add GH_PAT secret with repo scope
