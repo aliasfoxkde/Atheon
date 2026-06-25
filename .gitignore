@@ -13,3 +13,12 @@
 *.out
 /coverage.html
 dist/
+
+# Atheon build output (bundler writes here)
+/.atheon-build/
+
+# OS / editor temp files
+.DS_Store
+Thumbs.db
+*.swp
+*~

@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `git-hygiene` category: merge-conflict-marker, fixup-commit-message, rebase-todo-leftover, git-rerere-conflict
 - `scripts/pattern-count.sh` — single source of truth for pattern counts (replaces
   hardcoded numbers scattered across docs). Supports `--json`, `--total`, `--table`,
-  `--help`. Confirmed: **255 patterns / 19 categories**.
+  `--help`. Confirmed: **274 patterns / 19 categories**.
 - `docs/architecture/decisions/` directory for Architecture Decision Records (ADRs)
   (planned)
 
@@ -44,8 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/architecture/SYSTEM_ARCHITECTURE.md` "Code Organization" section rewritten
   to reflect actual file inventory (removed phantom `core/streaming.go`,
   `core/quality_enforcement.go`, `config/defaults/` entries)
-- Pattern counts in 6 doc files updated to reflect actual 255 patterns / 19
-  categories (was stale: 177 / 225 / 190 depending on file)
+- Pattern counts in 6 doc files updated to reflect actual 274 patterns / 19
+  categories (was stale: 177 / 225 / 255 / 190 depending on file)
 
 ### Fixed
 - Finding.Line guard ensures 1-indexed line numbers (0 becomes 1)
