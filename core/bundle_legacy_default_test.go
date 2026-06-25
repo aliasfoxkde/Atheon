@@ -25,6 +25,12 @@ func TestLoadBundleLegacyDefaultFlip(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelInfo})))
 	defer slog.SetDefault(oldHandler)
 
+	// Snapshot package globals before loadBundle rewrites them, so this
+	// test can't leak state into subsequent tests. snapshotState /
+	// restoreState are defined in bundle_fuzz_test.go.
+	savedRegs, savedPatterns := snapshotState()
+	t.Cleanup(func() { restoreState(savedRegs, savedPatterns) })
+
 	// Build a tiny bundle where every pattern has enabled=false.
 	defs := []PatternDef{
 		{Name: "legacy-flip-a", Category: "secrets", Match: `AKIA[0-9A-Z]{16}`, Enabled: false},
@@ -47,11 +53,21 @@ func TestLoadBundleLegacyDefaultFlip(t *testing.T) {
 		t.Fatalf("loadBundle: %v", err)
 	}
 
-	// All patterns should be enabled after the legacy flip.
+	// Assert against the specific patterns this test created (via
+	// snapshot/restore above). Iterating All() would mix in built-in
+	// patterns whose enabled state isn't this test's concern.
+	wantNames := map[string]bool{"legacy-flip-a": true, "legacy-flip-b": true}
+	found := 0
 	for _, p := range All() {
-		if !p.Enabled() {
-			t.Errorf("pattern %q should be enabled after legacy flip", p.Name())
+		if wantNames[p.Name()] {
+			found++
+			if !p.Enabled() {
+				t.Errorf("pattern %q should be enabled after legacy flip", p.Name())
+			}
 		}
+	}
+	if found != len(wantNames) {
+		t.Errorf("expected to find %d test patterns in All(), found %d", len(wantNames), found)
 	}
 
 	// The slog.Info line should appear in the captured output.
@@ -72,6 +88,10 @@ func TestLoadBundleNoFlipWhenAnyEnabled(t *testing.T) {
 	oldHandler := slog.Default()
 	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelInfo})))
 	defer slog.SetDefault(oldHandler)
+
+	// Snapshot/restore package globals — see TestLoadBundleLegacyDefaultFlip.
+	savedRegs, savedPatterns := snapshotState()
+	t.Cleanup(func() { restoreState(savedRegs, savedPatterns) })
 
 	defs := []PatternDef{
 		{Name: "normal-a", Category: "secrets", Match: `AKIA[0-9A-Z]{16}`, Enabled: true},
