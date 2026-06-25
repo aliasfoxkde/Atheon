@@ -58,6 +58,12 @@ func atomicWriteFile(path string, data []byte, perm os.FileMode) (retErr error) 
 	// sync can leave the rename uncommitted — the file is gone, the .tmp
 	// is gone, and the previous content isn't visible. Best-effort: skip
 	// on platforms (Windows) where opening a directory is restricted.
+	//
+	// dir is filepath.Dir(path) — the parent of the file we're writing.
+	// Callers pass user-home paths (e.g. ~/.atheon/patterns.bundle), so
+	// the directory is the user's own home subdirectory, not a request-
+	// controlled value. gosec G304 (file inclusion) does not apply.
+	// #nosec G304
 	if dirFd, err := os.Open(dir); err == nil {
 		_ = dirFd.Sync()
 		_ = dirFd.Close()

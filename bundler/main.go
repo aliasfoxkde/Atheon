@@ -108,6 +108,7 @@ func atomicWriteFile(path string, data []byte, perm os.FileMode) (retErr error) 
 		return fmt.Errorf("atomic write: rename: %w", err)
 	}
 	// Directory fsync — see core/atomic_file.go for the rationale.
+	// #nosec G304 -- see core/atomic_file.go for the path-safety analysis.
 	if dirFd, err := os.Open(dir); err == nil {
 		_ = dirFd.Sync()
 		_ = dirFd.Close()
