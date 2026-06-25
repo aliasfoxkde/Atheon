@@ -25,19 +25,32 @@ var embeddedBundle []byte
 
 // PatternDef is the on-disk (and on-wire) representation of a pattern as
 // it appears inside a pattern bundle. Match holds the regular-expression
-// source; the compiled *regexp.Regexp is not part of the wire form.
+// source; the compiled *regexp.Regexp is not part of the wire form. Severity
+// is optional — patterns that omit it default to "medium" (see DefaultSeverity).
 type PatternDef struct {
 	Name     string `json:"name"`
 	Category string `json:"category"`
 	Match    string `json:"match"`
 	Enabled  bool   `json:"enabled"`
+	Severity string `json:"severity,omitempty"`
 }
+
+// DefaultSeverity is the severity assigned to patterns that don't declare one.
+// "medium" matches the most common legacy pattern that hard-coded everything
+// as a warning-level finding before SARIF consumers learned to filter.
+const DefaultSeverity = "medium"
+
+// ValidSeverities lists the recognized severity strings. Anything outside
+// this set is normalised to DefaultSeverity when the bundle loads — keeping
+// downstream code (SARIF mapping, JSON output) safe from typo'd YAML.
+var ValidSeverities = []string{"low", "medium", "high", "critical"}
 
 type bundlePattern struct {
 	name     string
 	category string
 	match    string
 	enabled  bool
+	severity string
 	re       *regexp.Regexp
 }
 
@@ -46,6 +59,23 @@ func (p *bundlePattern) Category() string         { return p.category }
 func (p *bundlePattern) Matches(line string) bool { return p.enabled && p.re.MatchString(line) }
 func (p *bundlePattern) Enabled() bool            { return p.enabled }
 func (p *bundlePattern) SetEnabled(enabled bool)  { p.enabled = enabled }
+
+// Severity returns the pattern's severity — one of ValidSeverities, never empty.
+// Patterns loaded without a severity field read back as DefaultSeverity.
+func (p *bundlePattern) Severity() string { return p.severity }
+
+// normalizeSeverity maps any string to one of ValidSeverities, falling back
+// to DefaultSeverity for empty or unrecognised values. Comparison is
+// case-insensitive so "HIGH" and "high" behave the same.
+func normalizeSeverity(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	for _, v := range ValidSeverities {
+		if s == v {
+			return v
+		}
+	}
+	return DefaultSeverity
+}
 
 type categoryScanner struct {
 	combined *regexp.Regexp
@@ -112,7 +142,7 @@ func loadBundle(data []byte) error {
 			slog.Warn("skipping pattern due to regex error", "pattern", def.Name, "err", err)
 			continue
 		}
-		bp := &bundlePattern{name: def.Name, category: def.Category, match: def.Match, enabled: def.Enabled, re: re}
+		bp := &bundlePattern{name: def.Name, category: def.Category, match: def.Match, enabled: def.Enabled, severity: normalizeSeverity(def.Severity), re: re}
 		allPatterns = append(allPatterns, bp)
 		Register(bp)
 	}

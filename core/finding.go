@@ -5,11 +5,16 @@ package core
 // scanning the process environment); Line is the 1-indexed line number
 // within the source (0 for env scans); Content is the trimmed matching
 // line or, for env scans, the matching value.
+//
+// Severity is the pattern's declared severity at the time of the match —
+// one of "low", "medium", "high", "critical". It's copied off the Pattern
+// at match time so toggling severity later doesn't rewrite history.
 type Finding struct {
-	Pattern string
-	File    string
-	Line    int
-	Content string
+	Pattern  string
+	File     string
+	Line     int
+	Content  string
+	Severity string
 }
 
 // Stats summarizes the work performed by ScanFile or ScanDir. Files is the

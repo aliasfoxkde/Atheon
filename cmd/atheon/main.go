@@ -241,6 +241,40 @@ func printSARIFFindings(findings []core.Finding) {
 	}
 }
 
+// sarifSeverityScore maps an Atheon severity to the CVSS-like 0.0–10.0 score
+// that GitHub code-scanning consumes via security-severity. The mapping is
+// deliberately coarse — pattern authors shouldn't think in CVSS — but the
+// scores land on the boundaries GitHub uses for its severity buckets.
+func sarifSeverityScore(sev string) string {
+	switch strings.ToLower(sev) {
+	case "critical":
+		return "9.5"
+	case "high":
+		return "7.5"
+	case "medium":
+		return "5.0"
+	case "low":
+		return "2.5"
+	default:
+		return "5.0"
+	}
+}
+
+// sarifLevel maps Atheon severity to SARIF's level enum (error/warning/note).
+// Low is a note, medium is a warning, high and critical are errors.
+func sarifLevel(sev string) string {
+	switch strings.ToLower(sev) {
+	case "critical", "high":
+		return "error"
+	case "medium":
+		return "warning"
+	case "low":
+		return "note"
+	default:
+		return "warning"
+	}
+}
+
 func buildSARIFRules(findings []core.Finding) []map[string]any {
 	seen := make(map[string]bool)
 	var rules []map[string]any
@@ -254,7 +288,8 @@ func buildSARIFRules(findings []core.Finding) []map[string]any {
 			"name": f.Pattern,
 			"kind": "rule",
 			"properties": map[string]any{
-				"security-severity": "High",
+				"security-severity":    sarifSeverityScore(f.Severity),
+				"security-severity-label": f.Severity,
 			},
 		})
 	}
@@ -266,7 +301,7 @@ func buildSARIFResults(findings []core.Finding) []map[string]any {
 	for _, f := range findings {
 		results = append(results, map[string]any{
 			"ruleId": f.Pattern,
-			"level":  "error",
+			"level":  sarifLevel(f.Severity),
 			"message": map[string]any{
 				"text": f.Content,
 			},

@@ -16,9 +16,10 @@ import (
 )
 
 type patternFile struct {
-	Name    string `yaml:"name"`
-	Match   string `yaml:"match"`
-	Enabled *bool  `yaml:"enabled,omitempty"`
+	Name     string `yaml:"name"`
+	Match    string `yaml:"match"`
+	Enabled  *bool  `yaml:"enabled,omitempty"`
+	Severity string `yaml:"severity,omitempty"`
 }
 
 type patternDef struct {
@@ -26,6 +27,7 @@ type patternDef struct {
 	Category string `json:"category"`
 	Match    string `json:"match"`
 	Enabled  bool   `json:"enabled"`
+	Severity string `json:"severity,omitempty"`
 }
 
 // bundleWalkErr is a sentinel for WalkDir errors so the loop above still
@@ -70,11 +72,17 @@ func bundle(communityDir, outPath string) (int, error) {
 }
 
 // walkPatterns walks communityDir and returns all parsed pattern definitions.
-// It validates that every pattern has a unique name and a compilable regex,
-// returning an error immediately on the first violation found.
+//
+// Skip policy: a file that fails to parse, is missing required fields, has
+// a duplicate name, or has an invalid regex is logged to stderr and skipped
+// rather than aborting the whole build. This mirrors loadBundle's runtime
+// behaviour: a single malformed pattern shouldn't poison the whole bundle.
 func walkPatterns(communityDir string) ([]patternDef, error) {
 	var defs []patternDef
 	seen := make(map[string]string) // name → first file path
+	skip := func(path, why string, args ...any) {
+		fmt.Fprintf(os.Stderr, "warn: %s: %s\n", path, fmt.Sprintf(why, args...))
+	}
 	err := filepath.WalkDir(communityDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || !strings.HasSuffix(path, ".yaml") {
 			return err
@@ -85,20 +93,25 @@ func walkPatterns(communityDir string) ([]patternDef, error) {
 		}
 		var pf patternFile
 		if err := yaml.Unmarshal(data, &pf); err != nil {
-			return fmt.Errorf("%s: %w", path, err)
+			skip(path, "yaml parse error: %v (file skipped)", err)
+			return nil
 		}
 		if pf.Name == "" || pf.Match == "" {
-			return fmt.Errorf("%s: missing name or match", path)
+			skip(path, "missing name or match (file skipped)")
+			return nil
 		}
 		if strings.ContainsAny(pf.Name, " \t") {
-			return fmt.Errorf("%s: pattern name %q must not contain whitespace", path, pf.Name)
+			skip(path, "pattern name %q must not contain whitespace (file skipped)", pf.Name)
+			return nil
 		}
 		if first, dup := seen[pf.Name]; dup {
-			return fmt.Errorf("%s: duplicate pattern name %q (first defined in %s)", path, pf.Name, first)
+			skip(path, "duplicate pattern name %q (first defined in %s; this file skipped)", pf.Name, first)
+			return nil
 		}
 		seen[pf.Name] = path
 		if _, err := regexp.Compile(pf.Match); err != nil {
-			return fmt.Errorf("%s: invalid regex for %q: %w", path, pf.Name, err)
+			skip(path, "invalid regex for %q: %v (file skipped)", pf.Name, err)
+			return nil
 		}
 		category := filepath.Base(filepath.Dir(path))
 		enabled := true
@@ -110,6 +123,7 @@ func walkPatterns(communityDir string) ([]patternDef, error) {
 			Category: category,
 			Match:    pf.Match,
 			Enabled:  enabled,
+			Severity: pf.Severity,
 		})
 		return nil
 	})

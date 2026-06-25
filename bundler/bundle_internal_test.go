@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -120,32 +119,36 @@ enabled: false
 	}
 }
 
-// TestBundleMissingFields returns an error when a YAML file is missing name
-// or match fields.
-func TestBundleMissingFields(t *testing.T) {
+// TestBundleMissingFieldsSkips verifies that walkPatterns skips files
+// missing required fields rather than aborting the build.
+func TestBundleMissingFieldsSkips(t *testing.T) {
 	tmpDir := t.TempDir()
 	categoryDir := filepath.Join(tmpDir, "community", "secrets")
 	if err := os.MkdirAll(categoryDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	// Missing match
 	if err := os.WriteFile(filepath.Join(categoryDir, "bad.yaml"), []byte(`name: bad
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(categoryDir, "good.yaml"), []byte(`name: good
+match: 'x'
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	outPath := filepath.Join(tmpDir, "out.bundle")
-	_, err := bundle(filepath.Join(tmpDir, "community"), outPath)
-	if err == nil {
-		t.Error("expected error for missing fields, got nil")
+	n, err := bundle(filepath.Join(tmpDir, "community"), outPath)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
 	}
-	if !strings.Contains(err.Error(), "missing name or match") {
-		t.Errorf("unexpected error: %v", err)
+	if n != 1 {
+		t.Errorf("expected 1 pattern (skipping the broken one), got %d", n)
 	}
 }
 
-// TestBundleBadYAML returns an error when YAML is malformed.
-func TestBundleBadYAML(t *testing.T) {
+// TestBundleBadYAMLSkips verifies malformed YAML is skipped without aborting.
+func TestBundleBadYAMLSkips(t *testing.T) {
 	tmpDir := t.TempDir()
 	categoryDir := filepath.Join(tmpDir, "community", "secrets")
 	if err := os.MkdirAll(categoryDir, 0o755); err != nil {
@@ -155,11 +158,19 @@ func TestBundleBadYAML(t *testing.T) {
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	if err := os.WriteFile(filepath.Join(categoryDir, "good.yaml"), []byte(`name: good
+match: 'x'
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
 
 	outPath := filepath.Join(tmpDir, "out.bundle")
-	_, err := bundle(filepath.Join(tmpDir, "community"), outPath)
-	if err == nil {
-		t.Error("expected error for bad YAML, got nil")
+	n, err := bundle(filepath.Join(tmpDir, "community"), outPath)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("expected 1 pattern (skipping the broken one), got %d", n)
 	}
 }
 

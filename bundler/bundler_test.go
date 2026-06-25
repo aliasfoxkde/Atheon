@@ -7,7 +7,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -114,39 +113,57 @@ func TestBundleMultipleCategories(t *testing.T) {
 	}
 }
 
-func TestBundleInvalidYAML(t *testing.T) {
+// TestBundleInvalidYAMLSkips — invalid YAML is logged + skipped, not an error.
+func TestBundleInvalidYAMLSkips(t *testing.T) {
 	community := setupCommunity(t, map[string]string{
-		"secrets/bad.yaml": "name: bad\nmatch: [unclosed\n",
+		"secrets/bad.yaml":  "name: bad\nmatch: [unclosed\n",
+		"secrets/good.yaml": "name: good\nmatch: 'x'\n",
 	})
 	out := filepath.Join(t.TempDir(), "out.bundle")
 
-	_, err := bundle(community, out)
-	if err == nil {
-		t.Error("expected error for invalid YAML, got nil")
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle should not error on bad YAML, got: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("expected 1 pattern (skipping the bad one), got %d", n)
 	}
 }
 
-func TestBundleMissingMatch(t *testing.T) {
+// TestBundleMissingMatchSkips: walkPatterns now skips files with missing
+// fields (logging a warning) rather than aborting the build. This matches
+// loadBundle's runtime tolerance. The pattern is silently dropped from the
+// output bundle; n must reflect that.
+func TestBundleMissingMatchSkips(t *testing.T) {
 	community := setupCommunity(t, map[string]string{
 		"secrets/incomplete.yaml": "name: incomplete-key\n",
+		"secrets/good.yaml":       "name: good-key\nmatch: 'x'\n",
 	})
 	out := filepath.Join(t.TempDir(), "out.bundle")
 
-	_, err := bundle(community, out)
-	if err == nil {
-		t.Error("expected error for missing match field, got nil")
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("expected 1 pattern (skipping the broken one), got %d", n)
 	}
 }
 
-func TestBundleMissingName(t *testing.T) {
+// TestBundleMissingNameSkips — same skip policy as above.
+func TestBundleMissingNameSkips(t *testing.T) {
 	community := setupCommunity(t, map[string]string{
 		"secrets/noname.yaml": "match: 'something'\n",
+		"secrets/good.yaml":   "name: good-key\nmatch: 'x'\n",
 	})
 	out := filepath.Join(t.TempDir(), "out.bundle")
 
-	_, err := bundle(community, out)
-	if err == nil {
-		t.Error("expected error for missing name field, got nil")
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("expected 1 pattern (skipping the broken one), got %d", n)
 	}
 }
 
@@ -173,46 +190,55 @@ func TestBundleBadOutputPath(t *testing.T) {
 	}
 }
 
-func TestBundleWhitespaceName(t *testing.T) {
+// TestBundleWhitespaceNameSkips — the broken-name file is dropped, the
+// good file is kept. walkPatterns logs the skip reason to stderr.
+func TestBundleWhitespaceNameSkips(t *testing.T) {
 	community := setupCommunity(t, map[string]string{
 		"secrets/whitespace.yaml": "name: 'key with space'\nmatch: 'x'\n",
+		"secrets/good.yaml":       "name: good-key\nmatch: 'x'\n",
 	})
 	out := filepath.Join(t.TempDir(), "out.bundle")
 
-	_, err := bundle(community, out)
-	if err == nil {
-		t.Error("expected error for whitespace in pattern name, got nil")
-	} else if !strings.Contains(err.Error(), "must not contain whitespace") {
-		t.Errorf("expected 'must not contain whitespace' in error, got: %v", err)
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("expected 1 pattern (skipping the broken-name one), got %d", n)
 	}
 }
 
-func TestBundleDuplicatePatternName(t *testing.T) {
+// TestBundleDuplicatePatternNameSkips — first writer wins, second is dropped.
+func TestBundleDuplicatePatternNameSkips(t *testing.T) {
 	community := setupCommunity(t, map[string]string{
 		"secrets/key1.yaml": "name: duplicate-key\nmatch: 'test1'\n",
 		"secrets/key2.yaml": "name: duplicate-key\nmatch: 'test2'\n",
 	})
 	out := filepath.Join(t.TempDir(), "out.bundle")
 
-	_, err := bundle(community, out)
-	if err == nil {
-		t.Error("expected error for duplicate pattern name, got nil")
-	} else if !strings.Contains(err.Error(), "duplicate pattern name") {
-		t.Errorf("expected 'duplicate pattern name' in error, got: %v", err)
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("expected 1 pattern (first wins, second skipped), got %d", n)
 	}
 }
 
-func TestBundleInvalidRegex(t *testing.T) {
+// TestBundleInvalidRegexSkips — invalid regex is logged + skipped.
+func TestBundleInvalidRegexSkips(t *testing.T) {
 	community := setupCommunity(t, map[string]string{
 		"secrets/bad.yaml": "name: bad-regex\nmatch: '[invalid'\n",
+		"secrets/good.yaml": "name: good-key\nmatch: 'x'\n",
 	})
 	out := filepath.Join(t.TempDir(), "out.bundle")
 
-	_, err := bundle(community, out)
-	if err == nil {
-		t.Error("expected error for invalid regex, got nil")
-	} else if !strings.Contains(err.Error(), "invalid regex") {
-		t.Errorf("expected 'invalid regex' in error, got: %v", err)
+	n, err := bundle(community, out)
+	if err != nil {
+		t.Fatalf("bundle: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("expected 1 pattern (skipping the invalid-regex one), got %d", n)
 	}
 }
 
@@ -236,26 +262,34 @@ func TestBundleToWriterGzipFailure(t *testing.T) {
 	}
 }
 
-// TestWalkPatternsWhitespaceName exercises the whitespace-in-name validation.
+// TestWalkPatternsWhitespaceName — broken-name file is skipped, not an error.
 func TestWalkPatternsWhitespaceName(t *testing.T) {
 	community := setupCommunity(t, map[string]string{
-		"secrets/bad.yaml": "name: 'bad name'\nmatch: 'foo'\n",
+		"secrets/bad.yaml":  "name: 'bad name'\nmatch: 'foo'\n",
+		"secrets/good.yaml": "name: good\nmatch: 'foo'\n",
 	})
 
-	_, err := walkPatterns(community)
-	if err == nil {
-		t.Error("expected error for pattern name with whitespace, got nil")
+	defs, err := walkPatterns(community)
+	if err != nil {
+		t.Fatalf("walkPatterns should not error on whitespace name, got: %v", err)
+	}
+	if len(defs) != 1 {
+		t.Errorf("expected 1 pattern (skipping the bad-name one), got %d", len(defs))
 	}
 }
 
-// TestWalkPatternsMissingName exercises the missing-name-or-match validation.
+// TestWalkPatternsMissingFields — missing field is skipped, not an error.
 func TestWalkPatternsMissingFields(t *testing.T) {
 	community := setupCommunity(t, map[string]string{
 		"secrets/empty.yaml": "name: ''\nmatch: 'foo'\n",
+		"secrets/good.yaml":  "name: good\nmatch: 'foo'\n",
 	})
 
-	_, err := walkPatterns(community)
-	if err == nil {
-		t.Error("expected error for missing name, got nil")
+	defs, err := walkPatterns(community)
+	if err != nil {
+		t.Fatalf("walkPatterns should not error on missing field, got: %v", err)
+	}
+	if len(defs) != 1 {
+		t.Errorf("expected 1 pattern (skipping the empty-name one), got %d", len(defs))
 	}
 }

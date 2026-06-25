@@ -37,6 +37,9 @@ type Pattern interface {
 	Category() string
 	// Enabled reports whether the pattern is currently active.
 	Enabled() bool
+	// Severity returns the pattern's severity: one of "low", "medium", "high",
+	// "critical". Implementations that don't track severity return "medium".
+	Severity() string
 	// Matches reports whether the pattern's regex matches the given line.
 	Matches(line string) bool
 }

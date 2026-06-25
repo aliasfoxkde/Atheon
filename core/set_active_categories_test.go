@@ -17,6 +17,7 @@ type fakePattern struct {
 func (f *fakePattern) Name() string             { return f.name }
 func (f *fakePattern) Category() string         { return f.category }
 func (f *fakePattern) Enabled() bool            { return f.enabled }
+func (f *fakePattern) Severity() string         { return "medium" }
 func (f *fakePattern) Matches(line string) bool { return f.matched }
 
 // TestSetActiveCategoriesExternalPatterns exercises the path that includes

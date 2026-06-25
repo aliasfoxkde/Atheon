@@ -20,36 +20,56 @@ func TestBundleWalkPatternsNoDir(t *testing.T) {
 	}
 }
 
-// TestBundleWalkPatternsBadYAML exercises the yaml.Unmarshal error branch.
+// TestBundleWalkPatternsBadYAML — malformed YAML is now skipped (logged),
+// not an error. The walk returns successfully with an empty defs slice.
 func TestBundleWalkPatternsBadYAML(t *testing.T) {
 	tmp := t.TempDir()
 	if err := writeFile(t, tmp+"/secrets/bad.yaml", "this is: not: valid: yaml: : :"); err != nil {
 		t.Fatal(err)
 	}
-	_, err := walkPatterns(tmp)
-	if err == nil {
-		t.Error("expected error from walkPatterns with malformed YAML")
+	if err := writeFile(t, tmp+"/secrets/good.yaml", "name: g\nmatch: 'x'\n"); err != nil {
+		t.Fatal(err)
+	}
+	defs, err := walkPatterns(tmp)
+	if err != nil {
+		t.Fatalf("walkPatterns should not error on bad YAML, got: %v", err)
+	}
+	if len(defs) != 1 {
+		t.Errorf("expected 1 pattern (skipping the bad one), got %d", len(defs))
 	}
 }
 
-// TestBundleWalkPatternsMissingFields exercises the missing name/match branch.
+// TestBundleWalkPatternsMissingFields — missing name/match fields skip
+// the file but don't error. Covers both cases via two tmpdirs.
 func TestBundleWalkPatternsMissingFields(t *testing.T) {
 	tmp := t.TempDir()
 	if err := writeFile(t, tmp+"/secrets/missing-name.yaml", "match: foo"); err != nil {
 		t.Fatal(err)
 	}
-	_, err := walkPatterns(tmp)
-	if err == nil {
-		t.Error("expected error from walkPatterns with missing name field")
+	if err := writeFile(t, tmp+"/secrets/good.yaml", "name: g\nmatch: 'x'\n"); err != nil {
+		t.Fatal(err)
+	}
+	defs, err := walkPatterns(tmp)
+	if err != nil {
+		t.Fatalf("walkPatterns should not error on missing field, got: %v", err)
+	}
+	if len(defs) != 1 {
+		t.Errorf("expected 1 pattern (skipping the missing-name one), got %d", len(defs))
 	}
 
 	tmp2 := t.TempDir()
 	if err := writeFile(t, tmp2+"/secrets/missing-match.yaml", "name: foo"); err != nil {
 		t.Fatal(err)
 	}
-	_, err = walkPatterns(tmp2)
-	if err == nil {
-		t.Error("expected error from walkPatterns with missing match field")
+	if err := writeFile(t, tmp2+"/secrets/good.yaml", "name: g\nmatch: 'x'\n"); err != nil {
+		t.Fatal(err)
+	}
+	defs, err = walkPatterns(tmp2)
+	if err != nil {
+		t.Fatalf("walkPatterns should not error on missing match, got: %v", err)
+	}
+	if len(defs) != 1 {
+		t.Errorf("expected 1 pattern (skipping the missing-match one), got %d", len(defs))
 	}
 }
 

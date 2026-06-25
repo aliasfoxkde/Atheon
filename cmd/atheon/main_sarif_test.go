@@ -186,7 +186,7 @@ func TestBuildSARIFRulesEmpty(t *testing.T) {
 // exactly one rule with the expected id, name, kind, and properties fields.
 func TestBuildSARIFRulesSingleFinding(t *testing.T) {
 	findings := []core.Finding{
-		{Pattern: "my-pattern", File: "x.go", Line: 1},
+		{Pattern: "my-pattern", File: "x.go", Line: 1, Severity: "high"},
 	}
 	rules := buildSARIFRules(findings)
 	if len(rules) != 1 {
@@ -206,8 +206,11 @@ func TestBuildSARIFRulesSingleFinding(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected properties map, got %T", r["properties"])
 	}
-	if props["security-severity"] != "High" {
-		t.Errorf("expected security-severity 'High', got %v", props["security-severity"])
+	if props["security-severity"] != "7.5" {
+		t.Errorf("expected security-severity '7.5' for high severity, got %v", props["security-severity"])
+	}
+	if props["security-severity-label"] != "high" {
+		t.Errorf("expected security-severity-label 'high', got %v", props["security-severity-label"])
 	}
 }
 
@@ -241,7 +244,7 @@ func TestBuildSARIFRulesDeduplicates(t *testing.T) {
 // buildSARIFResults for a single finding.
 func TestBuildSARIFResultsLocation(t *testing.T) {
 	findings := []core.Finding{
-		{Pattern: "loc-pattern", File: "src/main.go", Line: 42, Content: "secret-data"},
+		{Pattern: "loc-pattern", File: "src/main.go", Line: 42, Content: "secret-data", Severity: "high"},
 	}
 	results := buildSARIFResults(findings)
 	if len(results) != 1 {
@@ -252,7 +255,7 @@ func TestBuildSARIFResultsLocation(t *testing.T) {
 		t.Errorf("expected ruleId 'loc-pattern', got %v", res["ruleId"])
 	}
 	if res["level"] != "error" {
-		t.Errorf("expected level 'error', got %v", res["level"])
+		t.Errorf("expected level 'error' for high severity, got %v", res["level"])
 	}
 	locs, ok := res["locations"].([]map[string]any)
 	if !ok || len(locs) == 0 {
@@ -404,5 +407,32 @@ func TestPrintSARIFFindingsStructure(t *testing.T) {
 	}
 	if driver["name"] != "Atheon" {
 		t.Errorf("expected driver name 'Atheon', got %v", driver["name"])
+	}
+}
+
+// TestSARIFSeverityMapping verifies each severity produces the expected
+// SARIF level + CVSS-like score. Pins down the contract added in PR #84
+// so future severity additions are deliberate.
+func TestSARIFSeverityMapping(t *testing.T) {
+	cases := []struct {
+		sev   string
+		level string
+		score string
+	}{
+		{"critical", "error", "9.5"},
+		{"high", "error", "7.5"},
+		{"medium", "warning", "5.0"},
+		{"low", "note", "2.5"},
+		{"", "warning", "5.0"},   // unknown → default medium
+		{"bogus", "warning", "5.0"},
+		{"HIGH", "error", "7.5"}, // case-insensitive
+	}
+	for _, tc := range cases {
+		if got := sarifLevel(tc.sev); got != tc.level {
+			t.Errorf("sarifLevel(%q) = %q, want %q", tc.sev, got, tc.level)
+		}
+		if got := sarifSeverityScore(tc.sev); got != tc.score {
+			t.Errorf("sarifSeverityScore(%q) = %q, want %q", tc.sev, got, tc.score)
+		}
 	}
 }
