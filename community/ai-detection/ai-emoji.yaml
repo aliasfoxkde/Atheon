@@ -1,2 +1,3 @@
 name: ai-emoji
-match: '(?i)(✨|🚀|💡|⚡|🎯|🔥|🌟|📊|💪|🏆)'
+match: '(?i)(✨|🚀|💡|⚡|🎯|🔥|🌟|📊|💪|🏆)'severity: medium
+severity: medium

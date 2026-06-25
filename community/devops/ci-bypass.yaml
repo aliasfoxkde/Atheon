@@ -1,2 +1,3 @@
 name: ci-bypass
-match: '(?i)(ci.*skip|skip.*ci|bypass.*ci|ci.*bypass)'
+match: '(?i)(ci.*skip|skip.*ci|bypass.*ci|ci.*bypass)'severity: medium
+severity: medium

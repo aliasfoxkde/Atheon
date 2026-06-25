@@ -1,3 +1,4 @@
 name: ai-comment-disclaimer
 match: '(?i)(?:generated|written|created|produced)\s+(?:by|with|using)\s+(?:AI|ChatGPT|GPT-4|Claude|Gemini|Copilot|LLM)'
+severity: medium
 enabled: true

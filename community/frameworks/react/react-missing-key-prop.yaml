@@ -3,4 +3,5 @@ name: react-missing-key-prop
 # lookahead, so this matches the .map() call site; downstream tooling can
 # combine with file context to filter false positives.
 match: '\.\s*map\s*\([^)]*\)\s*=>\s*[<\(]'
+severity: low
 enabled: false

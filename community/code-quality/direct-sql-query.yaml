@@ -1,3 +1,4 @@
 name: direct-sql-query
 match: '(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER)\s+.*\s+FROM\s+[a-zA-Z0-9_]+'
+severity: low
 enabled: true

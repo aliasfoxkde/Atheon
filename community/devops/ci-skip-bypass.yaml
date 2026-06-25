@@ -1,3 +1,4 @@
 name: ci-skip-bypass
 match: '\[(?:skip\s+ci|ci\s+skip|no\s+ci|skip\s+tests?)\]'
+severity: medium
 enabled: true

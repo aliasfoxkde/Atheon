@@ -1,2 +1,3 @@
 name: table-headers
 match: '<table[^>]*<td|scope.*row'
+severity: low

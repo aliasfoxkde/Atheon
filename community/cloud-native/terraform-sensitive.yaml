@@ -1,3 +1,4 @@
 name: terraform-sensitive-variable
 match: '(?i)sensitive\s*=\s*true'
+severity: medium
 enabled: false

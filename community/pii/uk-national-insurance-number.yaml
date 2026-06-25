@@ -2,4 +2,5 @@ name: uk-national-insurance-number
 # UK NIN: 2-letter prefix + 6 digits + 1-letter/digit suffix.
 # Common prefixes: AB, CD, FG, HK, JL, MN, OP, QR, TW, WX, YZ (and others).
 match: '\b[A-CEGHJ-PR-TW-Z]{2}\d{6}[A-D]\b'
+severity: high
 enabled: false

@@ -1,2 +1,3 @@
 name: hardcoded-url
 match: 'https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|example\.com)[^\s]*'
+severity: low

@@ -1,2 +1,3 @@
 name: missing-lazy-loading
-match: 'import.*from.*large|require.*large.*module|<img.*loading.*eager'
+match: 'import.*from.*large|require.*large.*module|<img.*loading.*eager'severity: low
+severity: low

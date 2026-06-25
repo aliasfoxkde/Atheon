@@ -1,2 +1,3 @@
 name: aria-labels
-match: '<button[^>]*>[^<]*$|<img[^>]*alt='
+match: '<button[^>]*>[^<]*$|<img[^>]*alt='severity: low
+severity: low

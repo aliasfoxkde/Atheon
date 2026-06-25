@@ -1,2 +1,3 @@
 name: csrf
-match: 'form.*action.*POST|<form.*method.*post.*csrf.*false|cookie.*sameSite.*none'
+match: 'form.*action.*POST|<form.*method.*post.*csrf.*false|cookie.*sameSite.*none'severity: high
+severity: high

@@ -1,2 +1,3 @@
 name: error-boundaries
-match: 'componentDidCatch|getDerivedStateFromError|class.*ErrorBoundary'
+match: 'componentDidCatch|getDerivedStateFromError|class.*ErrorBoundary'severity: low
+severity: low

@@ -1,2 +1,3 @@
 name: skip-hooks
-match: '(?i)(--no-verify|skip.*hook|hook.*skip|--no-hooks)'
+match: '(?i)(--no-verify|skip.*hook|hook.*skip|--no-hooks)'severity: low
+severity: low

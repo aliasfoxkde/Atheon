@@ -1,2 +1,3 @@
 name: chart-config
-match: 'Chart\.js.*type.*bar.*data.*1000\+|options.*responsive.*false|scale.*ticks.*display.*false'
+match: 'Chart\.js.*type.*bar.*data.*1000\+|options.*responsive.*false|scale.*ticks.*display.*false'severity: medium
+severity: medium

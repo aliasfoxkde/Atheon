@@ -1,2 +1,3 @@
 name: fake-data
-match: '(?i)(lorem ipsum|dummy.*data|test.*pattern|placeholder.*text)'
+match: '(?i)(lorem ipsum|dummy.*data|test.*pattern|placeholder.*text)'severity: low
+severity: low

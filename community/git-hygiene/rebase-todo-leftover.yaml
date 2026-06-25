@@ -1,3 +1,4 @@
 name: rebase-todo-leftover
 match: '^\s*(pick|reword|edit|squash|fixup|drop)\s+[a-f0-9]'
+severity: medium
 enabled: true

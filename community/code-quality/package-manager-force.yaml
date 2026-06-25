@@ -1,2 +1,3 @@
 name: package-manager-force
-match: '(?i)(npm|pip|yarn|composer).*--force|force.*install.*--force'
+match: '(?i)(npm|pip|yarn|composer).*--force|force.*install.*--force'severity: low
+severity: low

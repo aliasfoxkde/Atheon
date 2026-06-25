@@ -1,2 +1,3 @@
 name: graphql
-match: 'query.*\{.*\{.*\{.*\}|useQuery.*\[\].*staleTime.*0|mutation.*refetchQueries'
+match: 'query.*\{.*\{.*\{.*\}|useQuery.*\[\].*staleTime.*0|mutation.*refetchQueries'severity: medium
+severity: medium

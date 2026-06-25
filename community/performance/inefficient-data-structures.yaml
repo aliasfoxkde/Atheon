@@ -1,2 +1,3 @@
 name: inefficient-data-structures
-match: 'array\.find.*for.*length|\.concat.*push|\.indexOf.*for|\.includes.*for'
+match: 'array\.find.*for.*length|\.concat.*push|\.indexOf.*for|\.includes.*for'severity: low
+severity: low

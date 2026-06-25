@@ -1,2 +1,3 @@
 name: pagination
-match: 'limit.*100\+|page.*size.*large|offset.*pagination|cursor.*pagination'
+match: 'limit.*100\+|page.*size.*large|offset.*pagination|cursor.*pagination'severity: medium
+severity: medium

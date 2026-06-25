@@ -1,2 +1,3 @@
 name: bundler-optimization
-match: 'import.*\*.*from|require.*dynamic.*import|import.*\(?.*await'
+match: 'import.*\*.*from|require.*dynamic.*import|import.*\(?.*await'severity: low
+severity: low

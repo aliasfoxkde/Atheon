@@ -1,2 +1,3 @@
 name: chart-accessibility
 match: 'canvas[^>]*[^aria-]|tooltip.*enabled.*false|legend.*display.*false'
+severity: medium

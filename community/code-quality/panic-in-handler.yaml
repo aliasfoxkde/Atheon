@@ -1,3 +1,4 @@
 name: panic-in-handler
 match: 'panic\s*\('
+severity: low
 enabled: true

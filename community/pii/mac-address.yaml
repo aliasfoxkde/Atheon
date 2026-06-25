@@ -1,4 +1,5 @@
 name: mac-address
 # MAC address in colon-delimited or hyphen-delimited form.
 match: '\b(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}\b'
+severity: high
 enabled: false

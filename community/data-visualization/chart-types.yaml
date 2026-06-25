@@ -1,2 +1,3 @@
 name: chart-types
 match: 'type.*bar.*data.*1000\+|type.*line.*categories.*10\+|type.*pie.*slices.*20\+'
+severity: medium

@@ -1,2 +1,3 @@
 name: mock-stub
-match: '(?i)(mock.*data|stub.*function|fixture.*test|test.*double)'
+match: '(?i)(mock.*data|stub.*function|fixture.*test|test.*double)'severity: low
+severity: low

@@ -1,2 +1,3 @@
 name: ai-incomplete-code
-match: '(?i)(add\s+(your|implementation|logic|code)|implement\s+this|fix\s+this|TODO.*AI|generated\s+by\s+AI|AI.*generated)'
+match: '(?i)(add\s+(your|implementation|logic|code)|implement\s+this|fix\s+this|TODO.*AI|generated\s+by\s+AI|AI.*generated)'severity: medium
+severity: medium

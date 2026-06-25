@@ -1,2 +1,3 @@
 name: git-clean-force
-match: '(?i)git clean.*-f|-ff.*git clean'
+match: '(?i)git clean.*-f|-ff.*git clean'severity: low
+severity: low

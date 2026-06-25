@@ -1,3 +1,4 @@
 name: hipaa-phi-field
 match: '\b(patient|medical|health|diagnosis|treatment|prescription)[_-](id|name|record|history|information)\b'
+severity: high
 enabled: true
