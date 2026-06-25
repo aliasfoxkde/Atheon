@@ -42,6 +42,10 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
           cache: true
+          # Pin the cache key derivation to go.sum so adding a new file
+          # outside the module path doesn't bust the cache, and bumping
+          # the Go version invalidates only when actually needed.
+          cache-dependency-path: go.sum
 
       - name: Install dependencies
         run: go mod download
@@ -84,6 +88,7 @@ jobs:
         with:
           go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
+          cache-dependency-path: go.sum
 
       - name: go vet
         run: go vet ./...
@@ -179,6 +184,7 @@ jobs:
         with:
           go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
+          cache-dependency-path: go.sum
 
       - name: Install dependencies
         run: go mod download
@@ -227,6 +233,7 @@ jobs:
         with:
           go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
+          cache-dependency-path: go.sum
 
       - name: Build binaries
         run: |
@@ -243,6 +250,23 @@ jobs:
             echo "❌ Expected ≥250 patterns, got ${COUNT}"
             exit 1
           fi
+
+      - name: Check bundle freshness vs source
+        # Catches drift between community/**/*.yaml (source of truth) and the
+        # embedded patterns.bundle. If you added a YAML file but forgot to
+        # regenerate the bundle, this step fails and tells you to run the
+        # bundler.
+        run: |
+          SOURCE_COUNT=$(./scripts/pattern-count.sh --total)
+          BUNDLE_COUNT=$(./atheon list | tail -1 | grep -oE '[0-9]+' | head -1)
+          echo "YAML source: ${SOURCE_COUNT} patterns"
+          echo "Bundle:      ${BUNDLE_COUNT} patterns"
+          if [ "${SOURCE_COUNT}" -ne "${BUNDLE_COUNT}" ]; then
+            echo "❌ Drift: bundle has ${BUNDLE_COUNT} patterns but source has ${SOURCE_COUNT}."
+            echo "   Regenerate the bundle (see scripts/build.sh or 'go generate') and recommit."
+            exit 1
+          fi
+          echo "✅ Bundle matches source"
 
       - name: Validate configuration profiles
         run: |
@@ -276,6 +300,7 @@ jobs:
         with:
           go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
+          cache-dependency-path: go.sum
 
       - name: Run benchmarks
         # 3s benchtime was the original comprehensive-ci setting. Output
@@ -359,6 +384,7 @@ jobs:
         with:
           go-version: "${{ vars.GO_VERSION || '1.23' }}"
           cache: true
+          cache-dependency-path: go.sum
 
       - name: Run tests with JUnit output
         run: |
