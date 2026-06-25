@@ -9,6 +9,16 @@ updates:
     labels:
       - "dependencies"
       - "go"
+    # Batch minor/patch updates into weekly roll-ups so a flurry of patch
+    # releases doesn't flood the PR list. Major updates stay solo so each
+    # one gets focused review.
+    groups:
+      go-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -19,3 +29,11 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    # Same batching rationale as gomod.
+    groups:
+      actions-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

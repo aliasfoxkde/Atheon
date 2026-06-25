@@ -64,6 +64,7 @@ jobs:
         with:
           go-version: "${{ vars.GO_VERSION || '1.24' }}"
           cache: true
+          cache-dependency-path: go.sum
 
       - name: Build Atheon
         run: go build -v -o atheon ./cmd/atheon
@@ -116,6 +117,7 @@ jobs:
         with:
           go-version: "${{ vars.GO_VERSION || '1.24' }}"
           cache: true
+          cache-dependency-path: go.sum
 
       - name: Dangerous function grep
         run: |
@@ -169,6 +171,7 @@ jobs:
         with:
           go-version: "${{ vars.GO_VERSION || '1.24' }}"
           cache: true
+          cache-dependency-path: go.sum
 
       - name: Build Atheon
         run: go build -v -o atheon ./cmd/atheon
@@ -228,7 +231,11 @@ jobs:
 
       - name: Run govulncheck
         run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
+          # Pinned to a specific stable release rather than @latest so a
+          # breaking change in a new govulncheck version can't take down
+          # the security gate. Bump manually when upgrading.
+          # Latest stable as of 2026-06-25: v1.4.0.
+          go install golang.org/x/vuln/cmd/govulncheck@v1.4.0
           govulncheck ./...
 
       - name: Check for outdated dependencies
