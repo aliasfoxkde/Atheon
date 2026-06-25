@@ -5,9 +5,9 @@
 // The parser is exercised with arbitrary bytes — empty input, garbage,
 // truncated gzip, valid JSON that's not gzip, JSON with regex bombs, etc.
 // We verify:
-//   1. loadBundle never panics, regardless of input.
-//   2. loadBundle either returns nil or a non-nil error (never silently
-//      corrupts state on partial parse).
+//  1. loadBundle never panics, regardless of input.
+//  2. loadBundle either returns nil or a non-nil error (never silently
+//     corrupts state on partial parse).
 //
 // regex.compile in Go's regexp is RE2-based and guaranteed linear-time, so
 // even pathological input can't wedge the parser. The risk we are guarding
@@ -21,10 +21,10 @@ import (
 func FuzzParseBundle(f *testing.F) {
 	// Seed corpus: a few canonical inputs that have already bitten us or
 	// would have, so the fuzzer starts from known-good coverage points.
-	f.Add([]byte(""))                                 // empty
-	f.Add([]byte("not a bundle"))                     // garbage
-	f.Add([]byte{0x1f, 0x8b, 0x08})                   // gzip magic, truncated header
-	f.Add([]byte{0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00}) // valid gzip header, empty body
+	f.Add([]byte(""))                                                             // empty
+	f.Add([]byte("not a bundle"))                                                 // garbage
+	f.Add([]byte{0x1f, 0x8b, 0x08})                                               // gzip magic, truncated header
+	f.Add([]byte{0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00})                             // valid gzip header, empty body
 	f.Add([]byte(`[{"name":"x","category":"y","match":"abc","enabled":true}]`))   // plain JSON, no gzip
 	f.Add([]byte(`[{"name":"x","category":"y","match":"(?P<a","enabled":true}]`)) // bad regex
 
