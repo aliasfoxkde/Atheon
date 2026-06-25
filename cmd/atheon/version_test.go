@@ -36,3 +36,31 @@ func TestDevVersion(t *testing.T) {
 		t.Error("Version should not be empty")
 	}
 }
+
+// TestVersionFlagWithJSON verifies that the --json --version combination
+// (and other flag orders) print the version cleanly. Before Wave 6, the
+// --version check ran before the --json strip, so `atheon --json --version`
+// fell into the default branch and errored with "path not found: --version".
+func TestVersionFlagWithJSON(t *testing.T) {
+	bin, cleanup := buildTestBinary(t)
+	defer cleanup()
+
+	for _, args := range [][]string{
+		{"--version"},
+		{"--json", "--version"},
+		{"--sarif", "--version"},
+	} {
+		t.Run(args[0]+"+rest", func(t *testing.T) {
+			out, err := exec.Command(bin, args...).CombinedOutput()
+			if err != nil {
+				t.Fatalf("%v flag combo error: %v\noutput: %s", args, err, out)
+			}
+			if !strings.Contains(string(out), "atheon") {
+				t.Errorf("expected 'atheon' in output, got: %s", out)
+			}
+			if strings.Contains(string(out), "path not found") {
+				t.Errorf("flag combo should not error with 'path not found', got: %s", out)
+			}
+		})
+	}
+}
