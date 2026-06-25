@@ -41,7 +41,9 @@ var detectionFixtures = []struct {
 	{"pii", "ssn", "343-53-9183"},
 	{"pii", "phone-number", "+1 555 867 5309"},
 	{"pii", "credit-card", "4111-1111-1111-1111"},
-	{"pii", "gcp-service-account-email", "myservice@my-project.iam.gserviceaccount.com"},
+
+	// secrets — service-account identities (defined under secrets/, not pii/)
+	{"secrets", "gcp-service-account-email", "myservice@my-project.iam.gserviceaccount.com"},
 }
 
 // TestPatternDetection is the headline test: for every fixture, the
