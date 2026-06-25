@@ -214,6 +214,16 @@ func ScanEnv(ctx context.Context) []Finding {
 // Splitting this out lets tests exercise the len(parts) != 2 branch
 // without having to mutate the real process environment.
 func scanEnv(ctx context.Context, envs []string) []Finding {
+	// Hold patternMu.RLock() for the entire scan. The per-pattern
+	// bundlePattern.enabled field is mutated by Enable/Disable under the
+	// write lock; a copy-by-value snapshot of the activeScanners slice
+	// doesn't protect the pointed-to bundlePattern.enabled, so we have to
+	// hold the read lock across the inner pattern match too. ScanEnv is
+	// bounded by the env var count (typically <100), so holding the lock
+	// across the iteration is not a contention concern.
+	patternMu.RLock()
+	defer patternMu.RUnlock()
+
 	var findings []Finding
 	for _, env := range envs {
 		if err := ctx.Err(); err != nil {
@@ -255,6 +265,16 @@ func ScanString(ctx context.Context, content, source string) []Finding {
 }
 
 func scanLines(ctx context.Context, content, file string) []Finding {
+	// Hold patternMu.RLock() for the entire scan. The activeScanners slice
+	// and the per-pattern bundlePattern.enabled fields are mutated by
+	// Enable/Disable under the write lock; a snapshot of the slice doesn't
+	// protect the pointed-to .enabled, so we hold the read lock across the
+	// inner match too. Per-scan contention is bounded — Enable/Disable are
+	// human-driven, scans are CPU-bound, so writers wait at worst one scan
+	// iteration before getting the lock.
+	patternMu.RLock()
+	defer patternMu.RUnlock()
+
 	var findings []Finding
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
