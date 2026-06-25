@@ -193,7 +193,7 @@ func TestNormalizeSeverity(t *testing.T) {
 		{"medium", "medium"},
 		{"HIGH", "high"},
 		{" Critical ", "critical"},
-		{"urgent", "medium"},   // unrecognised → default
+		{"urgent", "medium"}, // unrecognised → default
 		{"low", "low"},
 		{"high", "high"},
 		{"critical", "critical"},

@@ -228,7 +228,7 @@ func TestBundleDuplicatePatternNameSkips(t *testing.T) {
 // TestBundleInvalidRegexSkips — invalid regex is logged + skipped.
 func TestBundleInvalidRegexSkips(t *testing.T) {
 	community := setupCommunity(t, map[string]string{
-		"secrets/bad.yaml": "name: bad-regex\nmatch: '[invalid'\n",
+		"secrets/bad.yaml":  "name: bad-regex\nmatch: '[invalid'\n",
 		"secrets/good.yaml": "name: good-key\nmatch: 'x'\n",
 	})
 	out := filepath.Join(t.TempDir(), "out.bundle")

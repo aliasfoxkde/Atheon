@@ -288,7 +288,7 @@ func buildSARIFRules(findings []core.Finding) []map[string]any {
 			"name": f.Pattern,
 			"kind": "rule",
 			"properties": map[string]any{
-				"security-severity":    sarifSeverityScore(f.Severity),
+				"security-severity":       sarifSeverityScore(f.Severity),
 				"security-severity-label": f.Severity,
 			},
 		})

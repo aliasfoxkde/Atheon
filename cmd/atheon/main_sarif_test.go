@@ -423,7 +423,7 @@ func TestSARIFSeverityMapping(t *testing.T) {
 		{"high", "error", "7.5"},
 		{"medium", "warning", "5.0"},
 		{"low", "note", "2.5"},
-		{"", "warning", "5.0"},   // unknown → default medium
+		{"", "warning", "5.0"}, // unknown → default medium
 		{"bogus", "warning", "5.0"},
 		{"HIGH", "error", "7.5"}, // case-insensitive
 	}
