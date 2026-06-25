@@ -66,10 +66,20 @@ var registry []Pattern
 // loadBundle (external patterns survive bundle loads) and after (they
 // appear alongside bundle patterns in subsequent All() calls).
 //
-// Concurrent callers must hold patternMu for writing (or be the sole
-// caller during package init). The CLI/MCP paths that mutate the
-// registry via EnablePattern/etc. already hold the lock.
+// Register acquires the package-wide patternMu write lock internally so
+// external callers don't have to know about it. Internal callers that
+// already hold the lock (loadBundle, rebuildRegistry, initializeWith)
+// should call registerLocked directly to avoid the recursive acquire.
 func Register(p Pattern) {
+	patternMu.Lock()
+	defer patternMu.Unlock()
+	registerLocked(p)
+}
+
+// registerLocked appends p to registry without acquiring patternMu.
+// Callers MUST hold patternMu for writing, or be the sole caller during
+// package init.
+func registerLocked(p Pattern) {
 	registry = append(registry, p)
 }
 

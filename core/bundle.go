@@ -161,7 +161,7 @@ func loadBundle(data []byte) error {
 		}
 		bp := &bundlePattern{name: def.Name, category: def.Category, match: def.Match, enabled: def.Enabled, severity: normalizeSeverity(def.Severity), re: re}
 		allPatterns = append(allPatterns, bp)
-		Register(bp)
+		registerLocked(bp)
 	}
 
 	// Old bundles predate the enabled field; JSON zero-value false means all appear
@@ -190,7 +190,7 @@ func loadBundle(data []byte) error {
 	}
 
 	for _, p := range external {
-		Register(p)
+		registerLocked(p)
 	}
 
 	return nil
@@ -346,8 +346,13 @@ func DownloadBundle(ctx context.Context) error {
 	if err := loadBundle(data); err != nil {
 		return err
 	}
-	// loadBundle holds patternMu; setActiveCategoriesLocked is the no-recursion variant.
+	// loadBundle took the write lock and released it on return. Re-acquire
+	// here so the rebuild stays inside the critical section — a concurrent
+	// Enable call between loadBundle and rebuildActiveScanners would
+	// otherwise mutate the slice we're about to recompute.
+	patternMu.Lock()
 	setActiveCategoriesLocked(activeCategoryFilter)
+	patternMu.Unlock()
 	// Atomic write: write to .tmp + rename so a SIGKILL mid-write leaves
 	// the previous bundle intact. See pattern_state.go for the same pattern.
 	if err := atomicWriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o600); err != nil {
@@ -591,7 +596,7 @@ func rebuildRegistry() {
 	registry = nil
 	for _, p := range allPatterns {
 		if p.enabled {
-			Register(p)
+			registerLocked(p)
 		}
 	}
 }

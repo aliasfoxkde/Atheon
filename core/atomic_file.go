@@ -52,5 +52,15 @@ func atomicWriteFile(path string, data []byte, perm os.FileMode) (retErr error) 
 	if err := os.Rename(tmpName, path); err != nil {
 		return fmt.Errorf("atomic write: rename: %w", err)
 	}
+	// Directory fsync: POSIX rename is atomic within a filesystem, but the
+	// new directory entry isn't durable until the parent dir's metadata is
+	// flushed. Without this, a power loss after Rename but before the dir
+	// sync can leave the rename uncommitted — the file is gone, the .tmp
+	// is gone, and the previous content isn't visible. Best-effort: skip
+	// on platforms (Windows) where opening a directory is restricted.
+	if dirFd, err := os.Open(dir); err == nil {
+		_ = dirFd.Sync()
+		_ = dirFd.Close()
+	}
 	return nil
 }

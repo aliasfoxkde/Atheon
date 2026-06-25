@@ -43,6 +43,20 @@ func TestConcurrentEnableDisable(t *testing.T) {
 		t.Fatal("no pattern name available")
 	}
 
+	// Capture the initial enabled state and restore it on cleanup so the
+	// final toggle value (which is non-deterministic under contention) does
+	// not bleed into later tests that read the registry.
+	initialEnabled := false
+	for _, p := range All() {
+		if p.Name() == target {
+			initialEnabled = p.Enabled()
+			break
+		}
+	}
+	t.Cleanup(func() {
+		SetPatternEnabled(target, initialEnabled)
+	})
+
 	const writers = 4
 	const readers = 4
 	const iters = 50

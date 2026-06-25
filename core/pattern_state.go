@@ -86,19 +86,23 @@ func applyPatternState(state *PatternState) {
 // Caller must hold patternMu for writing (the loadBundle/Enable/Disable
 // call sites do, since they touch the same state).
 func syncPatternState() error {
-	state := &PatternState{Patterns: make(map[string]bool)}
-
-	// Collect current state from allPatterns
-	for _, p := range allPatterns {
-		state.Patterns[p.name] = p.enabled
-	}
-
-	// Cross-process lock: a CLI invocation and an MCP server running
-	// concurrently can both call EnablePattern on different patterns and
-	// race on savePatternState. The flock serializes them so the second
-	// writer sees the first's changes before clobbering the file.
 	return withFileLock(stateFile(), func() error {
-		return savePatternState(state)
+		// Read-merge-write under the cross-process lock. Two concurrent
+		// writers (CLI + MCP) each have their own in-memory allPatterns;
+		// a naive last-writer-wins would clobber the other process's
+		// Enable/Disable. The flock serialises us; reading the on-disk
+		// state inside the lock and merging gives the second writer the
+		// first writer's changes before we overwrite.
+		onDisk, err := loadPatternState()
+		if err != nil {
+			return fmt.Errorf("sync: read on-disk state: %w", err)
+		}
+		// Snapshot our in-memory state — caller holds patternMu, so
+		// allPatterns is stable for the rest of this closure.
+		for _, p := range allPatterns {
+			onDisk.Patterns[p.name] = p.enabled
+		}
+		return savePatternState(onDisk)
 	})
 }
 
