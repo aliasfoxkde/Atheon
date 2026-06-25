@@ -83,7 +83,7 @@ func loadBundle(data []byte) error {
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	var defs []PatternDef
 	if err := json.NewDecoder(r).Decode(&defs); err != nil {
@@ -146,9 +146,6 @@ func SetActiveCategories(cats []string) {
 			continue
 		}
 		if len(cats) > 0 && !catSet[p.category] {
-			continue
-		}
-		if !p.enabled {
 			continue
 		}
 		byCategory[p.category] = append(byCategory[p.category], p)
@@ -222,7 +219,7 @@ func DownloadBundle() error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("server returned %d", resp.StatusCode)
 	}
@@ -245,7 +242,7 @@ func DownloadBundle() error {
 	if err != nil {
 		return fmt.Errorf("failed to parse new bundle: %w", err)
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	if err := json.NewDecoder(r).Decode(&newDefs); err != nil {
 		return fmt.Errorf("failed to decode new bundle: %w", err)
 	}
