@@ -23,7 +23,7 @@ func compileIgnoreFile(path string) (*ignoreMatcher, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var rules []ignoreRule
 	sc := bufio.NewScanner(f)

@@ -124,7 +124,7 @@ func TestLoadBundleWithRealData(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create gzip reader: %v", err)
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	// Decode JSON
 	var defs []PatternDef

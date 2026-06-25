@@ -38,7 +38,7 @@ func readBundle(t *testing.T, path string) []patternDef {
 	if err != nil {
 		t.Fatalf("gzip open: %v", err)
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	var defs []patternDef
 	if err := json.NewDecoder(r).Decode(&defs); err != nil {
 		t.Fatalf("json decode: %v", err)

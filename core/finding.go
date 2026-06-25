@@ -20,4 +20,5 @@ type Stats struct {
 	Files     int
 	Bytes     int64
 	ElapsedMs int64
+	Errors    []error
 }
