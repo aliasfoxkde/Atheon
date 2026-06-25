@@ -1,4 +1,4 @@
-# ADR-002: Gzip+JSON Bundle Format
+# ADR 0005: Gzip+JSON Bundle Format
 
 **Status**: Accepted
 **Date**: 2026-06-17

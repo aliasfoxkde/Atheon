@@ -1,4 +1,4 @@
-# ADR-001: RE2 Regex Choice
+# ADR 0004: RE2 Regex Choice
 
 **Status**: Accepted
 **Date**: 2026-06-17

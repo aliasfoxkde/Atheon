@@ -1,4 +1,4 @@
-# ADR-003: Parallel Test Requirement (-p 1)
+# ADR 0006: Parallel Test Requirement (-p 1)
 
 **Status**: Accepted
 **Date**: 2026-06-17
