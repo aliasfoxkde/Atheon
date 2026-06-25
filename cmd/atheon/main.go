@@ -30,16 +30,21 @@ func main() {
 // The context flows through every Scan*/DownloadBundle call so callers
 // (typically signal.NotifyContext from main) can cancel in-flight work.
 func run(ctx context.Context, args []string) int {
-	// Handle --version flag
-	if len(args) > 0 && args[0] == "--version" {
-		fmt.Printf("atheon %s\n", version)
-		return 0
-	}
-
+	// Strip --json / --sarif first so that `atheon --json --version`
+	// (a common CI-wrapper invocation) prints the version rather than
+	// falling through to the default branch and erroring with
+	// "path not found: --version".
 	jsonOutput := len(args) > 0 && args[0] == "--json"
 	sarifOutput := len(args) > 0 && args[0] == "--sarif"
 	if jsonOutput || sarifOutput {
 		args = args[1:]
+	}
+
+	// Handle --version flag (checked AFTER the json/sarif strip so that
+	// the flag order is forgiving).
+	if len(args) > 0 && args[0] == "--version" {
+		fmt.Printf("atheon %s\n", version)
+		return 0
 	}
 
 	cats, args, enableAll := parseCategories(args)

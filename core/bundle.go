@@ -160,6 +160,16 @@ func loadBundle(data []byte) error {
 		for _, p := range allPatterns {
 			p.enabled = true
 		}
+		// Old bundles predate the enabled field and look like an all-disabled
+		// bundle at decode time. The flip above restores them. Without this
+		// log line, a contributor who commits a NEW bundle that's accidentally
+		// all-`enabled: false` looks identical at runtime — every pattern
+		// silently comes on. Surface the legacy-compat path so it stays
+		// observable.
+		if len(allPatterns) > 0 {
+			slog.Info("bundle had no enabled patterns; defaulting all to enabled (legacy compatibility — add 'enabled: true' explicitly if this was unintentional)",
+				"patterns", len(allPatterns))
+		}
 	}
 
 	for _, p := range external {
