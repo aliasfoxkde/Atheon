@@ -1,6 +1,9 @@
 package main
 
 import (
+	"errors"
+	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -21,6 +24,58 @@ func TestPrintFindingsFull(t *testing.T) {
 	// Just verify the function doesn't panic
 	// Output testing would require proper synchronization
 	printFindings(findings, stats, false, false)
+}
+
+// TestScanErrorsPresent covers the exit-code-bump helper. A scan that
+// silently dropped files (permission denied, unreadable) must register
+// as a partial failure even when no findings are reported.
+func TestScanErrorsPresent(t *testing.T) {
+	cases := []struct {
+		name string
+		stat *core.Stats
+		want bool
+	}{
+		{"nil stats", nil, false},
+		{"empty stats", &core.Stats{}, false},
+		{"with errors", &core.Stats{Errors: []error{errors.New("perm denied")}}, true},
+		{"multiple errors", &core.Stats{Errors: []error{errors.New("a"), errors.New("b")}}, true},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := scanErrorsPresent(c.stat); got != c.want {
+				t.Errorf("scanErrorsPresent(%+v) = %v, want %v", c.stat, got, c.want)
+			}
+		})
+	}
+}
+
+// TestPrintFindingsSurfacesErrors verifies that printFindings writes
+// per-file read errors to stderr when present, so silent data loss
+// during a scan is observable.
+func TestPrintFindingsSurfacesErrors(t *testing.T) {
+	findings := []core.Finding{}
+	stats := &core.Stats{
+		Files:  2,
+		Bytes:  100,
+		Errors: []error{errors.New("permission denied: secret.env")},
+	}
+
+	// Capture stderr
+	oldStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+	printFindings(findings, stats, false, false)
+	w.Close()
+	os.Stderr = oldStderr
+
+	buf, _ := io.ReadAll(r)
+	output := string(buf)
+	if !strings.Contains(output, "permission denied: secret.env") {
+		t.Errorf("expected stderr to contain error, got: %q", output)
+	}
+	if !strings.Contains(output, "1 file(s) could not be read") {
+		t.Errorf("expected stderr to surface error count, got: %q", output)
+	}
 }
 
 // TestPrintJSONFindingsFull tests printJSONFindings
@@ -47,6 +102,41 @@ func TestCmdListFull(t *testing.T) {
 			// Just verify the function doesn't panic
 			cmdList(args)
 		})
+	}
+}
+
+// TestCmdListUnknownCategory verifies that --category=<bogus> is rejected
+// with a clear error and a non-zero exit code, instead of silently
+// filtering to zero matches.
+func TestCmdListUnknownCategory(t *testing.T) {
+	oldStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+
+	code := cmdList([]string{"--category=does-not-exist"})
+	w.Close()
+	os.Stderr = oldStderr
+
+	buf, _ := io.ReadAll(r)
+	if code == 0 {
+		t.Errorf("expected non-zero exit code for unknown category, got 0")
+	}
+	if !strings.Contains(string(buf), "unknown category") {
+		t.Errorf("expected stderr to mention 'unknown category', got: %q", buf)
+	}
+	if !strings.Contains(string(buf), "secrets") {
+		t.Errorf("expected stderr to list known categories, got: %q", buf)
+	}
+}
+
+// TestCmdListKnownCategory verifies that --category=<real> succeeds.
+func TestCmdListKnownCategory(t *testing.T) {
+	cats := core.Categories()
+	if len(cats) == 0 {
+		t.Skip("no categories available")
+	}
+	if code := cmdList([]string{"--category=" + cats[0]}); code != 0 {
+		t.Errorf("expected 0 exit code for known category %q, got %d", cats[0], code)
 	}
 }
 
