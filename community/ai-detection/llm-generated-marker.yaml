@@ -1,3 +1,4 @@
 name: llm-generated-marker
 match: '(?i)(?:as\s+an\s+AI\s+(?:language\s+)?model|I\s+cannot\s+(?:browse|access|provide\s+(?:legal|medical|financial)))'
+severity: medium
 enabled: false

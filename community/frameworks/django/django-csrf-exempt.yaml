@@ -1,4 +1,5 @@
 name: django-csrf-exempt
 # Catches @csrf_exempt decorator usage which disables CSRF protection.
 match: '@csrf_exempt\b'
+severity: high
 enabled: true

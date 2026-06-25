@@ -1,2 +1,3 @@
 name: clinical-trial-id
 match: '\bNCT[0-9]{8}\b'
+severity: medium

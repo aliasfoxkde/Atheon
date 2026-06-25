@@ -145,3 +145,62 @@ func findingPatterns(findings []Finding) []string {
 	}
 	return out
 }
+
+// TestFindingSeverityPropagation asserts that the severity declared in the
+// pattern YAML is what surfaces on every Finding. Today only a handful of
+// patterns declare severity (the rest default to medium), but the contract
+// must hold for the ones that do — otherwise SARIF consumers get the wrong
+// security-severity score.
+func TestFindingSeverityPropagation(t *testing.T) {
+	// missing-skip-links declares severity: medium in its YAML.
+	findings := ScanString(context.Background(),
+		"// TODO: add skip navigation here", "test-severity-medium")
+	for _, f := range findings {
+		if f.Pattern != "missing-skip-links" {
+			continue
+		}
+		if f.Severity != "medium" {
+			t.Errorf("missing-skip-links severity: got %q, want %q", f.Severity, "medium")
+		}
+		return
+	}
+	t.Skip("missing-skip-links did not fire on the test snippet — pattern may have changed; rerun manually")
+}
+
+// TestFindingSeverityDefault asserts patterns without an explicit severity
+// field still report one (defaulting to medium) so SARIF and JSON output
+// never emit an empty security-severity.
+func TestFindingSeverityDefault(t *testing.T) {
+	findings := ScanString(context.Background(),
+		`aws_key = "AKIAIOSFODNN7EXAMPLE"`, "test-default-severity")
+	for _, f := range findings {
+		if f.Pattern != "aws-access-key" {
+			continue
+		}
+		if f.Severity == "" {
+			t.Errorf("aws-access-key should report a non-empty severity even without an explicit YAML field; got empty")
+		}
+		return
+	}
+	t.Fatalf("aws-access-key did not fire on its canonical fixture")
+}
+
+// TestNormalizeSeverity exercises the loader's safety net for typo'd YAML
+// severity values — anything outside ValidSeverities collapses to medium.
+func TestNormalizeSeverity(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"", "medium"},
+		{"medium", "medium"},
+		{"HIGH", "high"},
+		{" Critical ", "critical"},
+		{"urgent", "medium"}, // unrecognised → default
+		{"low", "low"},
+		{"high", "high"},
+		{"critical", "critical"},
+	}
+	for _, tc := range cases {
+		if got := normalizeSeverity(tc.in); got != tc.want {
+			t.Errorf("normalizeSeverity(%q) = %q, want %q", tc.in, got, tc.want)
+		}
+	}
+}

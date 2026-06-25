@@ -1,3 +1,4 @@
 name: tax-id-ein
 match: '\b\d{2}[-]\d{7}\b'
+severity: high
 enabled: true

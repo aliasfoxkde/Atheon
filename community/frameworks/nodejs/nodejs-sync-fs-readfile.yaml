@@ -1,4 +1,5 @@
 name: nodejs-sync-fs-readfile
 # Synchronous filesystem read in a hot path — common perf smell.
 match: '\bfs\.readFileSync\s*\('
+severity: high
 enabled: true

@@ -1,2 +1,3 @@
 name: terraform
 match: 'resource.*.*count.*=.*0|terraform.*apply.*-auto-approve|variable.*default.*secret'
+severity: medium

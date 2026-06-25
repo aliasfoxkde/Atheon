@@ -1,2 +1,3 @@
 name: state-management
 match: 'useState.*useEffect.*useState|setState.*prevState|dispatch.*action.*type'
+severity: low

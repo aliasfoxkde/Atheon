@@ -1,2 +1,3 @@
 name: health-checks
 match: 'health.*check|readiness.*probe|liveness.*probe|health.*endpoint'
+severity: medium

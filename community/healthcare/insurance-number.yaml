@@ -1,2 +1,3 @@
 name: insurance-number
 match: '\b(?:INS|INSURANCE)[0-9]{9,11}\b'
+severity: medium

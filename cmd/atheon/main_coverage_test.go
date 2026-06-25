@@ -714,8 +714,8 @@ func TestBuildSARIFResultsEmpty(t *testing.T) {
 // TestBuildSARIFResultsMultiple tests buildSARIFResults with multiple findings
 func TestBuildSARIFResultsMultiple(t *testing.T) {
 	findings := []core.Finding{
-		{Pattern: "pattern-1", File: "file1.txt", Line: 10, Content: "content 1"},
-		{Pattern: "pattern-2", File: "file2.txt", Line: 20, Content: "content 2"},
+		{Pattern: "pattern-1", File: "file1.txt", Line: 10, Content: "content 1", Severity: "critical"},
+		{Pattern: "pattern-2", File: "file2.txt", Line: 20, Content: "content 2", Severity: "medium"},
 	}
 
 	results := buildSARIFResults(findings)

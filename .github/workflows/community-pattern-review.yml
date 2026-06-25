@@ -43,7 +43,12 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
-          FILES=$(git diff --name-only "origin/${BASE_REF}...HEAD" -- 'community/**/*.yaml' 'community/**/*.yml' | head -10)
+          # `head -10` closes the pipe early, which SIGPIPEs `git diff` and
+          # returns 141. Temporarily disable pipefail so the head truncation
+          # doesn't kill the script. The captured FILES are still correct.
+          set +o pipefail
+          FILES=$(git diff --name-only "origin/${BASE_REF}...HEAD" -- 'community/**/*.yaml' 'community/**/*.yml' | head -10 || true)
+          set -o pipefail
           {
             echo "files<<EOF"
             echo "$FILES"

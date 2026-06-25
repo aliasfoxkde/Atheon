@@ -232,9 +232,10 @@ func scanEnv(ctx context.Context, envs []string) []Finding {
 			for _, p := range cs.patterns {
 				if p.Matches(val) {
 					findings = append(findings, Finding{
-						Pattern: p.Name(),
-						File:    "env:" + key,
-						Content: val,
+						Pattern:  p.Name(),
+						File:     "env:" + key,
+						Content:  val,
+						Severity: p.Severity(),
 					})
 				}
 			}
@@ -274,10 +275,11 @@ func scanLines(ctx context.Context, content, file string) []Finding {
 						lineNum = 1
 					}
 					findings = append(findings, Finding{
-						Pattern: p.Name(),
-						File:    file,
-						Line:    lineNum,
-						Content: strings.TrimSpace(line),
+						Pattern:  p.Name(),
+						File:     file,
+						Line:     lineNum,
+						Content:  strings.TrimSpace(line),
+						Severity: p.Severity(),
 					})
 				}
 			}

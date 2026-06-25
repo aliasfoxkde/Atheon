@@ -1,2 +1,3 @@
 name: error-handling
 match: 'try.*fetch.*catch.*console\.log|response\.ok.*throw|fetch.*catch.*null'
+severity: medium

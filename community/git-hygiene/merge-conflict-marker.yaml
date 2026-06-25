@@ -1,3 +1,4 @@
 name: merge-conflict-marker
 match: '<<<<<<<|=======|>>>>>>>'
+severity: medium
 enabled: true

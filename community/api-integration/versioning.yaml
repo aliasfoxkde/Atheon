@@ -1,2 +1,3 @@
 name: versioning
 match: '/api/v1|/api/v2|header.*version|Accept.*version'
+severity: medium

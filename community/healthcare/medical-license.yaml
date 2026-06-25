@@ -1,2 +1,3 @@
 name: medical-license-number
 match: '\b(?:MD|DO|RN|LPN|PA|NP)[0-9]{8,12}\b'
+severity: medium
