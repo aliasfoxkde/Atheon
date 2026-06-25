@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -49,6 +50,13 @@ type bundlePattern struct {
 	name     string
 	category string
 	match    string
+	// enabled is mutated under patternMu (write lock for any Store, read
+	// lock for any Load via scanLines/scanEnv snapshots). We keep it as a
+	// plain bool rather than atomic.Bool so the public test surface
+	// (core/*_test.go) can still read it directly — they call into the
+	// locked helpers (Enable/Disable/SetPatternEnabled) under patternMu
+	// when they mutate it, and only read it for assertions. The mutex
+	// is the single point of synchronization.
 	enabled  bool
 	severity string
 	re       *regexp.Regexp
@@ -103,10 +111,16 @@ func init() {
 // initializeWith runs the same setup as init() but accepts the bundle data
 // directly so tests can feed in corrupt data to exercise the error paths.
 func initializeWith(data []byte) {
+	// init() runs single-threaded before any user goroutine can race with us,
+	// so locking here would be redundant — and would deadlock against the
+	// package-level init order (init can't wait on a mutex some other
+	// goroutine might already hold). All write paths through loadBundle /
+	// SetActiveCategories / InitializePatternState take patternMu inside,
+	// which is a no-op for callers that already hold it via this init.
 	if err := loadBundle(data); err != nil {
 		slog.Warn("bundle load failed", "err", err)
 	}
-	SetActiveCategories(nil)
+	setActiveCategoriesLocked(nil)
 
 	// Load pattern state after bundle is loaded
 	if err := InitializePatternState(); err != nil {
@@ -126,6 +140,9 @@ func loadBundle(data []byte) error {
 	if err := json.NewDecoder(r).Decode(&defs); err != nil {
 		return fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
+
+	patternMu.Lock()
+	defer patternMu.Unlock()
 
 	var external []Pattern
 	for _, p := range registry {
@@ -183,6 +200,15 @@ func loadBundle(data []byte) error {
 // A nil or empty slice means "all categories." Calling this rebuilds the
 // internal pre-filter regexes used by ScanFile and ScanDir.
 func SetActiveCategories(cats []string) {
+	patternMu.Lock()
+	defer patternMu.Unlock()
+	setActiveCategoriesLocked(cats)
+}
+
+// setActiveCategoriesLocked is SetActiveCategories with the lock already held.
+// Kept separate so callers already holding patternMu (loadBundle,
+// rebuildActiveScanners) don't recurse on the lock.
+func setActiveCategoriesLocked(cats []string) {
 	activeCategoryFilter = cats
 
 	catSet := map[string]bool{}
@@ -246,6 +272,8 @@ func SetActiveCategories(cats []string) {
 // Categories returns the unique, unsorted list of category labels present
 // in the current bundle. The returned slice is owned by the caller.
 func Categories() []string {
+	patternMu.RLock()
+	defer patternMu.RUnlock()
 	seen := map[string]bool{}
 	var cats []string
 	for _, p := range allPatterns {
@@ -258,17 +286,27 @@ func Categories() []string {
 }
 
 // bundleDownloadURL is the default upstream bundle URL. Tests may override
-// it via SetBundleDownloadURL to point at an httptest server.
-var bundleDownloadURL = "https://github.com/aliasfoxkde/Atheon-Enhanced/releases/latest/download/patterns.bundle"
+// it via SetBundleDownloadURL to point at an httptest server. Held in an
+// atomic.Pointer so concurrent readers (fetchBundleData) and the test-only
+// writer don't tear the string under -race.
+var bundleDownloadURL = atomic.Pointer[string]{}
+
+// init-time default. Done as a function rather than a literal so a test
+// that calls SetBundleDownloadURL("") before init can still observe the
+// real default on first use.
+func init() {
+	bundleDownloadURL.Store(ptrString("https://github.com/aliasfoxkde/Atheon-Enhanced/releases/latest/download/patterns.bundle"))
+}
+
+func ptrString(s string) *string { return &s }
 
 // SetBundleDownloadURL swaps the upstream URL used by DownloadBundle. It
 // returns a restore function that callers should defer to reset the URL
 // after tests or short-lived overrides. Exported so external test
 // packages (e.g., the main binary's tests) can stub out network access.
 func SetBundleDownloadURL(url string) func() {
-	orig := bundleDownloadURL
-	bundleDownloadURL = url
-	return func() { bundleDownloadURL = orig }
+	prev := bundleDownloadURL.Swap(ptrString(url))
+	return func() { bundleDownloadURL.Store(prev) }
 }
 
 // DownloadBundle fetches the latest pattern bundle from the URL configured via
@@ -308,8 +346,11 @@ func DownloadBundle(ctx context.Context) error {
 	if err := loadBundle(data); err != nil {
 		return err
 	}
-	SetActiveCategories(activeCategoryFilter)
-	if err := os.WriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o600); err != nil {
+	// loadBundle holds patternMu; setActiveCategoriesLocked is the no-recursion variant.
+	setActiveCategoriesLocked(activeCategoryFilter)
+	// Atomic write: write to .tmp + rename so a SIGKILL mid-write leaves
+	// the previous bundle intact. See pattern_state.go for the same pattern.
+	if err := atomicWriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o600); err != nil {
 		return err
 	}
 	return nil
@@ -318,6 +359,8 @@ func DownloadBundle(ctx context.Context) error {
 // currentPatternNames returns the names of every pattern currently in
 // the active bundle, in slice order.
 func currentPatternNames() []string {
+	patternMu.RLock()
+	defer patternMu.RUnlock()
 	var names []string
 	for _, p := range allPatterns {
 		names = append(names, p.name)
@@ -329,10 +372,14 @@ func currentPatternNames() []string {
 // returns the response body on success.
 func fetchBundleData(ctx context.Context) ([]byte, error) {
 	client := &http.Client{Timeout: 30 * time.Second}
+	urlPtr := bundleDownloadURL.Load()
+	if urlPtr == nil {
+		return nil, fmt.Errorf("%w: bundle download URL not initialised", ErrBundleDownload)
+	}
 	// bundleDownloadURL is configured via SetBundleDownloadURL and only
 	// ever points at https://github.com/... or a test stub. SSRF surface
 	// is bounded by the controlled allow-list maintained in this package.
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, bundleDownloadURL, http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, *urlPtr, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrBundleDownload, err)
 	}
@@ -431,6 +478,8 @@ func printBundleDiff(oldCount, newCount int, added, removed []string) {
 // and persists the new state. It returns false if no pattern with the
 // given name exists in the bundle.
 func EnablePattern(name string) bool {
+	patternMu.Lock()
+	defer patternMu.Unlock()
 	for _, p := range allPatterns {
 		if p.name != name {
 			continue
@@ -450,6 +499,8 @@ func EnablePattern(name string) bool {
 // and persists the new state. It returns false if no pattern with the
 // given name exists in the bundle.
 func DisablePattern(name string) bool {
+	patternMu.Lock()
+	defer patternMu.Unlock()
 	for _, p := range allPatterns {
 		if p.name != name {
 			continue
@@ -471,6 +522,8 @@ func DisablePattern(name string) bool {
 // and for callers that batch state updates. Returns false if the
 // pattern name is unknown.
 func SetPatternEnabled(name string, enabled bool) bool {
+	patternMu.Lock()
+	defer patternMu.Unlock()
 	for _, p := range allPatterns {
 		if p.name == name {
 			p.enabled = enabled
@@ -484,6 +537,8 @@ func SetPatternEnabled(name string, enabled bool) bool {
 // ListDisabledPatterns returns the names of every pattern that is
 // currently disabled, in bundle order.
 func ListDisabledPatterns() []string {
+	patternMu.RLock()
+	defer patternMu.RUnlock()
 	var disabled []string
 	for _, p := range allPatterns {
 		if !p.enabled {
@@ -496,6 +551,8 @@ func ListDisabledPatterns() []string {
 // ListEnabledPatterns returns the names of every pattern that is
 // currently enabled, in bundle order.
 func ListEnabledPatterns() []string {
+	patternMu.RLock()
+	defer patternMu.RUnlock()
 	var enabled []string
 	for _, p := range allPatterns {
 		if p.enabled {
@@ -506,12 +563,15 @@ func ListEnabledPatterns() []string {
 }
 
 func rebuildActiveScanners() {
-	SetActiveCategories(activeCategoryFilter)
+	// Caller must already hold patternMu for writing.
+	setActiveCategoriesLocked(activeCategoryFilter)
 }
 
 // EnableAllPatterns enables every pattern in the bundle, overriding any
 // prior disable calls, then rebuilds the active scanner set.
 func EnableAllPatterns() {
+	patternMu.Lock()
+	defer patternMu.Unlock()
 	for _, p := range allPatterns {
 		p.enabled = true
 	}
@@ -525,7 +585,8 @@ func ReloadBundle() {
 	initializeWith(embeddedBundle)
 }
 
-// rebuildRegistry rebuilds the registry from allPatterns, respecting enabled state
+// rebuildRegistry rebuilds the registry from allPatterns, respecting enabled state.
+// Caller must hold patternMu for writing.
 func rebuildRegistry() {
 	registry = nil
 	for _, p := range allPatterns {

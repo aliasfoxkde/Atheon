@@ -60,14 +60,20 @@ func savePatternState(state *PatternState) error {
 		return fmt.Errorf("failed to marshal pattern state: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, 0o600); err != nil {
+	// Atomic write (tempfile + rename) so a SIGKILL/power-loss mid-write
+	// leaves the previous pattern_state.json intact instead of producing a
+	// partial file that loadPatternState then reports as "failed to parse".
+	// Cross-process safety for concurrent CLI + MCP invocations is layered
+	// on top via withFileLock in flock_unix.go / flock_windows.go.
+	if err := atomicWriteFile(path, data, 0o600); err != nil {
 		return fmt.Errorf("failed to write pattern state: %w", err)
 	}
 
 	return nil
 }
 
-// applyPatternState applies the loaded state to allPatterns
+// applyPatternState applies the loaded state to allPatterns.
+// Caller must hold patternMu for writing.
 func applyPatternState(state *PatternState) {
 	for _, p := range allPatterns {
 		if enabled, exists := state.Patterns[p.name]; exists {
@@ -76,7 +82,9 @@ func applyPatternState(state *PatternState) {
 	}
 }
 
-// syncPatternState syncs the current pattern state to disk
+// syncPatternState syncs the current pattern state to disk.
+// Caller must hold patternMu for writing (the loadBundle/Enable/Disable
+// call sites do, since they touch the same state).
 func syncPatternState() error {
 	state := &PatternState{Patterns: make(map[string]bool)}
 
@@ -85,7 +93,13 @@ func syncPatternState() error {
 		state.Patterns[p.name] = p.enabled
 	}
 
-	return savePatternState(state)
+	// Cross-process lock: a CLI invocation and an MCP server running
+	// concurrently can both call EnablePattern on different patterns and
+	// race on savePatternState. The flock serializes them so the second
+	// writer sees the first's changes before clobbering the file.
+	return withFileLock(stateFile(), func() error {
+		return savePatternState(state)
+	})
 }
 
 // InitializePatternState loads the user's persisted pattern-state file
@@ -101,6 +115,8 @@ func InitializePatternState() error {
 		return err
 	}
 
+	patternMu.Lock()
+	defer patternMu.Unlock()
 	applyPatternState(state)
 	return nil
 }

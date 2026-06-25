@@ -65,10 +65,49 @@ func bundle(communityDir, outPath string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	if err := os.WriteFile(outPath, buf.Bytes(), 0o600); err != nil {
+	// Atomic write: tempfile + rename so a crash mid-write doesn't leave
+	// a partial patterns.bundle that loadBundle then rejects. The core
+	// package has the same helper (core.atomicWriteFile) but bundler is a
+	// separate main package and can't import it; the two implementations
+	// are intentionally identical so future fixes should be mirrored.
+	if err := atomicWriteFile(outPath, buf.Bytes(), 0o600); err != nil {
 		return 0, err
 	}
 	return n, nil
+}
+
+// atomicWriteFile writes data to path via tempfile-then-rename. See
+// core/atomic_file.go for the full rationale and the test that guards it.
+func atomicWriteFile(path string, data []byte, perm os.FileMode) (retErr error) {
+	dir := filepath.Dir(path)
+	tmp, err := os.CreateTemp(dir, filepath.Base(path)+".tmp-*")
+	if err != nil {
+		return fmt.Errorf("atomic write: create temp: %w", err)
+	}
+	tmpName := tmp.Name()
+	defer func() {
+		if retErr != nil {
+			_ = os.Remove(tmpName)
+		}
+	}()
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
+		return fmt.Errorf("atomic write: write data: %w", err)
+	}
+	if err := tmp.Sync(); err != nil {
+		tmp.Close()
+		return fmt.Errorf("atomic write: fsync: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("atomic write: close: %w", err)
+	}
+	if err := os.Chmod(tmpName, perm); err != nil {
+		return fmt.Errorf("atomic write: chmod: %w", err)
+	}
+	if err := os.Rename(tmpName, path); err != nil {
+		return fmt.Errorf("atomic write: rename: %w", err)
+	}
+	return nil
 }
 
 // walkPatterns walks communityDir and returns all parsed pattern definitions.

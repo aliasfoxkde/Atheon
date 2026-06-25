@@ -5,7 +5,21 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"sync"
 )
+
+// patternMu serializes writes to the pattern/registry/activeScanners globals
+// and allows concurrent reads. Read paths (Scan*, Categories, All, Enabled
+// lookups) take an RLock; write paths (EnablePattern, DisablePattern,
+// EnableAllPatterns, loadBundle, DownloadBundle, SetActiveCategories,
+// rebuildActiveScanners, InitializePatternState) take the full Lock.
+//
+// Per-scan goroutines take a *local* copy of activeScanners at the top of
+// the loop so the read lock isn't held across I/O — the snapshot is the
+// point. Without this guard, a concurrent Enable call could swap the
+// underlying slice while a worker is mid-loop, producing torn *regexp.Regexp
+// reads and (rarely) slice-out-of-bounds panics. See runner.go:228 / 267.
+var patternMu sync.RWMutex
 
 // Sentinel errors returned by the core API. Callers should use errors.Is
 // to compare against these rather than string-matching error messages.
@@ -51,6 +65,10 @@ var registry []Pattern
 // Register adds p to the active registry. It is safe to call before
 // loadBundle (external patterns survive bundle loads) and after (they
 // appear alongside bundle patterns in subsequent All() calls).
+//
+// Concurrent callers must hold patternMu for writing (or be the sole
+// caller during package init). The CLI/MCP paths that mutate the
+// registry via EnablePattern/etc. already hold the lock.
 func Register(p Pattern) {
 	registry = append(registry, p)
 }
@@ -58,6 +76,8 @@ func Register(p Pattern) {
 // All returns a sorted snapshot of the registered patterns ordered by
 // Name. The returned slice is owned by the caller and may be mutated.
 func All() []Pattern {
+	patternMu.RLock()
+	defer patternMu.RUnlock()
 	sorted := make([]Pattern, len(registry))
 	copy(sorted, registry)
 	sort.Slice(sorted, func(i, j int) bool {
