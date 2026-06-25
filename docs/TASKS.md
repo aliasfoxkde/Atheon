@@ -1,228 +1,144 @@
-# Task List - {{PROJECT_NAME}}
+# Task List — Atheon-Enhanced
 
-**Version**: 1.0.0
-**Last Updated**: {{DATE}}
-
----
-
-## Task Status Legend
-
-- [ ] Pending
-- [~] In Progress
-- [x] Completed
-- [!] Blocked
-- [-] Cancelled
+**Version**: 0.6.0 (post-Wave 6)
+**Last Updated**: 2026-06-25
+**Format**: One section per hardening wave. Each wave ends with a merged PR cluster; new waves begin when a gap-analysis subagent surfaces enough new work to justify a PR.
 
 ---
 
-## Phase 1: Foundation {{PHASE_STATUS}}
+## Status Legend
 
-### 1.1 Project Setup
-
-- [ ] Initialize Git repository
-- [ ] Create GitHub repository
-- [ ] Set up Claude Code symbolic link
-- [ ] Configure .gitignore
-- [ ] Create initial README.md
-- [ ] Set up LICENSE file
-- [ ] Configure GitHub templates (CODEOWNERS, dependabot, etc.)
-
-**Estimated Time**: 1-2 hours
-**Dependencies**: None
-**Priority**: Critical
+- `[x]` Merged
+- `[~]` In Progress
+- `[ ]` Open
+- `[!]` Blocked
+- `[-]` Cancelled / Deferred
 
 ---
 
-### 1.2 Documentation Structure
+## Wave 1: Initial scaffold + rename cleanup
 
-- [ ] Create docs/ directory structure
-- [ ] Create PRD.md (Product Requirements Document)
-- [ ] Create TASKS.md (this file)
-- [ ] Create PLAN.md (project plan)
-- [ ] Create PROGRESS.md (progress tracking)
-- [ ] Create CHANGELOG.md
-- [ ] Create USAGE.md
-- [ ] Create CONTRIBUTE.md
+PRs: #74, #75, #76, #79, #80
 
-**Estimated Time**: 2-3 hours
-**Dependencies**: 1.1
-**Priority**: High
+- [x] Move repo from `agravels` namespace to `aliasfoxkde` org
+- [x] Add LICENSE (MIT), CODEOWNERS, dependabot config
+- [x] Initial README, AGENTS.md, CLAUDE.md
+- [x] Baseline CI: go test, gofmt, go vet
+- [x] First community/*.yaml pattern submission flow
 
 ---
 
-## Phase 2: Planning & Research {{PHASE_STATUS}}
+## Wave 2: CI/security plumbing
 
-### 2.1 Pre-Planning Research
+PR: #81
 
-- [ ] Research similar projects
-- [ ] Analyze technical options
-- [ ] Document architectural decisions
-- [ ] Create technology stack justification
-
-**Estimated Time**: 4-8 hours
-**Dependencies**: 1.2
-**Priority**: High
+- [x] Dependabot groups (GitHub Actions grouped, Go minor/patch split)
+- [x] govulncheck pinned to v1.1.4 (workaround for setup-go v6 toolchain)
+- [x] PR template (`.github/PULL_REQUEST_TEMPLATE.md`)
+- [x] Release environment (`github.event.repository.default_branch`)
+- [x] `GO_VERSION` repo variable with `1.23` default
+- [x] Pin actions by SHA + version comment convention
 
 ---
 
-### 2.2 Requirements Analysis
+## Wave 3: Fuzz + coverage + SBOM
 
-- [ ] Gather user requirements
-- [ ] Define functional requirements
-- [ ] Define non-functional requirements
-- [ ] Create user stories
-- [ ] Define success criteria
+PR: #83
 
-**Estimated Time**: 4-6 hours
-**Dependencies**: 2.1
-**Priority**: High
-
----
-
-## Phase 3: Architecture & Design {{PHASE_STATUS}}
-
-### 3.1 System Architecture
-
-- [ ] Design system architecture
-- [ ] Create data model
-- [ ] Design API contracts
-- [ ] Define component structure
-- [ ] Create architecture diagrams
-
-**Estimated Time**: 8-12 hours
-**Dependencies**: 2.2
-**Priority**: High
+- [x] Fuzz harness for `core/loadBundle` (gzip round-trip)
+- [x] Fuzz harness for `core.ScanString` (RE2 no-panic guarantee)
+- [x] Detection-coverage test against known-bad fixture corpus
+- [x] `-trimpath` for reproducible builds
+- [x] SPDX SBOM generation in release workflow
+- [x] Codecov integration with `CODECOV_TOKEN`
 
 ---
 
-### 3.2 Database Design
+## Wave 4: Severity wiring
 
-- [ ] Design database schema
-- [ ] Create entity relationships
-- [ ] Define indexes and constraints
-- [ ] Plan migrations
+PR: #84
 
-**Estimated Time**: 4-6 hours
-**Dependencies**: 3.1
-**Priority**: High
-
----
-
-## Phase 4: Implementation {{PHASE_STATUS}}
-
-### 4.1 Core Features
-
-- [ ] {{FEATURE_1}}
-  - [ ] Subtask 1
-  - [ ] Subtask 2
-  - [ ] Tests
-- [ ] {{FEATURE_2}}
-  - [ ] Subtask 1
-  - [ ] Subtask 2
-  - [ ] Tests
-- [ ] {{FEATURE_3}}
-  - [ ] Subtask 1
-  - [ ] Subtask 2
-  - [ ] Tests
-
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 3.1, 3.2
-**Priority**: High
+- [x] Add `severity` field to `PatternDef` (low/medium/high/critical)
+- [x] Wire through `core.Pattern` → `core.Finding` → SARIF
+- [x] CVSS-like score mapping (9.5/7.5/5.0/2.5)
+- [x] SARIF `level` enum (error/warning/note)
+- [x] Bundle regenerated; 274 patterns now carry severity
+- [x] SARIF rule descriptors for code-scanning UI
 
 ---
 
-## Phase 5: Testing {{PHASE_STATUS}}
+## Wave 5: Closing Wave 4 audit findings
 
-### 5.1 Unit Tests
+PR: #85
 
-- [ ] Achieve 80%+ code coverage
-- [ ] Test all critical paths
-- [ ] Test edge cases
-- [ ] Test error handling
-
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 4.1
-**Priority**: High
+- [x] Surface `Stats.Errors` to stderr + bump exit code (silent data-loss fix)
+- [x] Validate `--category=` against `core.Categories()` (typo guard)
+- [x] Hot-path benchmarks uploaded as CI artifact
+- [x] Remove dead `scripts/` (no-op maintenance)
+- [x] Add false-positive guard test corpus
 
 ---
 
-### 5.2 Integration Tests
+## Wave 6: Audit-followup hardening
 
-- [ ] Test API endpoints
-- [ ] Test database operations
-- [ ] Test external integrations
-- [ ] Test data flow
+PRs: #86, #87, #88
 
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 5.1
-**Priority**: High
-
----
-
-### 5.3 E2E Tests
-
-- [ ] Test critical user flows
-- [ ] Test authentication/authorization
-- [ ] Test error scenarios
-- [ ] Test performance
-
-**Estimated Time**: {{TIME_ESTIMATE}}
-**Dependencies**: 5.2
-**Priority**: Medium
+- [x] PR #86: `slog.Info` in legacy-default-flip branch (`core/bundle.go`)
+- [x] PR #86: reorder `--version` after `--json`/`--sarif` strip
+- [x] PR #86: `TestVersionFlagWithJSON` subtests for flag orderings
+- [x] PR #87: CI JSON-RPC roundtrip replaces smoke-step on `atheon-mcp`
+- [x] PR #88: fill `docs/PLAN.md` and `docs/TASKS.md` (this file)
+- [x] PR #88: add `docs/RELEASE.md` maintainer runbook
+- [x] PR #88: consolidate `docs/BRANCH_STRATEGY.md`; delete `docs/reports/BRANCH_STRATEGY.md`
 
 ---
 
-## Phase 6: Deployment {{PHASE_STATUS}}
+## Deferred / Open
 
-### 6.1 CI/CD Setup
+These came out of the Wave 5 subagent gap report and are intentionally not in Wave 6. The defer was an explicit user choice.
 
-- [ ] Configure GitHub Actions
-- [ ] Set up automated testing
-- [ ] Set up automated deployment
-- [ ] Configure staging environment
-
-**Estimated Time**: 4-6 hours
-**Dependencies**: 5.3
-**Priority**: Medium
+- [ ] **Item 2 — `pattern_state` race fix.** Add `sync.Mutex` around `core/pattern_state.go` writes; switch bundle temp-file write to tempfile+rename. Needs `-race` validation and a focused concurrent test harness. Best done as a single PR with its own review. **Candidate for Wave 7.**
+- [ ] **Item 3+** — minor items (TODO comments in non-core, lint cleanup). Fold into the next wave or a standalone refactor PR.
+- [ ] **Bundle format `version: 2` field.** Should land before the next breaking wire change. Tracked separately; not blocking.
+- [ ] **`dev/full-feature` branch.** Mentioned in CI `docs/BRANCH_STRATEGY.md` check but does not exist. Decide whether to create it or remove the reference.
+- [ ] **Doc tasks #171, #172, #173.** Resolved by PR #88 (the `{{...}}` placeholders and the duplicate `BRANCH_STRATEGY.md` are now gone).
 
 ---
 
-### 6.2 Production Deployment
+## Bug Tracker (active)
 
-- [ ] Deploy to production
-- [ ] Configure monitoring
-- [ ] Set up alerts
-- [ ] Document deployment process
+None open as of 2026-06-25.
 
-**Estimated Time**: 2-4 hours
-**Dependencies**: 6.1
-**Priority**: Medium
-
----
-
-## Bug Fixes & Improvements
-
-### Bugs
-- [ ] {{BUG_1}}
-- [ ] {{BUG_2}}
-
-### Improvements
-- [ ] {{IMPROVEMENT_1}}
-- [ ] {{IMPROVEMENT_2}}
+Historical (all closed in their respective waves):
+- Wave 4: severity dropped at SARIF boundary → closed in PR #84.
+- Wave 5: scan silently dropped permission-denied files → closed in PR #85.
+- Wave 6: legacy bundle flip indistinguishable from intentional all-disabled → closed in PR #86.
+- Wave 6: `atheon --json --version` errored → closed in PR #86.
+- Wave 6: MCP smoke test missed framing/parsing regressions → closed in PR #87.
 
 ---
 
 ## Notes
 
-{{NOTES_SECTION}}
+- **Subagent gap analysis** is the project's standing input channel. After each merged wave, an Explore agent enumerates new gaps with file/line citations. The output becomes the next wave's input.
+- **Each wave is one or more PRs** (typically 2-3) for reviewability. Never land >5 PRs in a single wave without an explicit reason.
+- **Coverage threshold is a guardrail, not a goal.** Coverage has held ≥70% across all shipped waves. If a deliberate drop is needed (e.g. to add a new package), adjust `vars.COVERAGE_THRESHOLD` in repo settings and call it out in the PR.
+- **CI gates that may surprise a contributor**: the `gofmt -l .` check, the `gofmt -d .` (prints diff on failure), the no-TODO / no-debug grep, the `goimports -l .` check, and the bundle-freshness check (`SOURCE_COUNT == BUNDLE_COUNT`). The bundle check is the one most likely to bite a first-time contributor — the fix is `go run ./bundler && git add core/patterns.bundle && git commit --amend`.
 
 ---
 
 ## Progress Summary
 
-- **Total Tasks**: {{TOTAL_TASKS}}
-- **Completed**: {{COMPLETED_TASKS}}
-- **In Progress**: {{IN_PROGRESS_TASKS}}
-- **Pending**: {{PENDING_TASKS}}
-- **Blocked**: {{BLOCKED_TASKS}}
-- **Completion**: {{COMPLETION_PERCENTAGE}}%
+| Wave | Status | PRs | Theme |
+|------|--------|-----|-------|
+| 1 | [x] | 4 (#74-76, #79-80) | Scaffold + rename |
+| 2 | [x] | 1 (#81) | CI/security plumbing |
+| 3 | [x] | 1 (#83) | Fuzz + SBOM |
+| 4 | [x] | 1 (#84) | Severity wiring |
+| 5 | [x] | 1 (#85) | Audit findings |
+| 6 | [x] | 3 (#86-88) | Audit-followup + docs |
+| 7 | [ ] | TBD | pattern_state mutex (deferred) |
+
+**Completed waves**: 6 / 6 in flight.
+**Total merged PRs** (through Wave 6): 11.
+**Open work**: 1 (Item 2 mutex) + 1 (bundle v2 field) + 1 (`dev/full-feature` decision).

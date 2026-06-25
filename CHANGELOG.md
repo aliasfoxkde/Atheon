@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `docs/RELEASE.md` (maintainer runbook): tag format (`v0.YY.MM.DD[-rcN]`),
+  pre-release checklist, GoReleaser publishing, hotfix workflow, ldflags,
+  bundle regeneration, troubleshooting.
+- `docs/PLAN.md` filled with project-specific content reflecting the
+  multi-wave hardening cycle (274 patterns, 19 categories, MCP server,
+  wave-by-wave hardening). Replaces the prior `{{...}}` template.
+- `docs/TASKS.md` filled with the actual task ledger (waves 1–6 marked
+  completed, deferred items including the `pattern_state` mutex work).
+- `docs/BRANCH_STRATEGY.md` consolidated with the richer Quick Start,
+  Decision Tree, Branch Comparison table, and per-branch configuration
+  sections from the previous `docs/reports/BRANCH_STRATEGY.md`.
+
+### Removed
+- `docs/reports/BRANCH_STRATEGY.md` (duplicate of the canonical
+  `docs/BRANCH_STRATEGY.md`). Its unique content was merged into the
+  canonical copy and the duplicate was deleted to satisfy the project's
+  "no duplicate implementations" rule.
+
+## [0.6.0] - 2026-06-25
+
+### Added
 - Pattern severity wired end-to-end: each `community/*.yaml` declares
   `severity: low|medium|high|critical`. Defaults applied by category
   (secrets/pii/web-security/compliance/security-hardening = high;
@@ -32,6 +53,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was dropped without a manual re-run.
 - `atheon list --category=<bogus>` now errors with the known-category list,
   instead of silently filtering to zero matches.
+- `slog.Info` line emitted when `loadBundle` flips all patterns to enabled
+  (legacy compatibility path). Without this log, a contributor bundle
+  that's accidentally all-`enabled: false` looks identical at runtime —
+  every pattern silently comes on. Surface the path so it stays observable.
+- Regression tests `TestLoadBundleLegacyDefaultFlip` and
+  `TestLoadBundleNoFlipWhenAnyEnabled` in `core/bundle_legacy_default_test.go`
+  guard the legacy-flip behavior and the log-on/only-on gate.
+- `TestVersionFlagWithJSON` subtests for `["--version"]`,
+  `["--json", "--version"]`, and `["--sarif", "--version"]` flag orderings.
+- CI JSON-RPC roundtrip integration test in `.github/workflows/ci.yml`:
+  replaces the prior smoke step (which only verified clean exit on empty
+  stdin) with a real `initialize` + `tools/list` roundtrip and `jq`
+  assertions on `protocolVersion`, `capabilities`, tool count, and tool
+  names. Catches framing and discovery regressions that the smoke test
+  missed.
 
 ### Changed
 - Bundler (`go run ./bundler`) no longer aborts on broken pattern files.
@@ -41,6 +77,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 67 community patterns had pre-existing regex corruption (severity text
   embedded in the `match:` value); these were repaired so all 274 patterns
   ship cleanly.
+- `atheon --json --version` (and `--sarif --version`) now print the version
+  cleanly. Previously the `--version` check ran before the `--json`/`--sarif`
+  strip, so `atheon --json --version` fell into the default branch and
+  errored with `path not found: --version`. Flag order is now forgiving.
 
 ### Fixed
 - `community-pattern-review` workflow SIGPIPE: `git diff ... | head -10`
