@@ -12,10 +12,10 @@ import (
 // TestLoadBundleLegacyDefaultFlip verifies that when a bundle decodes with
 // NO patterns reporting enabled=true (the legacy old-format case), the
 // loadBundle path:
-//   1. flips all patterns to enabled, and
-//   2. emits an slog.Info line so the legacy-compat flip is observable
-//      instead of silently indistinguishable from an intentional
-//      all-disabled bundle.
+//  1. flips all patterns to enabled, and
+//  2. emits an slog.Info line so the legacy-compat flip is observable
+//     instead of silently indistinguishable from an intentional
+//     all-disabled bundle.
 //
 // Regression guard for Wave 6 gap Item 1.
 func TestLoadBundleLegacyDefaultFlip(t *testing.T) {
