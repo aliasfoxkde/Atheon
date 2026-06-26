@@ -112,7 +112,7 @@ jobs:
         # Run golangci-lint directly to avoid the action's post-step (which
         # creates spurious failure annotations on .github at random lines).
         run: |
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.5.0
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.8.0
           golangci-lint --timeout=5m ./...
 
       - name: Format check
