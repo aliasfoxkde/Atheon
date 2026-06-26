@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sort"
 	"strings"
 	"syscall"
 
@@ -287,19 +288,37 @@ func printJSONFindings(findings []core.Finding) {
 	}
 }
 
-// printSARIFFindings outputs findings in SARIF 2.1.0 format for GitHub Security tab integration.
+// printSARIFFindings outputs findings in SARIF 2.1.0 format for GitHub
+// Security tab integration. The schema URL points at the OASIS-frozen
+// `csd03` tag (not `master`) so consumers can pin against a stable
+// revision; `master` shifts as the spec evolves and breaks tooling that
+// caches the schema.
 func printSARIFFindings(findings []core.Finding) {
 	sarif := map[string]any{
-		"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+		"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/csd03/Schemata/sarif-schema-2.1.0.json",
 		"version": "2.1.0",
 		"runs": []map[string]any{
 			{
 				"tool": map[string]any{
 					"driver": map[string]any{
-						"name":           "Atheon",
-						"version":        version,
-						"informationUri": "https://github.com/aliasfoxkde/Atheon-Enhanced",
-						"rules":          buildSARIFRules(findings),
+						"name":             "Atheon",
+						"version":          version,
+						"informationUri":   "https://github.com/aliasfoxkde/Atheon-Enhanced",
+						"rules":            buildSARIFRules(findings),
+						"supportedTaxonomies": []map[string]any{
+							{"name": "CWE", "shortDescription": map[string]any{"text": "Common Weakness Enumeration"}},
+						},
+					},
+				},
+				// originalUriBaseIds lets downstream tools (GitHub
+				// code-scanning, IDE plugins) resolve the `uriBaseId`
+				// references each artifactLocation carries. Without
+				// this, file paths in the SARIF are dangling strings
+				// — GitHub shows them as relative to nothing, IDEs
+				// can't navigate to them.
+				"originalUriBaseIds": map[string]any{
+					"SRCROOT": map[string]any{
+						"uri": "file:///",
 					},
 				},
 				"results": buildSARIFResults(findings),
@@ -330,8 +349,13 @@ func sarifSeverityScore(sev string) string {
 	}
 }
 
-// sarifLevel maps Atheon severity to SARIF's level enum (error/warning/note).
-// Low is a note, medium is a warning, high and critical are errors.
+// sarifLevel maps Atheon severity to SARIF's level enum
+// (none/note/warning/error). The historical behaviour escalated any
+// unknown severity to "warning", which is wrong — an empty severity
+// is the scanner saying "I don't know how loud to be", not "I'm
+// fairly sure this is a problem". SARIF's "none" is the right
+// mapping for that case and lets GitHub code-scanning render the
+// result without colouring it.
 func sarifLevel(sev string) string {
 	switch strings.ToLower(sev) {
 	case "critical", "high":
@@ -341,25 +365,57 @@ func sarifLevel(sev string) string {
 	case "low":
 		return "note"
 	default:
-		return "warning"
+		return "none"
 	}
 }
 
+// buildSARIFRules emits the full rule universe for every enabled pattern
+// in the bundle — not just the rules that produced findings in this
+// scan. Before PR #96 the rules array was derived from the findings
+// slice, which meant rules that DIDN'T match any file were invisible to
+// GitHub code-scanning (the Security tab shows "0 alerts" for a rule
+// but never lists it as available). GitHub also uses the rules array
+// to render the rule description and severity before any result is
+// produced, so a thin universe leaves the Security tab feeling empty.
+//
+// Patterns iterate via core.All(); external (non-bundle) patterns are
+// included too so Register() callers see their rules. Sort by name for
+// deterministic SARIF output (goldens + diff reviewers rely on it).
 func buildSARIFRules(findings []core.Finding) []map[string]any {
-	seen := make(map[string]bool)
+	patterns := core.All()
+	// Deterministic sort: alphabetise by name. Stable across runs so the
+	// SARIF diff in PR review is meaningful.
+	sort.Slice(patterns, func(i, j int) bool { return patterns[i].Name() < patterns[j].Name() })
 	var rules []map[string]any
-	for _, f := range findings {
-		if seen[f.Pattern] {
+	for _, p := range patterns {
+		if !p.Enabled() {
 			continue
 		}
-		seen[f.Pattern] = true
 		rules = append(rules, map[string]any{
-			"id":   f.Pattern,
-			"name": f.Pattern,
-			"kind": "rule",
+			"id":   p.Name(),
+			"name": p.Name(),
+			"shortDescription": map[string]any{
+				"text": "Pattern " + p.Name() + " matched a line in the scanned tree.",
+			},
+			"fullDescription": map[string]any{
+				"text": "Atheon pattern " + p.Name() + " from category '" + p.Category() + "' matched a line. See the rule's match regex in community/" + p.Category() + "/" + p.Name() + ".yaml.",
+			},
+			"helpUri": "https://github.com/aliasfoxkde/Atheon-Enhanced/wiki/patterns#" + p.Name(),
+			"kind":    "rule",
+			"defaultConfiguration": map[string]any{
+				"level": sarifLevel(p.Severity()),
+			},
 			"properties": map[string]any{
-				"security-severity":       sarifSeverityScore(f.Severity),
-				"security-severity-label": f.Severity,
+				"security-severity":       sarifSeverityScore(p.Severity()),
+				"security-severity-label": p.Severity(),
+				"category":                p.Category(),
+				"tags":                    []string{p.Category(), "security"},
+				// Heuristic: bundle patterns are regex-exact → "high"
+				// precision. External Register() callers may be
+				// keyword-style → "medium". This is a placeholder that
+				// pattern authors can override by extending the
+				// Pattern interface with a Precision() method later.
+				"precision": "high",
 			},
 		})
 	}
@@ -369,23 +425,55 @@ func buildSARIFRules(findings []core.Finding) []map[string]any {
 func buildSARIFResults(findings []core.Finding) []map[string]any {
 	results := make([]map[string]any, 0, len(findings))
 	for _, f := range findings {
+		region := map[string]any{
+			"startLine": f.Line,
+		}
+		// Column: 0 means the scanner couldn't compute a span
+		// (non-bundlePattern, or trailing-newline shenanigans). We
+		// emit startColumn / endColumn only when we know them — SARIF
+		// allows omitting them, and a wrong 1:1 region is worse than
+		// no region at all (consumers might highlight the wrong word).
+		if f.Column > 0 {
+			region["startColumn"] = f.Column
+			region["endColumn"] = f.Column + len(f.Content)
+		}
+		// Snippet text: redact f.Content before putting it in the
+		// SARIF artifact. GitHub stores SARIF uploads indefinitely
+		// and renders snippets into the Security tab UI — a literal
+		// secret in the snippet would exfiltrate via the SARIF
+		// pipeline. redact() keeps the first/last 4 chars so the
+		// operator can still recognise the match shape.
+		region["snippet"] = map[string]any{"text": redact(f.Content)}
+
 		results = append(results, map[string]any{
 			"ruleId": f.Pattern,
 			"level":  sarifLevel(f.Severity),
 			"message": map[string]any{
-				"text": f.Content,
+				// The message text is the human-readable explanation
+				// GitHub surfaces. Use the file path + line as the
+				// primary signal; the snippet is in region.snippet
+				// for context.
+				"text": fmt.Sprintf("%s found in %s at line %d", f.Pattern, f.File, f.Line),
 			},
 			"locations": []map[string]any{
 				{
 					"physicalLocation": map[string]any{
 						"artifactLocation": map[string]any{
-							"uri": f.File,
+							"uri":       f.File,
+							"uriBaseId": "%SRCROOT%",
 						},
-						"region": map[string]any{
-							"startLine": f.Line,
-						},
+						"region": region,
 					},
 				},
+			},
+			// partialFingerprints lets GitHub's deduplication merge
+			// results across runs without exact-match fragility
+			// (whitespace, line shifts). Hash of (pattern + file +
+			// line + column) — content is excluded so an operator
+			// editing the matched line still gets one alert per
+			// logical location.
+			"partialFingerprints": map[string]any{
+				"atheonLoc": fmt.Sprintf("%s|%s|%d|%d", f.Pattern, f.File, f.Line, f.Column),
 			},
 		})
 	}

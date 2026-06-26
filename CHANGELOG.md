@@ -49,6 +49,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `core.TestCombinedRegexCompileErrorLogged` pins the new
   slog.Warn-on-compile-failure behaviour using a per-test
   `slog.Handler` capture (no global slog mutation).
+- `Finding.Column` (1-indexed byte offset of the match's first byte
+  within the line; 0 when the scanner couldn't compute it).
+  Populated by `scanLines` via a type-asserted `matchSpan()` on
+  `bundlePattern`. Non-bundle Patterns keep Column at 0 (their
+  interface doesn't expose offsets), which downstream consumers
+  interpret as "unknown" and skip the column fields for.
+- SARIF rule universe: `tool.driver.rules` now iterates `core.All()`
+  filtered by `Enabled()` rather than the findings slice. Every
+  enabled rule appears in the SARIF even when it didn't fire this
+  scan — GitHub's Security tab uses this list to render the
+  "available rules" sidebar.
+- SARIF `originalUriBaseIds.SRCROOT = file:///` and matching
+  `uriBaseId: "%SRCROOT%"` on each artifactLocation, so SARIF
+  consumers (GitHub, IDE plugins) can resolve paths to real files.
+- SARIF `region.startColumn` / `endColumn` and `region.snippet.text`
+  (redacted via the existing `redact()` helper). Without redaction
+  the snippet becomes a literal-secret exfiltration channel via the
+  SARIF upload artifact.
+- SARIF `partialFingerprints.atheonLoc = pattern|file|line|column`,
+  giving GitHub code-scanning a stable dedup key across runs.
+- SARIF `properties.tags = [category, "security"]` and `precision =
+  "high"` on every rule. GitHub uses these to group alerts by
+  category in the Security tab.
+- SARIF `sarifLevel("")` / `sarifLevel("bogus")` now return `"none"`
+  instead of `"warning"`. The historical escalation was wrong — an
+  empty severity is the scanner saying "I don't know how loud to be",
+  not "I'm fairly sure this is a problem".
+- SARIF `$schema` URL pinned to the OASIS-frozen `csd03` tag (was
+  `master`); downstream tooling can now cache against a stable URL.
+- `TestSARIF{RuleUniversePresent,ResultColumnsAndRedaction,
+  SchemaURLFrozen}` pin the new SARIF contract.
 
 ### Changed
 - `core.ScanDir` signature: now `(ctx, root, opts ScanOpts)` instead of

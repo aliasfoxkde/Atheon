@@ -9,10 +9,18 @@ package core
 // Severity is the pattern's declared severity at the time of the match —
 // one of "low", "medium", "high", "critical". It's copied off the Pattern
 // at match time so toggling severity later doesn't rewrite history.
+//
+// Column is the 1-indexed byte offset of the match's first byte within
+// the line. 0 means "unknown" (the pattern is not a bundlePattern, or
+// the line had a stripped trailing newline that shifted byte positions).
+// Downstream consumers (SARIF, IDE integrations) translate this into
+// end-user coordinates; SARIF wants 1-indexed columns so we store 1-indexed
+// values directly to avoid an off-by-one at every conversion site.
 type Finding struct {
 	Pattern  string
 	File     string
 	Line     int
+	Column   int
 	Content  string
 	Severity string
 }

@@ -175,68 +175,75 @@ func TestPrintFindingsStatsZeroFiles(t *testing.T) {
 }
 
 // TestBuildSARIFRulesEmpty exercises buildSARIFRules with no findings.
+// Post-PR-#96 the rules universe is bundle-wide, so an empty-findings
+// scan still produces the full enabled-pattern set (~270 rules). The
+// pre-#96 contract (return nil for empty findings) was a finding-derived
+// subset and is intentionally broken here — see TestSARIFRuleUniversePresent
+// for the new invariant.
 func TestBuildSARIFRulesEmpty(t *testing.T) {
 	rules := buildSARIFRules(nil)
-	if rules != nil {
-		t.Errorf("expected nil rules for empty findings, got %v", rules)
+	if rules == nil {
+		t.Fatal("expected full rule universe even with no findings, got nil")
+	}
+	if len(rules) < 250 {
+		t.Errorf("expected full universe (>=250 rules), got %d", len(rules))
 	}
 }
 
-// TestBuildSARIFRulesSingleFinding verifies that a single finding produces
-// exactly one rule with the expected id, name, kind, and properties fields.
+// TestBuildSARIFRulesSingleFinding verifies that the SARIF rules universe
+// is bundle-wide, not finding-derived. A single finding against a custom
+// pattern still produces the full enabled-pattern set — the new pattern's
+// severity flows through to security-severity fields when it's loaded.
+// The "single finding" angle is exercised by TestSARIFRuleUniversePresent
+// (every enabled pattern is in the universe) and TestBuildSARIFResultsLocation
+// (the finding itself is rendered as a SARIF result).
 func TestBuildSARIFRulesSingleFinding(t *testing.T) {
 	findings := []core.Finding{
-		{Pattern: "my-pattern", File: "x.go", Line: 1, Severity: "high"},
+		{Pattern: "aws-access-key", File: "x.go", Line: 1, Severity: "high"},
 	}
 	rules := buildSARIFRules(findings)
-	if len(rules) != 1 {
-		t.Fatalf("expected 1 rule, got %d", len(rules))
+	if len(rules) < 250 {
+		t.Fatalf("expected full universe regardless of findings, got %d", len(rules))
 	}
-	r := rules[0]
-	if r["id"] != "my-pattern" {
-		t.Errorf("expected rule id 'my-pattern', got %v", r["id"])
-	}
-	if r["name"] != "my-pattern" {
-		t.Errorf("expected rule name 'my-pattern', got %v", r["name"])
-	}
-	if r["kind"] != "rule" {
-		t.Errorf("expected rule kind 'rule', got %v", r["kind"])
-	}
-	props, ok := r["properties"].(map[string]any)
-	if !ok {
-		t.Fatalf("expected properties map, got %T", r["properties"])
-	}
-	if props["security-severity"] != "7.5" {
-		t.Errorf("expected security-severity '7.5' for high severity, got %v", props["security-severity"])
-	}
-	if props["security-severity-label"] != "high" {
-		t.Errorf("expected security-severity-label 'high', got %v", props["security-severity-label"])
+	// Spot-check: every rule carries the new schema fields.
+	for _, r := range rules {
+		if r["kind"] != "rule" {
+			t.Errorf("rule kind: got %v", r["kind"])
+		}
+		props, ok := r["properties"].(map[string]any)
+		if !ok {
+			t.Errorf("rule missing properties: %v", r)
+			continue
+		}
+		if _, ok := props["tags"].([]string); !ok {
+			t.Errorf("rule %v missing properties.tags", r["id"])
+		}
+		if props["precision"] != "high" {
+			t.Errorf("rule %v missing properties.precision 'high'", r["id"])
+		}
 	}
 }
 
-// TestBuildSARIFRulesDeduplicates verifies that duplicate pattern names
-// produce only one rule (deduplication logic in buildSARIFRules).
+// TestBuildSARIFRulesDeduplicates is now subsumed by the
+// TestSARIFRuleUniversePresent invariant — duplicate pattern names are
+// impossible when iterating core.All(). Kept as a no-op doc test so
+// future maintainers don't think the dedup branch was deleted by
+// accident.
 func TestBuildSARIFRulesDeduplicates(t *testing.T) {
-	findings := []core.Finding{
-		{Pattern: "dup-pat", File: "a.go", Line: 1},
-		{Pattern: "dup-pat", File: "b.go", Line: 2},
-		{Pattern: "other-pat", File: "c.go", Line: 3},
-	}
-	rules := buildSARIFRules(findings)
-	if len(rules) != 2 {
-		t.Errorf("expected 2 deduplicated rules, got %d", len(rules))
-	}
-	ids := make(map[string]bool)
+	rules := buildSARIFRules([]core.Finding{
+		{Pattern: "aws-access-key", File: "a.go", Line: 1},
+		{Pattern: "aws-access-key", File: "b.go", Line: 2},
+	})
+	seen := map[string]int{}
 	for _, r := range rules {
 		if id, ok := r["id"].(string); ok {
-			ids[id] = true
+			seen[id]++
 		}
 	}
-	if !ids["dup-pat"] {
-		t.Error("expected dup-pat in rules")
-	}
-	if !ids["other-pat"] {
-		t.Error("expected other-pat in rules")
+	for id, count := range seen {
+		if count > 1 {
+			t.Errorf("duplicate rule id %q appears %d times", id, count)
+		}
 	}
 }
 
@@ -412,7 +419,8 @@ func TestPrintSARIFFindingsStructure(t *testing.T) {
 
 // TestSARIFSeverityMapping verifies each severity produces the expected
 // SARIF level + CVSS-like score. Pins down the contract added in PR #84
-// so future severity additions are deliberate.
+// (severity wiring) and tightened in PR #96 (empty/unknown → "none"
+// rather than the previous "warning" escalation).
 func TestSARIFSeverityMapping(t *testing.T) {
 	cases := []struct {
 		sev   string
@@ -423,8 +431,8 @@ func TestSARIFSeverityMapping(t *testing.T) {
 		{"high", "error", "7.5"},
 		{"medium", "warning", "5.0"},
 		{"low", "note", "2.5"},
-		{"", "warning", "5.0"}, // unknown → default medium
-		{"bogus", "warning", "5.0"},
+		{"", "none", "5.0"}, // unknown → "none" (was "warning" pre-PR-#96)
+		{"bogus", "none", "5.0"},
 		{"HIGH", "error", "7.5"}, // case-insensitive
 	}
 	for _, tc := range cases {
@@ -434,5 +442,119 @@ func TestSARIFSeverityMapping(t *testing.T) {
 		if got := sarifSeverityScore(tc.sev); got != tc.score {
 			t.Errorf("sarifSeverityScore(%q) = %q, want %q", tc.sev, got, tc.score)
 		}
+	}
+}
+
+// TestSARIFRuleUniversePresent asserts the post-PR-#96 invariant that
+// `tool.driver.rules` contains every ENABLED pattern in the bundle,
+// not just patterns that produced findings in this particular scan.
+// GitHub's Security tab reads this list to render the "available
+// rules" sidebar; if the array is finding-derived, every rule that
+// didn't fire in the scan is invisible. With ~270 patterns in the
+// bundle, asserting `len >= 250` catches both the regression (we'd see
+// the count collapse to the per-scan match count, typically <10) and
+// accidental bundle pruning.
+func TestSARIFRuleUniversePresent(t *testing.T) {
+	rules := buildSARIFRules(nil)
+	if len(rules) < 250 {
+		t.Fatalf("expected at least 250 rules in tool.driver.rules, got %d (rules universe regression)", len(rules))
+	}
+
+	// Spot-check: every enabled bundle pattern should appear. If
+	// buildSARIFRules accidentally filters by `Enabled() == true &&
+	// len(findings) > 0` the count would still pass but specific
+	// patterns would be missing.
+	seen := map[string]bool{}
+	for _, r := range rules {
+		if id, ok := r["id"].(string); ok {
+			seen[id] = true
+		}
+	}
+	for _, p := range core.All() {
+		if p.Enabled() && !seen[p.Name()] {
+			t.Errorf("enabled pattern %q missing from SARIF rules universe", p.Name())
+		}
+	}
+}
+
+// TestSARIFResultColumnsAndRedaction asserts the post-PR-#96 SARIF
+// schema additions: region.startColumn / endColumn are populated,
+// region.snippet.text is redacted (never raw Content), and the result
+// carries partialFingerprints + uriBaseId. These are the properties
+// GitHub code-scanning consumes to dedupe alerts and navigate to
+// source — without them the Security tab shows floating paths and
+// floods with duplicate alerts.
+func TestSARIFResultColumnsAndRedaction(t *testing.T) {
+	findings := []core.Finding{{
+		Pattern:  "aws-access-key",
+		File:     "config/aws.yml",
+		Line:     3,
+		Column:   17,
+		Content:  "AKIAIOSFODNN7EXAMPLE",
+		Severity: "high",
+	}}
+	results := buildSARIFResults(findings)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(results))
+	}
+	r := results[0]
+
+	// uriBaseId resolves via the run's originalUriBaseIds map. Without
+	// it, GitHub renders the path as a bare string with no root.
+	loc := r["locations"].([]map[string]any)[0]["physicalLocation"].(map[string]any)
+	al := loc["artifactLocation"].(map[string]any)
+	if al["uriBaseId"] != "%SRCROOT%" {
+		t.Errorf("uriBaseId missing or wrong: %v", al["uriBaseId"])
+	}
+	if al["uri"] != "config/aws.yml" {
+		t.Errorf("uri lost: %v", al["uri"])
+	}
+
+	// Region: column + snippet.
+	region := loc["region"].(map[string]any)
+	if region["startLine"] != 3 {
+		t.Errorf("startLine: %v", region["startLine"])
+	}
+	if region["startColumn"] != 17 {
+		t.Errorf("startColumn: %v", region["startColumn"])
+	}
+	if region["endColumn"] != 17+len("AKIAIOSFODNN7EXAMPLE") {
+		t.Errorf("endColumn: %v", region["endColumn"])
+	}
+	snippet, _ := region["snippet"].(map[string]any)
+	snipText, _ := snippet["text"].(string)
+	// redact() shows first 4 + **** + last 4. The example key is
+	// 20 chars, so the redaction is AKIA****MPLE. Anything containing
+	// the literal "AKIAIOSFODNN7EXAMPLE" would mean we forgot to
+	// redact — a real-world secret-disclosure bug.
+	if strings.Contains(snipText, "AKIAIOSFODNN7EXAMPLE") {
+		t.Fatalf("snippet leaked raw secret: %q", snipText)
+	}
+	if !strings.Contains(snipText, "AKIA") || !strings.Contains(snipText, "MPLE") {
+		t.Errorf("snippet should keep bookend chars for recognisability: %q", snipText)
+	}
+
+	// partialFingerprints — GitHub's dedup key.
+	fp, _ := r["partialFingerprints"].(map[string]any)
+	if fp == nil || fp["atheonLoc"] == nil {
+		t.Errorf("partialFingerprints.atheonLoc missing")
+	}
+}
+
+// TestSARIFSchemaURLFrozen pins the schema URL to the OASIS-frozen
+// csd03 tag (not master) so consumers can pin against a stable
+// revision. A regression here would silently break downstream
+// tooling that caches the schema by URL.
+func TestSARIFSchemaURLFrozen(t *testing.T) {
+	out := captureStdout(t, func() {
+		printSARIFFindings(nil) //nolint:errcheck
+	})
+	const want = "csd03/Schemata/sarif-schema-2.1.0.json"
+	if !strings.Contains(out, want) {
+		t.Errorf("schema URL missing %q fragment; output: %s", want, out)
+	}
+	const bad = "master/Schemata/sarif-schema-2.1.0.json"
+	if strings.Contains(out, bad) {
+		t.Errorf("schema URL points at moving master branch; output: %s", out)
 	}
 }

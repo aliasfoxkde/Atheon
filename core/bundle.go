@@ -65,8 +65,23 @@ type bundlePattern struct {
 func (p *bundlePattern) Name() string             { return p.name }
 func (p *bundlePattern) Category() string         { return p.category }
 func (p *bundlePattern) Matches(line string) bool { return p.enabled && p.re.MatchString(line) }
-func (p *bundlePattern) Enabled() bool            { return p.enabled }
-func (p *bundlePattern) SetEnabled(enabled bool)  { p.enabled = enabled }
+// matchSpan returns the [start, end) byte offsets of p's first match in
+// line, or (-1, -1) if it doesn't match or the pattern is disabled.
+// Unexported because it exposes RE2's internal offsets, which aren't
+// stable across pattern implementations (only bundlePattern has a
+// compiled regex to query).
+func (p *bundlePattern) matchSpan(line string) (int, int) {
+	if !p.enabled || p.re == nil {
+		return -1, -1
+	}
+	loc := p.re.FindStringIndex(line)
+	if loc == nil {
+		return -1, -1
+	}
+	return loc[0], loc[1]
+}
+func (p *bundlePattern) Enabled() bool           { return p.enabled }
+func (p *bundlePattern) SetEnabled(enabled bool) { p.enabled = enabled }
 
 // Severity returns the pattern's severity — one of ValidSeverities, never empty.
 // Patterns loaded without a severity field read back as DefaultSeverity.

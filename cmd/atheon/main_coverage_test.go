@@ -670,34 +670,33 @@ func TestPrintSARIFFindingsEncodeError(t *testing.T) {
 	r.Close()
 }
 
-// TestBuildSARIFRulesDeduplication tests that buildSARIFRules deduplicates patterns
+// TestBuildSARIFRulesDeduplication pins the contract that no rule id
+// appears twice in the rules universe. Pre-PR-#96 the function
+// iterated findings and dedup'd, so this assertion exercised the
+// explicit dedup branch. Post-#96 the function iterates core.All()
+// and dedup is structural (the universe has one entry per pattern
+// by construction) — but the test still has value as a regression
+// guard if anyone later switches the iteration back to findings.
 func TestBuildSARIFRulesDeduplication(t *testing.T) {
-	findings := []core.Finding{
-		{Pattern: "pattern-a", File: "f1.txt", Line: 1},
-		{Pattern: "pattern-b", File: "f2.txt", Line: 2},
-		{Pattern: "pattern-a", File: "f3.txt", Line: 3}, // duplicate
-	}
+	rules := buildSARIFRules([]core.Finding{
+		{Pattern: "aws-access-key", File: "f1.txt", Line: 1},
+		{Pattern: "aws-access-key", File: "f3.txt", Line: 3}, // duplicate name
+	})
 
-	rules := buildSARIFRules(findings)
-
-	// Should have only 2 unique rules
-	if len(rules) != 2 {
-		t.Errorf("expected 2 rules, got %d", len(rules))
-	}
-
-	// Check the rule IDs
-	ids := make(map[string]bool)
+	seen := map[string]int{}
 	for _, r := range rules {
 		if id, ok := r["id"].(string); ok {
-			ids[id] = true
+			seen[id]++
 		}
 	}
-
-	if !ids["pattern-a"] {
-		t.Error("expected pattern-a in rules")
+	for id, count := range seen {
+		if count > 1 {
+			t.Errorf("duplicate rule id %q appears %d times", id, count)
+		}
 	}
-	if !ids["pattern-b"] {
-		t.Error("expected pattern-b in rules")
+	// Bundle universe is large; spot-check we still got the full set.
+	if len(seen) < 250 {
+		t.Errorf("rules universe collapsed: got %d unique rules, want >=250", len(seen))
 	}
 }
 
