@@ -520,6 +520,7 @@ func trimSpace(data []byte) []byte {
 	}
 	return data[i:j]
 }
+
 // parseBundle decodes a gzipped JSON bundle into PatternDefs.
 func parseBundle(data []byte) ([]PatternDef, error) {
 	r, err := gzip.NewReader(bytes.NewReader(data))
