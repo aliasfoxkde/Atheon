@@ -17,12 +17,14 @@ package core
 // end-user coordinates; SARIF wants 1-indexed columns so we store 1-indexed
 // values directly to avoid an off-by-one at every conversion site.
 type Finding struct {
-	Pattern  string
-	File     string
-	Line     int
-	Column   int
-	Content  string
-	Severity string
+	Pattern     string
+	File       string
+	Line       int
+	Column     int
+	Content    string
+	Severity   string
+	Category   string // Pattern category at match time (copied like Severity)
+	Fingerprint string // Stable deduplication key: "pattern|file|line|col"
 }
 
 // Stats summarizes the work performed by ScanFile or ScanDir. Files is the
