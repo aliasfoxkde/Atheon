@@ -113,7 +113,11 @@ jobs:
         with:
           # golangci-lint-action >= v7 requires golangci-lint v2. The action
           # default (latest v2 release) requires Go ≥ 1.24, so we pin to v2.5.0
-          # which still supports Go 1.23 — matching the rest of the lint job.
+          # which still supports Go 1.23–1.25 — matching the lint job's tested range.
+          # TODO: When Go version matrix is updated to 1.26 or later, check whether
+          # v2.5.0 still supports the new Go version; if not, bump to the minimum
+          # v2.x release that does, run `golangci-lint --version` to confirm, and
+          # remove this comment.  Track in: https://github.com/aliasfoxkde/Atheon-Enhanced/issues
           version: v2.5.0
           args: --timeout=5m
 
