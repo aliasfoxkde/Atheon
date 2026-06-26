@@ -57,7 +57,7 @@ func TestPrintFindingsSurfacesErrors(t *testing.T) {
 	stats := &core.Stats{
 		Files:  2,
 		Bytes:  100,
-		Errors: []error{errors.New("permission denied: secret.env")},
+		Errors: []error{&os.PathError{Op: "open", Path: "/root/secret.env", Err: os.ErrPermission}},
 	}
 
 	// Capture stderr
@@ -70,8 +70,8 @@ func TestPrintFindingsSurfacesErrors(t *testing.T) {
 
 	buf, _ := io.ReadAll(r)
 	output := string(buf)
-	if !strings.Contains(output, "permission denied: secret.env") {
-		t.Errorf("expected stderr to contain error, got: %q", output)
+	if !strings.Contains(output, "permission denied") {
+		t.Errorf("expected stderr to contain sanitized error, got: %q", output)
 	}
 	if !strings.Contains(output, "1 file(s) could not be read") {
 		t.Errorf("expected stderr to surface error count, got: %q", output)
