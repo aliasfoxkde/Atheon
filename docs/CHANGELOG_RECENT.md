@@ -98,3 +98,24 @@ For the full history, see [../CHANGELOG.md](../CHANGELOG.md).
 [0.2.0]: https://github.com/aliasfoxkde/Atheon-Enhanced/releases/tag/v0.2.0
 
 For full history, see [../CHANGELOG.md](../CHANGELOG.md).
+
+---
+
+## [Unreleased] — Wave 10 (PRs #102 merged 2026-06-26)
+
+### Added
+- **`cmd/mcp/main.go` `sandboxPath(path)`** — canonicalizes relative paths via `filepath.Clean` and `EvalSymlinks` to block `../../etc/passwd` traversal and symlink escapes
+- **`cmd/mcp/main.go` `rpcError` gains `Data any` field** — per JSON-RPC 2.0 spec for programmatic error routing (`rate_limit`, `concurrent_limit`, `invalid_params`)
+- **`core/bundle.go` `fetchBundleData` 100 MiB cap** — `io.LimitedReader` prevents memory exhaustion from unbounded bundle downloads
+- **`cmd/mcp/main.go` `mcpInflight` counter** — tracks in-flight requests; concurrent-cap (50) returns `-32001` with `Data: "concurrent_limit"`
+
+### Changed
+- **`.github/workflows/release.yml` pre-release `-race`** — added missing race detector to pre-release test gate
+- **`.github/workflows/release.yml` goreleaser-action pinned to `v7.2.2`** — was `latest` (non-deterministic)
+- **`.github/workflows/release.yml` SLSA provenance** — added `--prov` flag for artifact attestations
+- **`core/bundle.go` SSRF scheme guard** — `SetBundleDownloadURL` rejects non-HTTP(S) schemes (`file://`, `ftp://`, etc.)
+- **`core/bundle.go` hash mismatch fatal** — `verifyBundleHash` error now propagates (was: warn-and-proceed)
+- **`core/runner.go` TOCTOU fix** — `readFileCapped` calls `EvalSymlinks` before `Stat` to size symlink targets
+
+### Deprecated
+- **`go.mod` `gopkg.in/yaml.v3 v3.0.1`** — marked DEPRECATED; migration to `github.com/goccy/go-yaml` tracked for future wave
