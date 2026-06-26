@@ -274,6 +274,25 @@ func ScanDir(ctx context.Context, root string, opts ScanOpts) ([]Finding, *Stats
 				errMu.Unlock()
 				return
 			}
+			// UTF-16 BOM detection: files encoded as UTF-16 (common on Windows
+			// for config files, logs, and exported data) use a byte-order mark
+			// that renders as NUL bytes when read as ASCII, and would produce
+			// spurious matches on the NUL escape sequences. Detect the two
+			// standard BOMs: FE FF (big-endian) and FF FE (little-endian).
+			if len(data) >= 2 {
+				if data[0] == 0xFE && data[1] == 0xFF {
+					errMu.Lock()
+					scanErrors[i] = fmt.Errorf("skipping binary file (UTF-16 BE BOM): %s", p)
+					errMu.Unlock()
+					return
+				}
+				if data[0] == 0xFF && data[1] == 0xFE {
+					errMu.Lock()
+					scanErrors[i] = fmt.Errorf("skipping binary file (UTF-16 LE BOM): %s", p)
+					errMu.Unlock()
+					return
+				}
+			}
 			results[i] = scanLines(ctx, string(data), p)
 			sizes[i] = int64(len(data))
 			scanned[i] = true

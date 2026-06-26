@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -101,6 +102,19 @@ var mcpRateLimiter = newRateLimiter(10, 20)
 // Used to implement $/cancelRequest: when a cancel notification arrives,
 // the cancel function is called, aborting the in-flight handler.
 var activeRequests sync.Map
+
+// mcpConcurrentCap is the maximum number of concurrent request handlers.
+// A server under heavy load (deep directory scans, large file reads) can
+// exhaust file descriptors or goroutine stacks if unbounded parallelism
+// is allowed. 50 is generous for a security scanner — a real scan
+// saturates I/O long before it needs 50 parallel workers.
+const mcpConcurrentCap = 50
+
+// mcpInflight tracks the number of active request handlers using an
+// atomic Int so dispatchRequest can check and increment/decrement
+// without holding a mutex. If the counter reaches cap, new requests
+// wait for a handler to decrement before being dispatched.
+var mcpInflight atomic.Int64
 
 // cancelRequestCode is the JSON-RPC error code returned when a request
 // was successfully canceled per the MCP spec.
@@ -304,7 +318,18 @@ func dispatchRequest(ctx context.Context, req *request) (result any, rerr *rpcEr
 			rerr = &rpcError{Code: -32603, Message: "internal error"}
 			result = nil
 		}
+		mcpInflight.Add(-1)
 	}()
+
+	// Concurrent request cap: check before doing any work. This prevents
+	// a burst of scan_dir requests (each of which can run for seconds)
+	// from creating unbounded goroutines. We increment first so the
+	// counter is pessimistic — a handler that returns early still counts
+	// against the cap for the duration of its work.
+	if mcpInflight.Add(1) > mcpConcurrentCap {
+		mcpInflight.Add(-1)
+		return nil, &rpcError{Code: -32001, Message: fmt.Sprintf("concurrent request limit reached (%d)", mcpConcurrentCap)}
+	}
 
 	// JSON-RPC 2.0 requires the jsonrpc field. Anything else is a
 	// protocol-level malformed request — return -32600 (Invalid

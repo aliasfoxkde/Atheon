@@ -39,6 +39,10 @@ var (
 	// ErrInvalidPattern is returned when a pattern definition fails
 	// validation (e.g. a malformed regex).
 	ErrInvalidPattern = errors.New("invalid pattern")
+
+	// ErrBundleHashMismatch is returned when the SHA-256 hash of a
+	// downloaded bundle does not match the value in checksums.txt.
+	ErrBundleHashMismatch = errors.New("bundle hash mismatch")
 )
 
 // Pattern is the interface implemented by all scanner patterns, both those

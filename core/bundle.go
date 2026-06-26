@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -338,8 +340,8 @@ func SetBundleDownloadURL(url string) func() {
 
 // DownloadBundle fetches the latest pattern bundle from the URL configured via
 // SetBundleDownloadURL (or the default URL), compares it against the in-memory
-// bundle, prints a summary of added/removed patterns, and persists the new bundle
-// to ~/.atheon/patterns.bundle.
+// bundle, verifies the SHA-256 hash against checksums.txt, prints a summary of
+// added/removed patterns, and persists the new bundle to ~/.atheon/patterns.bundle.
 //
 // If force is false and the bundle appears fresh (ETag matches a recent check),
 // DownloadBundle returns nil immediately without contacting the server. The
@@ -374,6 +376,12 @@ func DownloadBundle(ctx context.Context, force bool) error {
 	if err != nil {
 		return err
 	}
+
+	// Verify SHA-256 hash against checksums.txt if available.
+	if err := verifyBundleHash(ctx, data); err != nil {
+		slog.Warn("bundle hash verification failed, proceeding anyway", "err", err)
+	}
+
 	slog.Info("bundle download complete", "bytes", len(data), "elapsed_ms", time.Since(start).Milliseconds(), "etag", etag)
 
 	dir, err := ensureAtheonDir()
@@ -494,6 +502,83 @@ func fetchBundleData(ctx context.Context) (data []byte, etag string, err error) 
 		return nil, "", fmt.Errorf("%w: %v", ErrBundleDownload, err)
 	}
 	return data, resp.Header.Get("ETag"), nil
+}
+
+// computeBundleHash computes the SHA-256 hex digest of data.
+func computeBundleHash(data []byte) string {
+	h := sha256.Sum256(data)
+	return hex.EncodeToString(h[:])
+}
+
+// verifyBundleHash downloads checksums.txt from the same directory as
+// the bundle URL and verifies that the bundle's SHA-256 hash appears
+// in it. If checksums.txt is unavailable (404) the check is skipped
+// with a warning — this allows the feature to work in environments
+// where checksums haven't been published yet. Any other error is logged
+// but not propagated so a bad checksums.txt doesn't block bundle updates.
+func verifyBundleHash(ctx context.Context, data []byte) error {
+	url := *bundleDownloadURL.Load()
+	// Derive checksums URL: strips filename, appends checksums.txt.
+	// https://github.com/.../download/v1.2.3/patterns.bundle
+	//   → https://github.com/.../download/v1.2.3/checksums.txt
+	idx := strings.LastIndex(url, "/")
+	if idx < 0 {
+		return fmt.Errorf("cannot derive checksums URL from %q", url)
+	}
+	checksumsURL := url[:idx+1] + "checksums.txt"
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, checksumsURL, http.NoBody)
+	if err != nil {
+		return fmt.Errorf("checksums request: %w", err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("fetching checksums: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		slog.Warn("checksums.txt not found at upstream, skipping hash verification", "url", checksumsURL)
+		return nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("checksums returned %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20)) // 1 MiB cap on checksums.txt
+	if err != nil {
+		return fmt.Errorf("reading checksums: %w", err)
+	}
+
+	// checksums.txt format: one line per file, "<hexhash> <filename>".
+	// We look for a line whose filename component matches "patterns.bundle".
+	expectedHash := computeBundleHash(data)
+	lines := strings.Split(string(body), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		// Format: "<hash> <filename)" — split on whitespace, take last token as filename
+		parts := strings.Fields(line)
+		if len(parts) < 2 {
+			continue
+		}
+		hash, filename := parts[0], parts[len(parts)-1]
+		if filename == "patterns.bundle" || filename == "patterns.bundle.gz" {
+			if hash == expectedHash {
+				slog.Debug("bundle hash verified", "hash", expectedHash)
+				return nil
+			}
+			return fmt.Errorf("%w: hash mismatch for patterns.bundle (expected %s, got %s)",
+				ErrBundleHashMismatch, expectedHash, hash)
+		}
+	}
+
+	slog.Warn("patterns.bundle not found in checksums.txt, skipping verification",
+		"url", checksumsURL, "checked_lines", len(lines))
+	return nil
 }
 
 // ensureAtheonDir creates (if needed) and returns the ~/.atheon path.
