@@ -1,3 +1,0 @@
-name: kubernetes-ci-usage
-match: '(?i)(apiVersion:|kind:\s*Deployment|kubectl|kubernetes|k8s|manifest)'
-severity: medium

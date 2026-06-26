@@ -1,4 +1,0 @@
-name: debug-breakpoint
-match: '(?i)(?:debugger;|breakpoint\(\)|pdb\.set_trace\(\)|binding\.pry|byebug)'
-severity: low
-enabled: true

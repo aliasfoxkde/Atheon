@@ -1,4 +1,0 @@
-name: ai-hallucination-placeholder
-match: '(?i)\[(?:INSERT|PLACEHOLDER|TODO|YOUR_\w+|EXAMPLE_\w+|REPLACE_THIS)\]'
-severity: medium
-enabled: true

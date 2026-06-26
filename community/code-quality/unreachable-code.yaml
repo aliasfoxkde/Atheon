@@ -1,3 +1,0 @@
-name: unreachable-code
-match: '(?i)throw.*return|return.*throw|exit.*return|die.*return'
-severity: low

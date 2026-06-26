@@ -1,4 +1,0 @@
-name: git-rerere-conflict
-match: '<<<<<<<\|=======\|>>>>>>>'
-severity: medium
-enabled: true

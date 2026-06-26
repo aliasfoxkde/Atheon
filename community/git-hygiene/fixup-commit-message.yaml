@@ -1,4 +1,0 @@
-name: fixup-commit-message
-match: '(fixup|squash)!\s+[A-Z]'
-severity: medium
-enabled: true

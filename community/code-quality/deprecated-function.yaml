@@ -1,3 +1,0 @@
-name: deprecated-function
-match: '(?i)\blegacy\s+(function|method|code|api)\b|\bobsolete\s+(function|method|code|api)\b'
-severity: low

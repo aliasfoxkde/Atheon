@@ -1,4 +1,0 @@
-name: azure-connection-string
-match: '\bDefaultEndpointsProtocol.*AccountKey=[a-zA-Z0-9+/]{20,}\b'
-severity: medium
-enabled: true

@@ -1,3 +1,0 @@
-name: skip-tests
-match: '(?i)(mvn|gradle|pytest).*skip.*test|DskipTests'
-severity: low

@@ -1,3 +1,0 @@
-name: medical-record-number
-match: '\bMRN[0-9]{8,12}\b'
-severity: medium

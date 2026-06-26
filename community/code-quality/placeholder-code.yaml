@@ -1,3 +1,0 @@
-name: placeholder-code
-match: '(?i)\b(PLACEHOLDER|BOILERPLATE|SHIM|FILLER|CRUFT)\b'
-severity: low

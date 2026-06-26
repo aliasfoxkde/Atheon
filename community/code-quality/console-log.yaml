@@ -1,3 +1,0 @@
-name: console-log
-match: 'console\.(log|debug|info|warn|error)\('
-severity: low

@@ -1,4 +1,0 @@
-name: aws-arn
-match: '\barn:aws:[a-z0-9-]+:[a-z0-9-]+:\d{12}:[^\s]+\b'
-severity: medium
-enabled: true

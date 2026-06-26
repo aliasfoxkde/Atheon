@@ -1,4 +1,0 @@
-name: empty-catch-block
-match: '(?i)catch\s*\([^)]*\)\s*\{\s*\}'
-severity: low
-enabled: true

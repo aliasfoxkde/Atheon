@@ -1,4 +1,0 @@
-name: sleep-in-test
-match: 'time\.Sleep\s*\('
-severity: low
-enabled: true

@@ -1,3 +1,0 @@
-name: todo-comment
-match: '(?i)\bTODO\b'
-severity: low

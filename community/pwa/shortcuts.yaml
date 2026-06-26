@@ -1,3 +1,0 @@
-name: shortcuts
-match: 'shortcuts.*name.*url|icons.*shortcuts.*manifest|app.*shortcuts.*home.*screen'
-severity: medium

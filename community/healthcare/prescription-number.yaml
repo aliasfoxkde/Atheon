@@ -1,3 +1,0 @@
-name: prescription-number
-match: '\bRX[0-9]{7,10}\b'
-severity: medium

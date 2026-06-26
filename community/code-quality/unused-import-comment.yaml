@@ -1,4 +1,0 @@
-name: unused-import-comment
-match: '//\s*nolint:unused'
-severity: low
-enabled: true

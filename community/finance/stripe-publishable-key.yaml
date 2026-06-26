@@ -1,4 +1,0 @@
-name: stripe-publishable-key
-match: '\bpk_(?:live|test)_[0-9a-zA-Z]{24,}\b'
-severity: medium
-enabled: true

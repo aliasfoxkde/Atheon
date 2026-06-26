@@ -1,4 +1,0 @@
-name: gender-field
-match: '\b(gender|sex)\s*[:=]\s*(male|female|other|non[-_]binary)\b'
-severity: high
-enabled: true

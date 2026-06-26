@@ -1,3 +1,0 @@
-name: django-csrf-missing
-match: '@csrf_exempt'
-severity: high

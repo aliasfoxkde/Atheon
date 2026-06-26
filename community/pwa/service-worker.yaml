@@ -1,3 +1,0 @@
-name: service-worker
-match: 'cache.*addAll.*urls.*100\+|fetch.*respondWith.*cache.*match.*network|skipWaiting\(\).*clients\.claim'
-severity: medium

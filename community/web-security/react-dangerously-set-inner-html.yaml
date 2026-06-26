@@ -1,3 +1,0 @@
-name: react-dangerously-set-inner-html
-match: 'dangerouslySetInnerHTML'
-severity: high

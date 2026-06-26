@@ -1,3 +1,0 @@
-name: missing-aria-label
-match: '<(?:button|a|div|span)[^>]*(?:onClick|onclick)[^>]*>[^<]*$'
-severity: low

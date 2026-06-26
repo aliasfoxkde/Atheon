@@ -1,4 +1,0 @@
-name: insecure-cookie-missing-secure
-match: '(?i)Set-Cookie:\s*[^\n]+'
-severity: high
-enabled: false

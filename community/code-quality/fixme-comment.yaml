@@ -1,3 +1,0 @@
-name: fixme-comment
-match: '(?i)\b(FIXME|XXX|HACK)\b'
-severity: low

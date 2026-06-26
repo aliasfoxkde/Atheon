@@ -1,4 +1,0 @@
-name: data-retention-comment
-match: '(never[-_]delete|keep[-_]forever|retain[-_]indefinitely|no[-_]expiration)\s*[;:]\s*(data|logs|records|files)'
-severity: high
-enabled: true

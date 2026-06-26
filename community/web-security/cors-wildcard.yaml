@@ -1,4 +1,0 @@
-name: cors-wildcard
-match: '(?i)Access-Control-Allow-Origin\s*:\s*\*'
-severity: high
-enabled: true

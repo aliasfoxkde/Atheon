@@ -1,3 +1,0 @@
-name: bare-exception-block
-match: 'except(?: *[:\[].*)?: *pass'
-severity: low

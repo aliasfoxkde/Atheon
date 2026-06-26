@@ -1,3 +1,0 @@
-name: js-sql-template-literal
-match: '(?:query|execute)\s*=\s*`[^`]*\$\{[^}]*\}[^`]*`'
-severity: high

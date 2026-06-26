@@ -1,4 +1,0 @@
-name: jenkins-api-token
-match: '(?i)jenkins.*[''"]?[0-9a-f]{32,40}[''"]?'
-severity: medium
-enabled: false

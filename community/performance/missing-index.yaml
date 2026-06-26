@@ -1,3 +1,0 @@
-name: missing-index
-match: 'WHERE.*LIKE.*%|ORDER BY.*RAND\(\)|WHERE.*OR.*OR.*OR'
-severity: low

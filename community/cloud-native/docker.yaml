@@ -1,3 +1,0 @@
-name: docker
-match: 'FROM.*latest|RUN.*apt-get.*upgrade|ADD.*http'
-severity: medium

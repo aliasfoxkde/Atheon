@@ -1,4 +1,0 @@
-name: magic-number
-match: '\b(?:0x[0-9A-Fa-f]{3,}|[1-9][0-9]{3,})\b'
-severity: low
-enabled: false
