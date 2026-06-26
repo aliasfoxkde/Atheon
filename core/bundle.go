@@ -314,6 +314,12 @@ func Categories() []string {
 	return cats
 }
 
+// maxBundleDownloadBytes bounds the bundle download to prevent memory exhaustion
+// from a malicious or compromised upstream server sending an unbounded payload.
+// 100 MiB is generous — the current bundle is ~400 KiB compressed — and leaves
+// room for future growth without approaching a DoS vector.
+const maxBundleDownloadBytes = 100 << 20 // 100 MiB
+
 // bundleDownloadURL is the default upstream bundle URL. Tests may override
 // it via SetBundleDownloadURL to point at an httptest server. Held in an
 // atomic.Pointer so concurrent readers (fetchBundleData) and the test-only
@@ -497,9 +503,16 @@ func fetchBundleData(ctx context.Context) (data []byte, etag string, err error) 
 	if resp.StatusCode != http.StatusOK {
 		return nil, "", fmt.Errorf("%w: server returned %d", ErrBundleDownload, resp.StatusCode)
 	}
-	data, err = io.ReadAll(resp.Body)
+	// LimitedReader truncates at maxBundleDownloadBytes but does NOT return an
+	// error when truncated — it just stops reading. Detect truncation by comparing
+	// against Content-Length when that header is available.
+	data, err = io.ReadAll(&io.LimitedReader{R: resp.Body, N: maxBundleDownloadBytes})
 	if err != nil {
 		return nil, "", fmt.Errorf("%w: %v", ErrBundleDownload, err)
+	}
+	if resp.ContentLength > 0 && int64(len(data)) < resp.ContentLength {
+		return nil, "", fmt.Errorf("%w: bundle exceeded %d byte cap (server sent %d bytes)",
+			ErrBundleDownload, maxBundleDownloadBytes, resp.ContentLength)
 	}
 	return data, resp.Header.Get("ETag"), nil
 }

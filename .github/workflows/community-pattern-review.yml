@@ -160,7 +160,7 @@ jobs:
               --arg content "${CONTENT}" \
               '{model: "gpt-4o-mini", messages: [{role: "system", content: $system}, {role: "user", content: ($pattern_file + "\n\n" + $content)}], max_tokens: 300}')"
 
-            RESPONSE="$(curl -sf \
+            RESPONSE="$(curl -sf --max-time 30 \
               "https://models.inference.ai.azure.com/chat/completions" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Content-Type: application/json" \

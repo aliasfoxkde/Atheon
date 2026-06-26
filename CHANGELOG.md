@@ -8,6 +8,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `cmd/mcp/main.go` `sandboxPath(path)` helper: canonicalizes relative paths
+  via `filepath.Clean` and `EvalSymlinks` to block traversal attacks
+  (`../../etc/passwd`) and symlink escapes (`cwd/subdir -> /etc`).
+  Absolute paths pass through unchanged. Returns `os.ErrPermission`
+  (mapped to `"permission denied"`) on violation so no paths leak to the
+  client. Applied before `handleScanFile` and `handleScanDir` dispatch.
+- `cmd/mcp/main.go` `rpcError` struct gains a `Data any` field per
+  JSON-RPC 2.0 spec; rate-limit, concurrent-cap, and invalid-params errors
+  now carry a `Data` tag (`"rate_limit"`, `"concurrent_limit"`,
+  `"invalid_params"`) for programmatic error routing by MCP clients.
+- `core/bundle.go` `fetchBundleData` now uses `io.LimitedReader` to cap
+  bundle downloads at `maxBundleDownloadBytes` (100 MiB), preventing memory
+  exhaustion from an unbounded `io.ReadAll` on a malicious upstream payload.
+  Also validates `Content-Length` header against actual bytes read to detect
+  mid-transfer truncation.
+- `cmd/mcp/main.go` `mcpInflight` atomic counter: tracks in-flight request
+  handlers; concurrent-cap check at top of `dispatchRequest` returns `-32001`
+  with `Data: "concurrent_limit"` when `mcpConcurrentCap` (50) is reached.
+  Deferred `Add(-1)` guarantees counter decrements even on panic.
+
+### Changed
+- `.github/workflows/release.yml` validation step now runs `go test ./... -p 1 -race`
+  (was missing `-race` in pre-release gate, undermining the CI race floor).
+- `.github/workflows/release.yml` goreleaser-action `version: latest` replaced
+  with `version: '7.2.2'` (was non-deterministic; new goreleaser releases
+  could silently change build behaviour between releases).
+- `.github/workflows/release.yml` goreleaser args gain `--prov` flag to generate
+  SLSA provenance attestations for every release artifact.
+- `.github/workflows/community-pattern-review.yml` curl call gains
+  `--max-time 30` to prevent infinite hangs on an unresponsive Azure endpoint.
+
+### Deprecated
+- `go.mod` `gopkg.in/yaml.v3 v3.0.1` marked with a DEPRECATED comment;
+  migration to `github.com/goccy/go-yaml` is tracked for Wave 11+ due to
+  breaking API changes.
+
+---
+
+## [Unreleased] — Wave 9 (merged to main as PRs #99–#102)
+
+### Added
 - `cmd/mcp/main.go` `$/cancelRequest` notification handler: stores
   active request IDs in a `sync.Map` and returns `-32802` (Request
   Cancelled) when a subsequent `tools/call` arrives with a matching

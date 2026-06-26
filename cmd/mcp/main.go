@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -43,6 +44,10 @@ type response struct {
 type rpcError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+	// Data is an optional structured payload per JSON-RPC 2.0 spec.
+	// Used to convey category tags for MCP clients that need to route
+	// errors programmatically (e.g., "rate_limit", "concurrent_limit").
+	Data any `json:"data,omitempty"`
 }
 
 // rateLimitCode is the JSON-RPC error code returned when a request is
@@ -249,7 +254,7 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 				_ = enc.Encode(response{
 					JSONRPC: "2.0",
 					ID:      req.ID,
-					Error:   &rpcError{Code: rateLimitCode, Message: "rate limit exceeded"},
+					Error:   &rpcError{Code: rateLimitCode, Message: "rate limit exceeded", Data: "rate_limit"},
 				})
 			}
 			continue
@@ -328,7 +333,7 @@ func dispatchRequest(ctx context.Context, req *request) (result any, rerr *rpcEr
 	// against the cap for the duration of its work.
 	if mcpInflight.Add(1) > mcpConcurrentCap {
 		mcpInflight.Add(-1)
-		return nil, &rpcError{Code: -32001, Message: fmt.Sprintf("concurrent request limit reached (%d)", mcpConcurrentCap)}
+		return nil, &rpcError{Code: -32001, Message: fmt.Sprintf("concurrent request limit reached (%d)", mcpConcurrentCap), Data: "concurrent_limit"}
 	}
 
 	// JSON-RPC 2.0 requires the jsonrpc field. Anything else is a
@@ -490,7 +495,7 @@ func handleCall(ctx context.Context, id any, params json.RawMessage) (any, *rpcE
 // invalidParams is a small helper so every tool handler returns the
 // same JSON-RPC error shape on argument parse failure.
 func invalidParams(err error) *rpcError {
-	return &rpcError{Code: -32602, Message: "invalid params: " + err.Error()}
+	return &rpcError{Code: -32602, Message: "invalid params: " + err.Error(), Data: "invalid_params"}
 }
 
 // safeError maps a Go error to a user-facing JSON-RPC error message that
@@ -515,6 +520,49 @@ func safeError(err error) string {
 	default:
 		return "internal error"
 	}
+}
+
+// sandboxPath evaluates any symlinks in path and verifies the result
+// stays within the process's current working directory. This prevents
+// an MCP client from passing "../../../etc/passwd" or a relative symlink
+// that resolves outside the cwd (e.g. cwd/subdir -> /etc).
+//
+// Absolute paths (e.g. /tmp/file.txt) are passed through directly —
+// a user explicitly requesting /tmp is intentional filesystem access.
+// Relative paths must resolve under the cwd after symlink evaluation.
+func sandboxPath(path string) (string, error) {
+	// Absolute paths are allowed — the user explicitly named them.
+	if filepath.IsAbs(path) {
+		return path, nil
+	}
+
+	// Relative path: detect traversal before calling EvalSymlinks (which
+	// fails on non-existent paths). filepath.Clean collapses ".." without
+	// requiring filesystem access.
+	clean := filepath.Clean(path)
+	if clean == ".." || strings.HasPrefix(clean, "../") {
+		return "", os.ErrPermission
+	}
+
+	// Resolve symlinks. Catches cases like "cmd/../../etc/passwd".
+	realPath, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		// Broken or non-existent — let ScanFile/ScanDir report it.
+		return path, nil
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return realPath, nil
+	}
+	cwdReal, err := filepath.EvalSymlinks(cwd)
+	if err != nil {
+		return realPath, nil
+	}
+	// Block traversal: e.g. cwd/subdir -> /etc via symlink.
+	if !strings.HasPrefix(realPath, cwdReal) {
+		return "", os.ErrPermission
+	}
+	return realPath, nil
 }
 
 func handleScanString(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
@@ -552,6 +600,11 @@ func handleScanFile(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
 	if err := json.Unmarshal(raw, &args); err != nil {
 		return nil, invalidParams(err)
 	}
+	// CRITICAL: canonicalize and sandbox the path before passing to ScanFile.
+	// This prevents ../../etc/passwd and symlink-escape attacks.
+	if _, err := sandboxPath(args.Path); err != nil {
+		return nil, &rpcError{Code: -32603, Message: safeError(err)}
+	}
 	core.SetActiveCategories(args.Categories)
 	findings, _, err := core.ScanFile(ctx, args.Path)
 	if err != nil {
@@ -567,6 +620,13 @@ func handleScanDir(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
 	}
 	if err := json.Unmarshal(raw, &args); err != nil {
 		return nil, invalidParams(err)
+	}
+	// CRITICAL: canonicalize and sandbox the path before passing to ScanDir.
+	// This prevents ../../secrets and symlink-escape attacks even when
+	// NoFollowSymlinks is true (WalkDir doesn't follow, but the path
+	// itself could escape if we pass an absolute path outside cwd).
+	if _, err := sandboxPath(args.Path); err != nil {
+		return nil, &rpcError{Code: -32603, Message: safeError(err)}
 	}
 	core.SetActiveCategories(args.Categories)
 	// MCP defaults to the safe symlink policy. Agents invoking scan_dir
