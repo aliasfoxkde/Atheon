@@ -141,6 +141,29 @@ func configureLogging() {
 	slog.SetDefault(slog.New(handler))
 }
 
+// mcpMaxRequestBytes caps the size of a single JSON-RPC request line.
+// 64 MiB is generous — a real-world scan request is < 100 KiB — and
+// keeps a malicious client from streaming gigabytes through os.Stdin
+// to OOM the server. Larger requests get truncated by io.LimitReader
+// and fail JSON decode with a parse error (logged + skipped).
+const mcpMaxRequestBytes = 64 << 20
+
+// mcpRequestTimeout bounds the time a single request handler can run.
+// 30s is far longer than any realistic scan but short enough that one
+// stuck request can't wedge the server indefinitely. The original
+// pre-PR-#97 code passed the global ctx straight through, so a
+// cancelled ctx from SIGTERM was indistinguishable from a hung
+// handler in logs.
+const mcpRequestTimeout = 30 * time.Second
+
+// mcpScanStringMaxBytes caps the scan_string tool's content argument.
+// 32 MiB matches the typical "scan a log file" use case (a few million
+// lines) while preventing agents from passing entire repo blobs that
+// would OOM the per-pattern scanLines buffer. Rejected at the tool
+// layer with invalidParams so the caller sees a clear error rather
+// than a silently truncated scan.
+const mcpScanStringMaxBytes = 32 << 20
+
 // run executes the JSON-RPC loop reading from r and writing to w, returning
 // the exit code. Separated from main() so tests can call it without os.Exit
 // terminating the test process.
@@ -148,18 +171,44 @@ func configureLogging() {
 // The context is forwarded into the core scan helpers so a SIGTERM
 // received mid-scan aborts cleanly.
 func run(ctx context.Context, r io.Reader, w io.Writer) int {
+	// bufio.Scanner with a 64 MiB max replaces the prior 1 MiB
+	// Scanner cap. Scanner reads one line at a time and returns
+	// bufio.ErrTooLong if a single line exceeds the configured max,
+	// giving us a hard memory ceiling on a single malformed/oversized
+	// request without per-line allocations.
 	sc := bufio.NewScanner(r)
-	sc.Buffer(make([]byte, 1<<20), 1<<20)
+	sc.Buffer(make([]byte, 64*1024), mcpMaxRequestBytes)
 	enc := json.NewEncoder(w)
 
 	for sc.Scan() {
 		var req request
 		if err := json.Unmarshal(sc.Bytes(), &req); err != nil {
-			// JSON-RPC: malformed requests have no ID, so we cannot send an
-			// error response. Log to stderr for debuggability.
-			fmt.Fprintf(os.Stderr, "atheon-mcp: malformed JSON-RPC request: %v\n", err)
+			// Malformed JSON has no ID we can echo back. Log and
+			// keep reading; a flood of bad requests is rate-limited
+			// below anyway.
+			slog.Warn("malformed JSON-RPC request; skipping", "err", err)
 			continue
 		}
+
+		// Rate limit at the top of the loop — BEFORE any per-method
+		// dispatch — so initialize / tools/list floods count against
+		// the same token bucket as tools/call. Pre-PR-#97 only
+		// tools/call was throttled, so an attacker could pin the
+		// server by spamming `initialize`.
+		if !mcpRateLimiter.Allow() {
+			slog.Warn("rate limit exceeded for MCP request", "method", req.Method)
+			// Only send a response when the client asked for one
+			// (notifications have nil ID and expect no reply).
+			if req.ID != nil {
+				_ = enc.Encode(response{
+					JSONRPC: "2.0",
+					ID:      req.ID,
+					Error:   &rpcError{Code: rateLimitCode, Message: "rate limit exceeded"},
+				})
+			}
+			continue
+		}
+
 		// Per-request structured log so MCP traffic is observable in ELK /
 		// Loki / Datadog. Gated at Debug so the default Info level stays
 		// quiet for the common case. Use fmt.Sprintf for ID since the
@@ -174,22 +223,18 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 			continue
 		}
 
-		var result any
-		var rerr *rpcError
+		// Per-request timeout: derive a child ctx with a 30s deadline
+		// so a stuck handler can't wedge the server. cancel() runs
+		// via defer to release the timer promptly.
+		reqCtx, cancel := context.WithTimeout(ctx, mcpRequestTimeout)
+		result, rerr := dispatchRequest(reqCtx, &req)
+		cancel()
 
-		switch req.Method {
-		case methodInitialize:
-			result = map[string]any{
-				"protocolVersion": "2024-11-05",
-				"capabilities":    map[string]any{"tools": map[string]any{}},
-				"serverInfo":      map[string]any{"name": "atheon", "version": version},
-			}
-		case methodToolsList:
-			result = map[string]any{"tools": toolList()}
-		case methodToolsCall:
-			result, rerr = handleCall(ctx, req.Params)
-		default:
-			rerr = &rpcError{Code: -32601, Message: "method not found"}
+		// Notifications (JSON-RPC requests with no ID) expect no
+		// reply — emitting one would confuse well-behaved clients
+		// into treating the reply as a response to a later request.
+		if req.ID == nil {
+			continue
 		}
 
 		resp := response{JSONRPC: "2.0", ID: req.ID}
@@ -198,9 +243,59 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 		} else {
 			resp.Result = result
 		}
-		_ = enc.Encode(resp)
+		if err := enc.Encode(resp); err != nil {
+			// Encode failure usually means the client disconnected
+			// mid-write. Log and exit cleanly so we don't loop
+			// forever trying to reply to a vanished peer.
+			slog.Error("mcp encode error", "err", err)
+			return 1
+		}
 	}
 	return 0
+}
+
+// dispatchRequest runs a single JSON-RPC request and returns its
+// result or error. Extracted from run() so a defer can wrap it in
+// recover() — that way a panic in any tool handler is converted to
+// an -32603 response instead of killing the entire MCP server (which
+// would terminate every active agent session on the host).
+//
+// Pre-PR-#97 the switch lived inline in run(); a panic in handleScanDir
+// (e.g. a future nil-deref in a pattern that exposes a config knob)
+// would tear down the whole process and force every connected client
+// to reconnect. With recover() in place the bad request gets an error
+// response and the server keeps serving.
+func dispatchRequest(ctx context.Context, req *request) (result any, rerr *rpcError) {
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error("mcp handler panic", "method", req.Method, "panic", fmt.Sprintf("%v", r))
+			rerr = &rpcError{Code: -32603, Message: "internal error"}
+			result = nil
+		}
+	}()
+
+	// JSON-RPC 2.0 requires the jsonrpc field. Anything else is a
+	// protocol-level malformed request — return -32600 (Invalid
+	// Request) so a misbehaving client sees a clear error rather
+	// than the method-not-found fallback.
+	if req.JSONRPC != "2.0" {
+		return nil, &rpcError{Code: -32600, Message: "jsonrpc field must be \"2.0\""}
+	}
+
+	switch req.Method {
+	case methodInitialize:
+		return map[string]any{
+			"protocolVersion": "2024-11-05",
+			"capabilities":    map[string]any{"tools": map[string]any{}},
+			"serverInfo":      map[string]any{"name": "atheon", "version": version},
+		}, nil
+	case methodToolsList:
+		return map[string]any{"tools": toolList()}, nil
+	case methodToolsCall:
+		return handleCall(ctx, req.Params)
+	default:
+		return nil, &rpcError{Code: -32601, Message: "method not found"}
+	}
 }
 
 // toolList returns the MCP tool registry. The schema helper wraps a Go
@@ -286,13 +381,10 @@ var toolHandlers = map[string]toolHandler{
 }
 
 // handleCall parses the JSON-RPC params envelope, looks up the tool
-// handler, and dispatches. Rate-limit and envelope validation live here
-// so every tool inherits them.
+// handler, and dispatches. Rate-limit is applied at the top of run()
+// so initialize/tools/list floods count against the same token bucket
+// as tools/call (PR #97).
 func handleCall(ctx context.Context, params json.RawMessage) (any, *rpcError) {
-	if !mcpRateLimiter.Allow() {
-		slog.Warn("rate limit exceeded for MCP request")
-		return nil, &rpcError{Code: rateLimitCode, Message: "rate limit exceeded"}
-	}
 	var p struct {
 		Name      string          `json:"name"`
 		Arguments json.RawMessage `json:"arguments"`
@@ -321,6 +413,17 @@ func handleScanString(ctx context.Context, raw json.RawMessage) (any, *rpcError)
 	}
 	if err := json.Unmarshal(raw, &args); err != nil {
 		return nil, invalidParams(err)
+	}
+	// PR #97: cap the content size before decoding/holding the buffer.
+	// Without this, an agent could pass an entire 1 GiB repo dump and
+	// the per-pattern scanLines buffer would balloon proportionally.
+	// Reject at the tool layer so the caller sees a clear error
+	// rather than a silently truncated scan.
+	if len(args.Content) > mcpScanStringMaxBytes {
+		return nil, &rpcError{
+			Code:    -32602,
+			Message: fmt.Sprintf("content exceeds %d byte limit (got %d)", mcpScanStringMaxBytes, len(args.Content)),
+		}
 	}
 	if args.Source == "" {
 		args.Source = "stdin"
@@ -373,6 +476,18 @@ func handleScanEnv(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
 	}
 	if err := json.Unmarshal(raw, &args); err != nil {
 		return nil, invalidParams(err)
+	}
+	// PR #97: cap the categories slice. SetActiveCategories rebuilds
+	// the per-category active filters; with no cap, a 1 MB slice of
+	// garbage category names would trigger a slow string-comparison
+	// sweep through every bundle pattern. 100 is generous — the
+	// bundle currently has 19 categories.
+	const maxCategories = 100
+	if len(args.Categories) > maxCategories {
+		return nil, &rpcError{
+			Code:    -32602,
+			Message: fmt.Sprintf("categories exceeds %d entry limit (got %d)", maxCategories, len(args.Categories)),
+		}
 	}
 	core.SetActiveCategories(args.Categories)
 	return textResult(core.ScanEnv(ctx)), nil

@@ -291,20 +291,31 @@ func TestMainExercisesInvalidJSONSkipped(t *testing.T) {
 	}
 }
 
-// TestHandleCallRateLimited exercises the rate-limit denial path in handleCall.
-// It temporarily replaces the global limiter with a zero-token one, then restores it.
-func TestHandleCallRateLimited(t *testing.T) {
+// TestHandleCallDoesNotRateLimit documents the PR #97 contract:
+// rate limiting was moved from handleCall up to the top of run()
+// so initialize/tools/list floods share the same token bucket
+// as tools/call. handleCall now trusts the caller (run()) to
+// have already verified the rate limit.
+//
+// Run-level coverage is in TestMCPRateLimitAppliesToInitialize
+// (run_pr97_test.go).
+func TestHandleCallDoesNotRateLimit(t *testing.T) {
 	orig := mcpRateLimiter
 	mcpRateLimiter = newRateLimiter(0, 0) // no tokens, no replenishment
 	defer func() { mcpRateLimiter = orig }()
 
+	// A genuine tools/call with an exhausted limiter still returns
+	// a successful result from handleCall — the limiter was
+	// already consumed (or denied) upstream in run(). We pass a
+	// trivially-scannable content so the call succeeds end-to-end.
 	params := json.RawMessage(`{"name":"scan_string","arguments":{"content":"hello","source":"test"}}`)
-	_, rerr := handleCall(context.Background(), params)
-	if rerr == nil {
-		t.Error("expected rate-limit rpcError, got nil")
+	result, rerr := handleCall(context.Background(), params)
+	if rerr != nil {
+		t.Errorf("handleCall should not rate-limit (PR #97 contract); got rpcError %d (%s)",
+			rerr.Code, rerr.Message)
 	}
-	if rerr != nil && rerr.Code != rateLimitCode {
-		t.Errorf("expected code %d, got %d", rateLimitCode, rerr.Code)
+	if result == nil {
+		t.Error("handleCall returned nil result for a scannable payload")
 	}
 }
 
