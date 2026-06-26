@@ -1,0 +1,6 @@
+name: mobile-optimization
+match: responsive.*false|width.*100%.*height.*100%|chart.*mobile.*breakpoint
+severity: medium
+description: 'Pattern: ''mobile optimization''. Pattern in category ''''. This is
+  a medium-severity issue representing a moderate risk to security, privacy, or code
+  quality.'

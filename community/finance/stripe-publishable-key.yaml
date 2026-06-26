@@ -1,0 +1,7 @@
+name: stripe-publishable-key
+match: \bpk_(?:live|test)_[0-9a-zA-Z]{24,}\b
+severity: medium
+enabled: true
+description: 'Detected potential API key or token: ''stripe publishable key''. Exposing
+  API keys in source code risks unauthorized API access. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

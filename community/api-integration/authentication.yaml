@@ -1,0 +1,6 @@
+name: insecure-api-authentication
+match: Authorization.*Bearer.*token|apiKey.*header|auth.*basic.*credentials
+severity: medium
+description: 'Detected potential API key or token: ''insecure api authentication''.
+  Exposing API keys in source code risks unauthorized API access. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

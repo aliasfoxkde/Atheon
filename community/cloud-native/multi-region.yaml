@@ -1,0 +1,5 @@
+name: multi-region
+match: region.*primary.*region.*backup|replication.*cross.*region|geo.*location.*routing
+severity: medium
+description: 'Pattern: ''multi region''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

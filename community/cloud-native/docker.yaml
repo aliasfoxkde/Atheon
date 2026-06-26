@@ -1,0 +1,5 @@
+name: docker
+match: FROM.*latest|RUN.*apt-get.*upgrade|ADD.*http
+severity: medium
+description: 'Pattern: ''docker''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

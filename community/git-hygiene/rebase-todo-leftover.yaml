@@ -1,0 +1,7 @@
+name: rebase-todo-leftover
+match: ^\s*(pick|reword|edit|squash|fixup|drop)\s+[a-f0-9]
+severity: medium
+enabled: true
+description: 'Detected TODO/FIXME comment: ''rebase todo leftover''. Pending tasks
+  should be tracked in an issue tracker rather than left in code. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

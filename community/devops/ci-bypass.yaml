@@ -1,0 +1,6 @@
+name: ci-bypass
+match: (?i)(ci.*skip|skip.*ci|bypass.*ci|ci.*bypass)
+severity: medium
+description: 'Detected potential CI/security bypass: ''ci bypass''. Bypass mechanisms
+  should be carefully reviewed and avoided in production. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

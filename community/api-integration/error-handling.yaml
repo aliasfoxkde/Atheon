@@ -1,0 +1,5 @@
+name: error-handling
+match: try.*fetch.*catch.*console\.log|response\.ok.*throw|fetch.*catch.*null
+severity: medium
+description: 'Pattern: ''error handling''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

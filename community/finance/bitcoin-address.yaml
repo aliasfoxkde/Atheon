@@ -1,0 +1,6 @@
+name: bitcoin-address
+match: \b(?:bc1|[13])[a-zA-HJ-NP-Z0-9]{25,62}\b
+severity: medium
+enabled: true
+description: 'Pattern: ''bitcoin address''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

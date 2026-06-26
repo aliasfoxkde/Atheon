@@ -1,0 +1,5 @@
+name: pagination
+match: limit.*100\+|page.*size.*large|offset.*pagination|cursor.*pagination
+severity: medium
+description: 'Pattern: ''pagination''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

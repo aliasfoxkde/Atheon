@@ -1,0 +1,5 @@
+name: github-workflow
+match: (?i)(on:\s*\[|steps:|jobs:|github.*action|workflow|\.github/workflows)
+severity: medium
+description: 'Pattern: ''github workflow''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

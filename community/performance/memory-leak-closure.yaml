@@ -1,0 +1,5 @@
+name: memory-leak-closure
+match: (?:setInterval|setTimeout|addEventListener)\([^)]*\)\s*=>?\s*\{[^}]*\.(?:addEventListener|setInterval|setTimeout)\s*\(
+severity: low
+description: 'Pattern: ''memory leak closure''. Pattern in category ''''. This is
+  a low-severity issue representing a minor risk or code quality concern.'

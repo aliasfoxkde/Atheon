@@ -1,0 +1,127 @@
+# golangci-lint configuration for Atheon.
+#
+# Schema: v2 (golangci-lint v2.x). The `version: "2"` directive at the top
+# opts in to the v2 config schema; see https://golangci-lint.run/product/migration-guide/
+# for the full list of changes. Notable v1 -> v2 deltas applied below:
+#   - `linters-settings:` is renamed to `linters.settings:`
+#   - Top-level `version:` was added (required for v2)
+#   - Some linters (cyclop, funlen, nestif, maintidx, dupl, goconst, gosec)
+#     were moved out of the default set in v2 and must be explicitly enabled
+#   - `goimports` is now classified as a formatter, not a linter, so it
+#     cannot appear under `linters.enable:` or `linters.settings:` — the v2
+#     config schema rejects both as unknown. Import grouping is handled by
+#     the dedicated `goimports check` step in ci.yml.
+#
+# Rationale: strict, opinionated linting on every CI push.
+# Per-rule exceptions live in `linters.settings` and per-file overrides
+# in `linters.exclusions`.
+#
+# To run locally: `golangci-lint run ./...`
+# CI runs this config via .github/workflows/ci.yml.
+version: "2"
+
+linters:
+  default: none
+  enable:
+    # Bugs / correctness
+    - errcheck       # unchecked errors
+    - govet          # stdlib vet (in case vet rules drift)
+    - ineffassign    # unused assignments
+    - staticcheck    # SA* family — the highest-signal linter
+    - unused         # unused vars, funcs, types, fields
+    - nilerr         # returning nil after checking err
+    # Style / readability
+    - revive         # supersedes golint; checks exported-identifier godoc
+    - gocritic       # opinionated style checks
+    # Security / robustness
+    - gosec          # common security pitfalls
+    - bodyclose      # http body Close() after read
+
+  settings:
+    errcheck:
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintln
+        - fmt.Fprintf
+        - (strings.Builder).Write
+        - (strings.Builder).WriteByte
+        - (strings.Builder).WriteString
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+      disabled-checks:
+        - hugeParam        # too noisy for small structs
+        - rangeValCopy     # common Go idiom, false positives
+        - commentedOutCode # we have commented-out code intentionally
+    revive:
+      rules:
+        - name: exported
+          severity: warning
+        - name: package-comments
+          severity: warning
+        - name: var-naming
+          severity: warning
+        - name: error-strings
+          severity: warning
+    gosec:
+      severity: medium
+      confidence: medium
+    # NOTE: goimports is intentionally NOT configured here. In golangci-lint v2
+    # it is classified as a formatter (not a linter), so it cannot live under
+    # `linters.settings` — the config validator rejects it as an unknown
+    # additional property. The dedicated `goimports check` step in ci.yml
+    # invokes goimports directly with `local-prefixes`-equivalent grouping.
+
+  exclusions:
+    # Allow issues in tests at lower severity so CI doesn't break on style nits
+    rules:
+      - path: _test\.go
+        linters:
+          - gocritic
+          - gosec          # test fixtures don't need 0600 perms
+          - nilerr         # tests deliberately exercise error paths
+          - errcheck       # test cleanup defers (Chmod, Chdir, WriteString) legitimately swallow errors
+          - revive         # package-comments missing on test files is fine
+      - path: cmd/atheon/main\.go
+        linters:
+          - gocritic       # main.go is long but linear
+      # Generated and embedded data is not subject to linting
+      - path: patterns\.bundle
+        linters:
+          - all
+      # Per-file exclusions for production code where the rule does not apply.
+      # `defer Close()` on already-error-checked handles is idiomatic; the
+      # surrounding function already bails on the prior error.
+      # gosec G304/G301 fire on paths whose source is configuration or
+      # hardcoded bundle paths, not user input -- see core/bundle.go and
+      # bundler/main.go for the controlled-input paths.
+      - path: core/bundle\.go
+        linters:
+          - errcheck       # defer r.Close / defer resp.Body.Close on already-validated handles
+          - gosec          # .atheon bundle path is operator-configured, not attacker-controlled
+      - path: core/ignore\.go
+        linters:
+          - errcheck       # defer f.Close on a vetted ignore-pattern file
+          - gosec          # ignore files come from .atheonignore / .gitignore, both operator-controlled
+      - path: core/pattern_state\.go
+        linters:
+          - gosec          # ~/.atheon state directory; 0o755 is intentional
+      - path: bundler/main\.go
+        linters:
+          - gosec          # bundler reads community/ patterns (operator-controlled input)
+      - path: core/runner\.go
+        linters:
+          - gosec          # ScanFile / ScanDir callers pass operator-provided paths
+      - path: cmd/mcp/main\.go
+        linters:
+          - revive         # package-comments on main package is optional
+    paths:
+      - testdata
+      - .tmp-cov
+      - docs
+      - patterns\.bundle$
+
+run:
+  timeout: 5m

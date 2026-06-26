@@ -1,0 +1,8 @@
+name: missing-caching-opportunities
+match: for.*range.*query|while.*database.*query|repeated.*api.*call|cache.*miss.*repeated
+severity: medium
+language: text
+category: performance
+description: 'Detected missing security or quality feature: ''missing caching opportunities''.
+  This pattern indicates a gap that should be addressed. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

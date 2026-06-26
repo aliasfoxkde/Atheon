@@ -1,0 +1,5 @@
+name: nextjs
+match: useEffect.*\[\].*fetch|export default.*function.*props|getStaticPaths.*fallback.*false
+severity: low
+description: 'Pattern: ''nextjs''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

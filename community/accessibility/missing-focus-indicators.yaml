@@ -1,0 +1,8 @@
+name: missing-focus-indicators
+match: :focus.*outline.*none|focus.*style.*none|button.*focus.*visible.*false
+severity: medium
+language: css
+category: accessibility
+description: 'Detected missing security or quality feature: ''missing focus indicators''.
+  This pattern indicates a gap that should be addressed. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

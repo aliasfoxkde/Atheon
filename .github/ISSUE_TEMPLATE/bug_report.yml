@@ -1,0 +1,76 @@
+name: Bug Report
+description: Something isn't working correctly
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill out as much as you can — it speeds up diagnosis considerably.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: When I run `atheon --categories=secrets .`, it outputs...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: I expected it to find / not find / exit with...
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps to trigger the bug.
+      placeholder: |
+        1. Create a file containing `sk_live_abc123`
+        2. Run `atheon .`
+        3. See...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Atheon version
+      placeholder: "v1.2.0-enhanced  (run: atheon --version)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: go_version
+    attributes:
+      label: Go version
+      placeholder: "go1.24.0  (run: go version)"
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Full output / error message
+      description: Paste the complete terminal output. Redact any real credentials.
+      render: shell
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Config files, `.atheonignore`, file structure, anything else relevant.

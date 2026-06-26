@@ -1,0 +1,8 @@
+name: missing-prop-validation
+match: PropsTypes|propTypes.*isRequired|React\.PropTypes.*\.isRequired
+severity: medium
+language: javascript
+category: web-development
+description: 'Detected missing security or quality feature: ''missing prop validation''.
+  This pattern indicates a gap that should be addressed. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

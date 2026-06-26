@@ -1,0 +1,7 @@
+name: merge-conflict-marker
+match: <<<<<<<|=======|>>>>>>>
+severity: medium
+enabled: true
+description: 'Pattern: ''merge conflict marker''. Pattern in category ''''. This is
+  a medium-severity issue representing a moderate risk to security, privacy, or code
+  quality.'

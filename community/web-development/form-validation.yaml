@@ -1,0 +1,5 @@
+name: form-validation
+match: form.*onSubmit.*preventDefault|input.*required.*false|pattern.*validation
+severity: low
+description: 'Pattern: ''form validation''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

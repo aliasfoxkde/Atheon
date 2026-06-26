@@ -1,0 +1,8 @@
+name: api-versioning
+match: api.*version.*header|Accept.*application/vnd\.|/v[0-9]+/|versioning.*strategy
+severity: medium
+language: text
+category: api-integration
+description: 'Detected potential API key or token: ''api versioning''. Exposing API
+  keys in source code risks unauthorized API access. This is a medium-severity issue
+  representing a moderate risk to security, privacy, or code quality.'

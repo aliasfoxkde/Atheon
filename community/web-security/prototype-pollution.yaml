@@ -1,0 +1,8 @@
+name: prototype-pollution
+match: __proto__|constructor\.prototype|Object\.merge.*extend|Object\.assign.*user\.|\.merge\(|\.extend\(.*req\.
+severity: critical
+language: javascript
+category: web-security
+description: 'Pattern: ''prototype pollution''. Web security vulnerability that could
+  be exploited by attackers. This is a critical security issue that could lead to
+  data breaches or system compromise.'

@@ -1,0 +1,5 @@
+name: heading-hierarchy
+match: <h1>.*<h1>|<h2>.*<h2>.*<h2>|<h3>.*<h3>.*<h3>
+severity: low
+description: 'Pattern: ''heading hierarchy''. Pattern in category ''''. This is a
+  low-severity issue representing a minor risk or code quality concern.'

@@ -1,0 +1,31 @@
+# binaries
+/atheon
+/atheon.exe
+/atheon-*
+
+# IDE
+.vs/
+.idea/
+*.iml
+.pr-notes/
+
+# generated
+*.out
+/coverage.html
+dist/
+
+# Atheon build output (bundler writes here)
+/.atheon-build/
+
+# OS / editor temp files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Personal Claude Code config — these are symlinks into the user's home
+# directory on a single dev machine and are broken for every other
+# contributor. Keep them out of the repo even if a session accidentally
+# tries to add them. See PLAN.md for the canonical repo-local guidance.
+.claude
+CLAUDE.md

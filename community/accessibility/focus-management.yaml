@@ -1,0 +1,5 @@
+name: focus-management
+match: tabIndex.*-1.*aria-label|useEffect.*focus.*\[\]
+severity: low
+description: 'Pattern: ''focus management''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

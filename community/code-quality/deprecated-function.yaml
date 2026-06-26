@@ -1,0 +1,5 @@
+name: deprecated-function
+match: (?i)\blegacy\s+(function|method|code|api)\b|\bobsolete\s+(function|method|code|api)\b
+severity: low
+description: 'Pattern: ''deprecated function''. Pattern in category ''''. This is
+  a low-severity issue representing a minor risk or code quality concern.'

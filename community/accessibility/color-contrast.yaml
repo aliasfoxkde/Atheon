@@ -1,0 +1,5 @@
+name: color-contrast
+match: color.*#[fF]{3}[fF]{3}|background.*#[fF]{3}[fF]{3}|opacity.*0\.[1-4]
+severity: low
+description: 'Pattern: ''color contrast''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

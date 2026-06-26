@@ -1,0 +1,5 @@
+name: versioning
+match: /api/v1|/api/v2|header.*version|Accept.*version
+severity: medium
+description: 'Pattern: ''versioning''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

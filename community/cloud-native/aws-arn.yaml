@@ -1,0 +1,6 @@
+name: aws-arn
+match: \barn:aws:[a-z0-9-]+:[a-z0-9-]+:\d{12}:[^\s]+\b
+severity: medium
+enabled: true
+description: 'Pattern: ''aws arn''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

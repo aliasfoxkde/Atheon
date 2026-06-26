@@ -1,0 +1,5 @@
+name: git-hard-reset
+match: (?i)git reset.*--hard|hard.*reset.*git
+severity: low
+description: 'Pattern: ''git hard reset''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

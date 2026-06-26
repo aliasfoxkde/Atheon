@@ -1,0 +1,6 @@
+name: fmt-println-prod
+match: fmt\.Print(ln|lnf)?\s*\(
+severity: low
+enabled: true
+description: 'Pattern: ''fmt println prod''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

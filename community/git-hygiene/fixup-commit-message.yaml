@@ -1,0 +1,7 @@
+name: fixup-commit-message
+match: (fixup|squash)!\s+[A-Z]
+severity: medium
+enabled: true
+description: 'Pattern: ''fixup commit message''. Pattern in category ''''. This is
+  a medium-severity issue representing a moderate risk to security, privacy, or code
+  quality.'

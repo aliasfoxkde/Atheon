@@ -1,0 +1,5 @@
+name: ai-emoji
+match: (?i)(✨|🚀|💡|⚡|🎯|🔥|🌟|📊|💪|🏆)
+severity: medium
+description: 'Pattern: ''ai emoji''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

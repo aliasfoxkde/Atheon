@@ -1,0 +1,6 @@
+name: ethereum-address
+match: \b0x[0-9a-fA-F]{40}\b
+severity: medium
+enabled: true
+description: 'Pattern: ''ethereum address''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

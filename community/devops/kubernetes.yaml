@@ -1,0 +1,6 @@
+name: kubernetes-ci-usage
+match: (?i)(apiVersion:|kind:\s*Deployment|kubectl|kubernetes|k8s|manifest)
+severity: medium
+description: 'Pattern: ''kubernetes ci usage''. Pattern in category ''''. This is
+  a medium-severity issue representing a moderate risk to security, privacy, or code
+  quality.'

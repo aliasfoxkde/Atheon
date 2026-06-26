@@ -1,0 +1,6 @@
+name: debug-mode-production
+match: (?i)(DEBUG\s*=\s*True|APP_ENV\s*=\s*['"]?production['"]?.*debug)
+severity: high
+description: 'Detected debug or logging statement: ''debug mode production''. Debug
+  code should be removed before production deployment. This is a high-severity issue
+  that could lead to security vulnerabilities or significant quality problems.'

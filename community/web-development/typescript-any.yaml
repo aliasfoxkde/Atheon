@@ -1,0 +1,5 @@
+name: typescript-any
+match: :\s*any\b|as\s+any\b
+severity: low
+description: 'Pattern: ''typescript any''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

@@ -1,0 +1,5 @@
+name: package-manager-force
+match: (?i)(npm|pip|yarn|composer).*--force|force.*install.*--force
+severity: low
+description: 'Pattern: ''package manager force''. Pattern in category ''''. This is
+  a low-severity issue representing a minor risk or code quality concern.'

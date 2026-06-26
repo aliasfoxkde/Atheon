@@ -1,0 +1,6 @@
+name: medical-record-number
+match: \bMRN[0-9]{8,12}\b
+severity: medium
+description: 'Pattern: ''medical record number''. Pattern in category ''''. This is
+  a medium-severity issue representing a moderate risk to security, privacy, or code
+  quality.'

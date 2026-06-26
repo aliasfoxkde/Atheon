@@ -1,0 +1,5 @@
+name: swift-bic
+match: (?i)\b(?:swift|bic)[\s:=]+[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?\b
+severity: medium
+description: 'Pattern: ''swift bic''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

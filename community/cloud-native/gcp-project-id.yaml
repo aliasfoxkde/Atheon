@@ -1,0 +1,6 @@
+name: gcp-project-id
+match: \bprojects/[a-z0-9-]{6,30}\b
+severity: medium
+enabled: true
+description: 'Pattern: ''gcp project id''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

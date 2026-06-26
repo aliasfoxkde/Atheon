@@ -1,0 +1,6 @@
+name: express-form-without-csrf
+match: app\.post\([^)]*\)[\s\S]*?res\.send
+severity: high
+description: 'Detected missing CSRF protection: ''express form without csrf''. Forms
+  should include CSRF tokens to prevent cross-site request forgery. This is a high-severity
+  issue that could lead to security vulnerabilities or significant quality problems.'

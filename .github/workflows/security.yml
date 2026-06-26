@@ -1,0 +1,256 @@
+name: Security
+
+# Consolidated security workflow: CodeQL, Atheon self-scan, govulncheck.
+# Replaces the previous (separate) codeql.yml, security-scanning.yml, and self-scan.yml.
+# Runs on PR, push to main, weekly schedule, and manual dispatch.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+  statuses: read
+  pull-requests: read
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────
+  # CodeQL — semantic security analysis
+  # ─────────────────────────────────────────────────────────────────────
+  codeql:
+    name: CodeQL (Go)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        with:
+          languages: go
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        with:
+          category: "/language:go"
+          upload: true
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Atheon self-scan — secrets and PII blocking in production source
+  # ─────────────────────────────────────────────────────────────────────
+  self-scan-secrets:
+    name: Self-Scan (secrets — blocking)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version: "${{ vars.GO_VERSION || '1.24' }}"
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Build Atheon
+        run: go build -v -o atheon ./cmd/atheon
+
+      - name: Scan production source
+        run: |
+          # Filter: only production source. Tests, testdata, community YAML, and
+          # GitHub-managed paths are excluded.
+          ./atheon --json --categories=secrets,pii . \
+            | jq '[.[] | select((
+                (.file | test("_test\\.go$"))              or
+                (.file | test("/testdata/"))                or
+                (.file | test("^community/"))               or
+                (.file | test("^\\.github/wiki/"))          or
+                (.file | test("^\\.github/ISSUE_TEMPLATE/"))
+              ) | not)]' > scan-secrets.json
+
+          COUNT=$(jq 'length' scan-secrets.json)
+          echo "Findings in production source: ${COUNT}"
+
+          if [ "${COUNT}" -gt 0 ]; then
+            echo "❌ Found ${COUNT} secrets/PII finding(s) in production source:"
+            jq -r '.[] | "  [\(.pattern)] \(.file):\(.line)"' scan-secrets.json
+            exit 1
+          fi
+          echo "✅ No secrets or PII in production source"
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: atheon-scan-secrets
+          path: scan-secrets.json
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Security anti-pattern grep — restored from removed security-scanning.yml
+  # Catches dangerous functions, sensitive-data-in-logs, etc.
+  # ─────────────────────────────────────────────────────────────────────
+  security-antipatterns:
+    name: Security Anti-Patterns
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version: "${{ vars.GO_VERSION || '1.24' }}"
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Dangerous function grep
+        run: |
+          # exec/system/eval in production code are red flags. They are
+          # legitimate in tooling (e.g. atheon's os/exec) but should be
+          # flagged for human review.
+          HITS=$(grep -rn 'exec\|system\|eval' core/*.go 2>/dev/null | grep -v "_test.go" || true)
+          if [ -n "$HITS" ]; then
+            echo "⚠️ Dangerous function usage in production core:"
+            echo "$HITS"
+          else
+            echo "✅ No dangerous function usage"
+          fi
+
+      - name: Sensitive data in logs check
+        run: |
+          HITS=$(grep -rnE '(log|fmt\.Print).*\b(password|secret|token|api[_-]?key)\b' core/*.go 2>/dev/null | grep -v "_test.go" || true)
+          if [ -n "$HITS" ]; then
+            echo "❌ Possible sensitive-data-in-logs:"
+            echo "$HITS"
+            exit 1
+          fi
+          echo "✅ No sensitive data in logs"
+
+      - name: Validate error returns
+        # Naked `return err` (without context) is a code smell — wrapped
+        # errors carry a %w for errors.Is/As. This is a warning, not a
+        # hard fail: many of the existing sites are valid.
+        run: |
+          NAKED=$(grep -rn '^\s*return err$' core/*.go 2>/dev/null || true)
+          if [ -n "$NAKED" ]; then
+            echo "⚠️ Naked 'return err' (no context):"
+            echo "$NAKED"
+          else
+            echo "✅ All error returns carry context"
+          fi
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Atheon self-scan — code-quality (informational)
+  # ─────────────────────────────────────────────────────────────────────
+  self-scan-quality:
+    name: Self-Scan (code-quality — informational)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version: "${{ vars.GO_VERSION || '1.24' }}"
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Build Atheon
+        run: go build -v -o atheon ./cmd/atheon
+
+      - name: Scan production source
+        run: |
+          ./atheon --json --categories=code-quality,devops,ai-detection . \
+            | jq '[.[] | select((
+                (.file | test("_test\\.go$"))              or
+                (.file | test("/testdata/"))                or
+                (.file | test("^community/"))               or
+                (.file | test("^\\.github/wiki/"))          or
+                (.file | test("^\\.github/ISSUE_TEMPLATE/"))
+              ) | not)]' > scan-quality.json
+
+          COUNT=$(jq 'length' scan-quality.json)
+          echo "Code-quality findings in production source: ${COUNT}"
+
+          if [ "${COUNT}" -gt 0 ]; then
+            echo "ℹ️ ${COUNT} code-quality finding(s) (informational):"
+            jq -r '.[] | "  [\(.pattern)] \(.file):\(.line)"' scan-quality.json | head -20
+          else
+            echo "✅ No code-quality findings"
+          fi
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: atheon-scan-quality
+          path: scan-quality.json
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Go vulnerability check
+  # ─────────────────────────────────────────────────────────────────────
+  govulncheck:
+    name: Go Vulnerability Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          # govulncheck runs against the local Go toolchain's standard
+          # library, so we pin to the latest 1.25.x to pick up security
+          # fixes that aren't in 1.24.x (e.g. GO-2026-4947/4946 in
+          # crypto/x509, GO-2026-4918 in net/http, GO-2026-4870 in
+          # crypto/tls, GO-2026-4602 in os, GO-2026-4601 in net/url —
+          # all fixed in go1.25.8+).
+          # The test matrix still exercises 1.21-1.24 for compatibility.
+          go-version: '1.25'
+          cache: true
+
+      - name: Run govulncheck
+        run: |
+          # Pinned to a specific stable release rather than @latest so a
+          # breaking change in a new govulncheck version can't take down
+          # the security gate. Bump manually when upgrading.
+          # Latest stable as of 2026-06-25: v1.4.0.
+          go install golang.org/x/vuln/cmd/govulncheck@v1.4.0
+          govulncheck ./...
+
+      - name: Check for outdated dependencies
+        run: |
+          go list -u -m all | tee outdated.txt
+          if [ -s outdated.txt ]; then
+            echo "⚠️ Outdated dependencies detected (see outdated.txt)"
+          else
+            echo "✅ All dependencies are up to date"
+          fi
+
+      - name: Upload outdated dependencies list
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: outdated-deps
+          path: outdated.txt
+          retention-days: 7
