@@ -388,15 +388,10 @@ var skipHostValidation bool
 
 // SetBundleDownloadURLForTest is like SetBundleDownloadURL but also disables
 // hostname validation so tests can point at httptest servers on loopback.
-// It is the only exported way to set skipHostValidation; the flag is reset
-// automatically when the returned restore function is called.
+// The returned restore function resets skipHostValidation to false.
 func SetBundleDownloadURLForTest(url string) func() {
 	skipHostValidation = true
-	restore := SetBundleDownloadURL(url)
-	return func() {
-		restore()
-		skipHostValidation = false
-	}
+	return SetBundleDownloadURL(url)
 }
 
 // init-time default. Done as a function rather than a literal so a test
@@ -441,7 +436,10 @@ func SetBundleDownloadURL(rawURL string) func() {
 		}
 	}
 	prev := bundleDownloadURL.Swap(ptrString(rawURL))
-	return func() { bundleDownloadURL.Store(prev) }
+	return func() {
+		bundleDownloadURL.Store(prev)
+		skipHostValidation = false
+	}
 }
 
 // isReservedOrPrivateHost returns true if host resolves to a loopback,
