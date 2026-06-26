@@ -242,6 +242,26 @@ jobs:
           cache: true
           cache-dependency-path: go.sum
 
+      - name: Set up Python
+        # The pattern validator (scripts/validate-patterns.py) only needs
+        # PyYAML, which is preinstalled on the runner image, but we pin
+        # explicitly so the dependency is documented and the install is
+        # idempotent on minimal runners.
+        uses: actions/setup-python@a26af69b947a95cf3ac8bced4a921e10f5cd0cc9 # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install PyYAML
+        run: pip install --quiet pyyaml
+
+      - name: Validate pattern YAMLs
+        # Pre-bundle structural check: required fields, duplicate names,
+        # severity values, declared-category-vs-dir consistency. The Go
+        # bundler does an authoritative RE2 compile afterwards, so this
+        # catches the common typos early without duplicating that work.
+        run: python3 scripts/validate-patterns.py community/
+
       - name: Build binaries
         run: |
           go build -o atheon ./cmd/atheon
