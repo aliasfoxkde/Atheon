@@ -49,10 +49,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `core.TestCombinedRegexCompileErrorLogged` pins the new
   slog.Warn-on-compile-failure behaviour using a per-test
   `slog.Handler` capture (no global slog mutation).
+- `cmd/mcp/main.go` panic recovery: `dispatchRequest` wraps the
+  per-request switch in `defer recover()`, returning `-32603`
+  (internal error) on panic. Pre-PR-#97 a single panicking tool
+  handler tore down the whole server and forced every connected
+  client to reconnect; the panic response is now a recoverable
+  per-request error.
+- `cmd/mcp/main.go` 64 MiB global request cap (`mcpMaxRequestBytes`)
+  via `bufio.Scanner` (Buffer: 64 KiB initial, 64 MiB max). The
+  prior 1 MiB cap silently errored past the buffer size with no
+  hard memory ceiling; the new cap lets legitimate large scan
+  requests through while bounding a single malicious client.
+- `cmd/mcp/main.go` 30-second per-request timeout
+  (`mcpRequestTimeout`). Each request runs in a child ctx derived
+  via `context.WithTimeout`, so a stuck handler can't wedge the
+  server indefinitely. Cancelled parent ctx (e.g. SIGTERM via
+  `signal.NotifyContext`) still terminates the loop because the
+  child inherits parent cancellation.
+- `cmd/mcp/main.go` 32 MiB content cap for `scan_string` and
+  100-entry cap for `scan_env.categories`. Both surface as
+  `-32602 invalid params` with a message naming the cap.
+- `cmd/mcp/main.go` JSON-RPC version validation: requests with
+  `jsonrpc != "2.0"` now return `-32600 Invalid Request`. Pre-PR-#97
+  they fell through to the unknown-method branch and returned the
+  misleading `-32601 method not found`.
+- `cmd/mcp/main.go` notification handling: requests with `id == nil`
+  no longer emit a response (the loop `continue`s after dispatch).
+  Pre-PR-#97 the loop wrote a response with a null ID, confusing
+  well-behaved clients into treating it as a reply to a later
+  request.
+- `cmd/mcp/main.go` encode-error handling: `enc.Encode(resp)`
+  errors are now checked; on failure the loop logs and exits 1
+  instead of silently retrying against a vanished peer.
+- `cmd/mcp/run_pr97_test.go` with 11 new tests:
+  `TestMCPPanicRecovered`, `TestMCPDispatchRecoverIsolated`,
+  `TestMCPRateLimitAppliesToInitialize`,
+  `TestMCPLargeRequestRejected`, `TestMCPScanStringSizeCap`,
+  `TestMCPScanEnvCategoriesCap`, `TestMCPInvalidJSONRPCVersion`,
+  `TestMCPNotificationNoResponse`, `TestMCPPerRequestTimeout`.
+- `cmd/mcp/mcp_internal_test.go` `TestHandleCallDoesNotRateLimit`
+  documents the rate-limit-at-run-level contract (replaces the
+  pre-PR-#97 `TestHandleCallRateLimited` which checked the old
+  handleCall-level rate limit that was removed).
 
 ### Changed
 - `core.ScanDir` signature: now `(ctx, root, opts ScanOpts)` instead of
   `(ctx, root)`. All in-tree callers updated.
+- `cmd/mcp` rate-limit location: moved from `handleCall` (which only
+  covered `tools/call`) to the top of `run()` so `initialize`,
+  `tools/list`, and notifications all share the same token bucket.
+  Pre-PR-#97 an attacker could DoS the server by spamming
+  `initialize`, which never consumed a token.
+- `cmd/mcp` JSON-RPC read loop: replaced the prior `bufio.Scanner`
+  with 1 MiB buffer and the proposed `json.NewDecoder(io.LimitReader)`
+  with `bufio.Scanner` at 64 MiB max (`bufio.ErrTooLong` surfaces as
+  `slog.Error`). The `json.Decoder` path was tried first but its
+  internal buffer leaks across `Decode()` calls — a single 70 MiB
+  truncated payload generated 25+ parse errors before EOF, and the
+  Decoder never returned `io.EOF` cleanly on a buffered parse failure.
+  The new Scanner path gives well-defined line-by-line behavior.
 - `docs/RELEASE.md` (maintainer runbook): tag format (`v0.YY.MM.DD[-rcN]`),
   pre-release checklist, GoReleaser publishing, hotfix workflow, ldflags,
   bundle regeneration, troubleshooting.
