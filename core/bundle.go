@@ -65,6 +65,7 @@ type bundlePattern struct {
 func (p *bundlePattern) Name() string             { return p.name }
 func (p *bundlePattern) Category() string         { return p.category }
 func (p *bundlePattern) Matches(line string) bool { return p.enabled && p.re.MatchString(line) }
+
 // matchSpan returns the [start, end) byte offsets of p's first match in
 // line, or (-1, -1) if it doesn't match or the pattern is disabled.
 // Unexported because it exposes RE2's internal offsets, which aren't
