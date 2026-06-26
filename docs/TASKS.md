@@ -1,7 +1,7 @@
 # Task Ledger — Atheon Enhanced
 
 **Last Updated**: 2026-06-26
-**Status**: Active — Wave 10 in progress (PR #102)
+**Status**: Active — Wave 10 PR #102 open, ready for review
 
 ---
 
@@ -143,20 +143,23 @@ Three parallel Explore agents (2026-06-26) surfaced **62 findings** across MCP+D
 
 ### PR #100: SARIF rules[].relationships + output parity + community pattern triage
 
-- [ ] Add CWE `relationships` to SARIF rules (secrets→CWE-798, web-security→CWE-79/601, etc.)
-- [ ] Add `severity`, `column`, `fingerprint`, `category` fields to JSON output
-- [ ] Scope `dummy-function`, `mock-stub`, `fake-data` patterns to test files only
-- [ ] Scope `sleep-in-test` to `*_test.go` / `test_*.py` files
-- [ ] Fix `skip-tests` overly-broad regex (anchor `skip` word boundary, remove `mvn.*skip.*test`)
-- [ ] Lower `todo-comment`/`fixme-comment` severity to `info`
-- [ ] Remove broken `helpUri` from SARIF rules (wiki/patterns#<name> does not exist)
-- [ ] Add `cmd/atheon/main_json_output_test.go`
-- [ ] Add `cmd/atheon/main_sarif_relationships_test.go`
+- [x] Add CWE `relationships` to SARIF rules (secrets→CWE-798, web-security→CWE-79/601, etc.)
+- [x] Add `severity`, `column`, `fingerprint`, `category` fields to JSON output
+- [x] Scope `dummy-function`, `mock-stub`, `fake-data` patterns to test files only
+- [x] Scope `sleep-in-test` to `*_test.go` / `test_*.py` files
+- [x] Fix `skip-tests` overly-broad regex (anchor `skip` word boundary, remove `mvn.*skip.*test`)
+- [x] Lower `todo-comment`/`fixme-comment` severity to `info`
+- [x] Remove broken `helpUri` from SARIF rules (wiki/patterns#<name> does not exist)
+- [x] Add `cmd/atheon/main_json_output_test.go`
+- [x] Add `cmd/atheon/main_sarif_relationships_test.go`
+
+> **Note**: All PR #100 items landed in PR #102 (Wave 10) which supersedes PR #100.
 
 ### PR #101: Bundle hash verification + rate-limiter hardening + binary sniff
 
 - [x] Add SHA-256 verification for downloaded bundles (fetch checksums.txt first)
 - [~] Publish `checksums.txt` alongside GitHub releases (bundler computes at release time) — release process step, tracked separately
+> **Note**: `release.yml` generates checksums.txt at release time via goreleaser; `SetBundleDownloadURL` now enforces HTTPS-only URLs (SSRF guard); hash mismatch is fatal.
 - [x] Add concurrent request cap to MCP server (atomic.Int counter, maxConcurrent=50)
 - [x] Add extension-based binary heuristic for large `.log`/`.cfg`/`.conf`/`.ini` files
 - [x] Add UTF-16 BOM detection to binary sniff (`\xff\xfe` / `\xfe\xff`)
@@ -174,6 +177,8 @@ Three parallel Explore agents (2026-06-26) surfaced **62 findings** across MCP+D
 ---
 
 ## Wave 10: Post-Wave 9 Hardening (PR #102)
+
+> PR #102 supersedes PR #100. All items below are implemented in PR #102 (11 commits, 26 files, +1105/-123).
 
 ### MCP path traversal fix (`cmd/mcp/main.go`)
 - [x] Add `sandboxPath(path)` helper: `filepath.Clean` + `EvalSymlinks` on relative paths before dispatch
@@ -252,8 +257,8 @@ Historical (all closed in their respective waves):
 | 7 | [x] | #89 | pattern_state mutex |
 | 8 | [x] | #92-98 | Detection, CI, patterns, MCP hardening |
 | 9 | [x] | #99-102 | MCP protocol, SARIF ecosystem, bundle integrity |
-| 10 | [~] | #102 (in progress) | Post-Wave 9 hardening: SSRF, TOCTOU, fatal hash, path sandbox |
+| 10 | [~] | #102 (open, ready) | Post-Wave 9 hardening: SSRF, TOCTOU, fatal hash, path sandbox |
 
 **Completed waves**: 8 / 8
 **Total merged PRs**: 27 through Wave 8
-**Wave 9**: In progress — PRs #99/100 merged, #101 open, #102 open
+**Wave 9/10**: PRs #99/100/101 merged, #102 open — supersedes PR #100
