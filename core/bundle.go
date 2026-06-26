@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"reflect"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -148,6 +149,52 @@ func initializeWith(data []byte) {
 	}
 }
 
+// decodeJSONStrict decodes JSON from data into out, first validating that no
+// unknown fields are present (fields not defined in the destination struct).
+// This is equivalent to json.Decoder.DisallowUnknownFields (Go 1.24+).
+// An unknown field causes an error to be returned.  Handles both JSON objects
+// (map) and JSON arrays ([]struct) as the top-level container.
+func decodeJSONStrict(data []byte, out interface{}) error {
+	// Peek at the first non-whitespace byte to determine container type.
+	switch trimSpace(data)[0] {
+	case '{':
+		// Object — validate and reject unknown keys.
+		var raw map[string]json.RawMessage
+		if err := json.Unmarshal(data, &raw); err != nil {
+			return err
+		}
+		v := reflect.ValueOf(out).Elem()
+		t := v.Type()
+		valid := make(map[string]struct{}, t.NumField())
+		for i := 0; i < t.NumField(); i++ {
+			valid[t.Field(i).Name] = struct{}{}
+		}
+		for k := range raw {
+			if _, ok := valid[k]; !ok {
+				return fmt.Errorf("bundle contains unknown field %q", k)
+			}
+		}
+		return json.Unmarshal(data, out)
+	case '[':
+		// Array — accept directly; individual items validated by their types.
+		return json.Unmarshal(data, out)
+	default:
+		return fmt.Errorf("bundle: unexpected JSON root type")
+	}
+}
+
+// trimSpace returns data with leading/trailing whitespace removed.
+func trimSpace(data []byte) []byte {
+	i, j := 0, len(data)
+	for i < j && (data[i] == ' ' || data[i] == '\t' || data[i] == '\n' || data[i] == '\r') {
+		i++
+	}
+	for j > i && (data[j-1] == ' ' || data[j-1] == '\t' || data[j-1] == '\n' || data[j-1] == '\r') {
+		j--
+	}
+	return data[i:j]
+}
+
 func loadBundle(data []byte) error {
 	r, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
@@ -155,8 +202,14 @@ func loadBundle(data []byte) error {
 	}
 	defer r.Close()
 
+	// Read decompressed content into memory so we can validate it before parsing.
+	decompressed, err := io.ReadAll(r)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrBundleParse, err)
+	}
+
 	var defs []PatternDef
-	if err := json.NewDecoder(r).Decode(&defs); err != nil {
+	if err := decodeJSONStrict(decompressed, &defs); err != nil {
 		return fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 
@@ -627,13 +680,17 @@ func ensureAtheonDir() (string, error) {
 
 // parseBundle decodes a gzipped JSON bundle into PatternDefs.
 func parseBundle(data []byte) ([]PatternDef, error) {
-	var defs []PatternDef
 	r, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 	defer r.Close()
-	if err := json.NewDecoder(r).Decode(&defs); err != nil {
+	decompressed, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
+	}
+	var defs []PatternDef
+	if err := decodeJSONStrict(decompressed, &defs); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 	return defs, nil
