@@ -252,11 +252,13 @@ jobs:
         # The pattern validator (scripts/validate-patterns.py) only needs
         # PyYAML, which is preinstalled on the runner image, but we pin
         # explicitly so the dependency is documented and the install is
-        # idempotent on minimal runners.
+        # idempotent on minimal runners. No `cache: pip` — that requires
+        # either requirements.txt or pyproject.toml, which this repo
+        # doesn't have, and the validator's deps are too small to be
+        # worth caching anyway.
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v5.6.0
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Install PyYAML
         run: pip install --quiet pyyaml
