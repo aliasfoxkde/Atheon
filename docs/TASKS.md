@@ -129,17 +129,17 @@ PRs: #92-98
 
 Three parallel Explore agents (2026-06-26) surfaced **62 findings** across MCP+DX, SARIF+ecosystem, and Security dimensions. Four PRs planned.
 
-### PR #99: MCP error sanitization + cancel handler + progress notifications + stale-bundle detection
+### PR #99/100: MCP error sanitization + cancel handler + stale-bundle detection
 
-- [ ] Add `$/cancelRequest` notification handler to MCP server (sync.Map per-request tracking)
-- [ ] Add progress notifications during `handleUpdateBundle` (every 512 KiB)
-- [ ] Sanitize JSON-RPC error messages: map `os.IsNotExist` → `"file not found"`, `os.IsPermission` → `"permission denied"`, others → `"internal error: <category>"`
-- [ ] Add ETag-based stale-bundle detection with `force: bool` bypass parameter
-- [ ] Add `bundle.etag` and `bundle.lastChecked` to pattern state file
-- [ ] Add `cmd/mcp/mcp_cancel_test.go`
-- [ ] Add `cmd/mcp/mcp_progress_test.go`
-- [ ] Add `cmd/mcp/mcp_error_sanitization_test.go`
-- [ ] Add `core/bundle_etag_test.go`
+- [x] Add `$/cancelRequest` notification handler to MCP server (sync.Map per-request tracking)
+- [x] Sanitize JSON-RPC error messages: map `os.IsNotExist` → `"file not found"`, `os.IsPermission` → `"permission denied"`, others → `"internal error"`
+- [x] Add ETag-based stale-bundle detection with `force: bool` bypass parameter
+- [x] Add `bundle.etag` and `bundle.lastChecked` to pattern state file
+- [x] Add `cmd/mcp/mcp_cancel_test.go`
+- [x] Add `cmd/mcp/mcp_error_sanitization_test.go`
+- [x] Add `core/bundle_etag_test.go`
+- [~] Progress notifications during bundle download (deferred to future PR)
+- [~] Add `cmd/mcp/mcp_progress_test.go` (deferred with progress notifications)
 
 ### PR #100: SARIF rules[].relationships + output parity + community pattern triage
 
@@ -167,7 +167,7 @@ Three parallel Explore agents (2026-06-26) surfaced **62 findings** across MCP+D
 ### PR #102: Help text + Go 1.25 prep + yaml.v3 deprecation
 
 - [ ] Document `--all` and `--no-follow-symlinks` in `--help`
-- [ ] Add Go 1.25 to CI matrix (go1.21, go1.22, go1.23, go1.24, go1.25)
+- [ ] Add Go 1.25 to CI matrix
 - [ ] Add `yaml.v3` deprecation comment to `go.mod`
 - [ ] Run `go vet ./...` and `golangci-lint` with latest version to catch new lints
 
