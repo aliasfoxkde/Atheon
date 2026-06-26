@@ -301,10 +301,10 @@ func printSARIFFindings(findings []core.Finding) {
 			{
 				"tool": map[string]any{
 					"driver": map[string]any{
-						"name":             "Atheon",
-						"version":          version,
-						"informationUri":   "https://github.com/aliasfoxkde/Atheon-Enhanced",
-						"rules":            buildSARIFRules(findings),
+						"name":           "Atheon",
+						"version":        version,
+						"informationUri": "https://github.com/aliasfoxkde/Atheon-Enhanced",
+						"rules":          buildSARIFRules(findings),
 						"supportedTaxonomies": []map[string]any{
 							{"name": "CWE", "shortDescription": map[string]any{"text": "Common Weakness Enumeration"}},
 						},
