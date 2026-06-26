@@ -382,11 +382,11 @@ func scanEnv(ctx context.Context, envs []string) []Finding {
 			for _, p := range cs.patterns {
 				if p.Matches(val) {
 					findings = append(findings, Finding{
-						Pattern:      p.Name(),
-						File:         "env:" + key,
-						Content:      val,
-						Severity:     p.Severity(),
-						Category:     p.Category(),
+						Pattern:     p.Name(),
+						File:        "env:" + key,
+						Content:     val,
+						Severity:    p.Severity(),
+						Category:    p.Category(),
 						Fingerprint: fmt.Sprintf("%s|%s|0|0", p.Name(), "env:"+key),
 					})
 				}
@@ -453,13 +453,13 @@ func scanLines(ctx context.Context, content, file string) []Finding {
 					}
 				}
 				findings = append(findings, Finding{
-					Pattern:      p.Name(),
-					File:         file,
-					Line:         lineNum,
-					Column:       col,
-					Content:      strings.TrimSpace(line),
-					Severity:     p.Severity(),
-					Category:     p.Category(),
+					Pattern:     p.Name(),
+					File:        file,
+					Line:        lineNum,
+					Column:      col,
+					Content:     strings.TrimSpace(line),
+					Severity:    p.Severity(),
+					Category:    p.Category(),
 					Fingerprint: fmt.Sprintf("%s|%s|%d|%d", p.Name(), file, lineNum, col),
 				})
 			}

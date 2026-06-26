@@ -18,12 +18,12 @@ package core
 // values directly to avoid an off-by-one at every conversion site.
 type Finding struct {
 	Pattern     string
-	File       string
-	Line       int
-	Column     int
-	Content    string
-	Severity   string
-	Category   string // Pattern category at match time (copied like Severity)
+	File        string
+	Line        int
+	Column      int
+	Content     string
+	Severity    string
+	Category    string // Pattern category at match time (copied like Severity)
 	Fingerprint string // Stable deduplication key: "pattern|file|line|col"
 }
 

@@ -283,12 +283,12 @@ func printJSONFindings(findings []core.Finding) {
 	for _, f := range findings {
 		items = append(items, map[string]any{
 			"pattern":     f.Pattern,
-			"file":       f.File,
-			"line":       f.Line,
-			"column":     f.Column,
-			"match":      redact(f.Content),
-			"severity":   f.Severity,
-			"category":   f.Category,
+			"file":        f.File,
+			"line":        f.Line,
+			"column":      f.Column,
+			"match":       redact(f.Content),
+			"severity":    f.Severity,
+			"category":    f.Category,
 			"fingerprint": f.Fingerprint,
 		})
 	}
@@ -362,31 +362,31 @@ func sarifSeverityScore(sev string) string {
 // CWE IDs here follow the SARIF 2.1.0 relationships spec: each relationship
 // is {target: {id: <CWE>, index: -1, toolComponent: {name: "CWE"}}, kinds: ["relevant"]}.
 var categoryCWE = map[string]string{
-	"secrets":            "CWE-798",  // Use of Hard-coded Credentials
-	"web-security":       "CWE-79",   // Cross-site Scripting (XSS)
+	"secrets":            "CWE-798", // Use of Hard-coded Credentials
+	"web-security":       "CWE-79",  // Cross-site Scripting (XSS)
 	"security-hardening": "CWE-269", // Improper Privilege Management
-	"compliance":         "CWE-732",  // Incorrect Permission Assignment for Critical Resource
-	"pii":                "CWE-359",  // Exposure of Private Personal Information to an Unauthorized Actor
+	"compliance":         "CWE-732", // Incorrect Permission Assignment for Critical Resource
+	"pii":                "CWE-359", // Exposure of Private Personal Information to an Unauthorized Actor
 }
 
 // ruleCWE maps individual pattern names to their canonical CWE IDs, overriding
 // the category default when a more specific CWE applies.
 var ruleCWE = map[string]string{
-	"generic-api-key":           "CWE-312", // Cleartext Storage of Sensitive Information
-	"github-actions-secret":     "CWE-798", // Hard-coded Credentials
-	"hardcoded-password":       "CWE-259", // Use of Hard-coded Password
-	"sql-string-concat":        "CWE-89",  // SQL Injection
-	"python-sql-injection":     "CWE-89",  // SQL Injection
-	"python-sql-format-injection": "CWE-89", // SQL Injection
-	"js-sql-template-literal":   "CWE-89",  // SQL Injection
-	"dom-based-xss":            "CWE-79",  // Cross-site Scripting
-	"prototype-pollution":      "CWE-1321", // Prototype Pollution
-	"path-traversal":           "CWE-22",  // Path Traversal
-	"python-command-injection":  "CWE-78",  // OS Command Injection
-	"insecure-deserialization": "CWE-502", // Deserialization of Untrusted Data
-	"session-fixation":          "CWE-384", // Session Fixation
-	"jwt-secret-hardcoded":      "CWE-312", // Cleartext Storage of Sensitive Information
-	"csrf":                     "CWE-352", // Cross-Site Request Forgery
+	"generic-api-key":             "CWE-312",  // Cleartext Storage of Sensitive Information
+	"github-actions-secret":       "CWE-798",  // Hard-coded Credentials
+	"hardcoded-password":          "CWE-259",  // Use of Hard-coded Password
+	"sql-string-concat":           "CWE-89",   // SQL Injection
+	"python-sql-injection":        "CWE-89",   // SQL Injection
+	"python-sql-format-injection": "CWE-89",   // SQL Injection
+	"js-sql-template-literal":     "CWE-89",   // SQL Injection
+	"dom-based-xss":               "CWE-79",   // Cross-site Scripting
+	"prototype-pollution":         "CWE-1321", // Prototype Pollution
+	"path-traversal":              "CWE-22",   // Path Traversal
+	"python-command-injection":    "CWE-78",   // OS Command Injection
+	"insecure-deserialization":    "CWE-502",  // Deserialization of Untrusted Data
+	"session-fixation":            "CWE-384",  // Session Fixation
+	"jwt-secret-hardcoded":        "CWE-312",  // Cleartext Storage of Sensitive Information
+	"csrf":                        "CWE-352",  // Cross-Site Request Forgery
 }
 
 // patternCWE returns the CWE ID for a given pattern name and category.
@@ -495,46 +495,46 @@ func buildSARIFResults(findings []core.Finding) []map[string]any {
 		// pipeline. redact() keeps the first/last 4 chars so the
 		// operator can still recognise the match shape.
 		region["snippet"] = map[string]any{"text": redact(f.Content)}
-			fingerprint := f.Fingerprint
-			if fingerprint == "" {
-				fingerprint = fmt.Sprintf("%s|%s|%d|%d", f.Pattern, f.File, f.Line, f.Column)
-			}
-			entry := map[string]any{
-				"ruleId": f.Pattern,
-				"level":  sarifLevel(f.Severity),
-				"message": map[string]any{
-					"text": fmt.Sprintf("%s found in %s at line %d", f.Pattern, f.File, f.Line),
-				},
-				"locations": []map[string]any{
-					{
-						"physicalLocation": map[string]any{
-							"artifactLocation": map[string]any{
-								"uri":       f.File,
-								"uriBaseId": "%SRCROOT%",
-							},
-							"region": region,
+		fingerprint := f.Fingerprint
+		if fingerprint == "" {
+			fingerprint = fmt.Sprintf("%s|%s|%d|%d", f.Pattern, f.File, f.Line, f.Column)
+		}
+		entry := map[string]any{
+			"ruleId": f.Pattern,
+			"level":  sarifLevel(f.Severity),
+			"message": map[string]any{
+				"text": fmt.Sprintf("%s found in %s at line %d", f.Pattern, f.File, f.Line),
+			},
+			"locations": []map[string]any{
+				{
+					"physicalLocation": map[string]any{
+						"artifactLocation": map[string]any{
+							"uri":       f.File,
+							"uriBaseId": "%SRCROOT%",
 						},
+						"region": region,
 					},
 				},
-				"partialFingerprints": map[string]any{
-					"atheonLoc": fingerprint,
+			},
+			"partialFingerprints": map[string]any{
+				"atheonLoc": fingerprint,
+			},
+		}
+		if cwe := patternCWE(f.Pattern, f.Category); cwe != "" {
+			entry["relationships"] = []map[string]any{
+				{
+					"target": map[string]any{
+						"id":    cwe,
+						"index": -1,
+						"toolComponent": map[string]any{
+							"name": "CWE",
+						},
+					},
+					"kinds": []string{"relevant"},
 				},
 			}
-			if cwe := patternCWE(f.Pattern, f.Category); cwe != "" {
-				entry["relationships"] = []map[string]any{
-					{
-						"target": map[string]any{
-							"id":   cwe,
-							"index": -1,
-							"toolComponent": map[string]any{
-								"name": "CWE",
-							},
-						},
-						"kinds": []string{"relevant"},
-					},
-				}
-			}
-			results = append(results, entry)
+		}
+		results = append(results, entry)
 	}
 	return results
 }
