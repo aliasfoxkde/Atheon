@@ -75,14 +75,24 @@ func isIgnored(path string, matchers []*ignoreMatcher) bool {
 // before this helper existed ScanDir's per-file goroutines skipped the
 // size check entirely, which made the cap a no-op for directory scans.
 func readFileCapped(path string, maxBytes int64) ([]byte, error) {
-	info, err := os.Stat(path)
+	// Canonicalise before the size check so that a symlink to a huge file
+	// (e.g. scan_root/some_link -> /proc/kcore) is sized correctly and rejected
+	// rather than OOMing the process. This closes the TOCTOU race where a file
+	// that passes the Stat size check is replaced by a symlink to a huge target
+	// before ReadFile runs.
+	canon, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		// Broken symlink — let Open report the error.
+		canon = path
+	}
+	info, err := os.Stat(canon)
 	if err != nil {
 		return nil, err
 	}
 	if info.Size() > maxBytes {
 		return nil, fmt.Errorf("%w: %s is %d bytes (limit %d)", ErrFileTooLarge, path, info.Size(), maxBytes)
 	}
-	return os.ReadFile(path)
+	return os.ReadFile(canon)
 }
 
 // ScanFile reads a single file and reports every Finding produced by the
