@@ -180,10 +180,7 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 	sc.Buffer(make([]byte, 64*1024), mcpMaxRequestBytes)
 	enc := json.NewEncoder(w)
 
-	for {
-		if !sc.Scan() {
-			break
-		}
+	for sc.Scan() {
 		var req request
 		if err := json.Unmarshal(sc.Bytes(), &req); err != nil {
 			// Malformed JSON has no ID we can echo back. Log and
