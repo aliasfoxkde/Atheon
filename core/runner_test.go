@@ -71,7 +71,7 @@ func TestScanDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := ScanDir(context.Background(), tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir, ScanOpts{})
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -245,7 +245,7 @@ func TestBinaryExts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := ScanDir(context.Background(), tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir, ScanOpts{})
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -290,7 +290,7 @@ func TestSkipDirs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := ScanDir(context.Background(), tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir, ScanOpts{})
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -307,7 +307,7 @@ func TestSkipDirs(t *testing.T) {
 
 // TestScanDir_NonExistent tests ScanDir with non-existent directory
 func TestScanDir_NonExistent(t *testing.T) {
-	findings, stats, err := ScanDir(context.Background(), "/nonexistent/directory/path")
+	findings, stats, err := ScanDir(context.Background(), "/nonexistent/directory/path", ScanOpts{})
 	// ScanDir might not error on non-existent directories, just return empty results
 	if err != nil {
 		// Error is acceptable
@@ -378,7 +378,7 @@ func TestScanDir_PermissionError(t *testing.T) {
 	}
 
 	// ScanDir should still work, just skip the inaccessible directory
-	findings, stats, err := ScanDir(context.Background(), tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir, ScanOpts{})
 	if err != nil {
 		// Permission errors might be returned, that's acceptable
 		t.Logf("ScanDir returned error (acceptable): %v", err)
@@ -398,7 +398,7 @@ func TestScanDir_PermissionError(t *testing.T) {
 func TestScanDir_EmptyDirectory(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	findings, stats, err := ScanDir(context.Background(), tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir, ScanOpts{})
 	if err != nil {
 		t.Fatalf("ScanDir failed on empty directory: %v", err)
 	}
@@ -439,7 +439,7 @@ func TestScanDir_WithSubdirectories(t *testing.T) {
 		}
 	}
 
-	findings, stats, err := ScanDir(context.Background(), tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir, ScanOpts{})
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -469,7 +469,7 @@ func TestScanDir_BinaryFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := ScanDir(context.Background(), tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir, ScanOpts{})
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -494,7 +494,7 @@ func TestScanDirContextCancelledBeforeStart(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, _, err := ScanDir(ctx, tmpDir)
+	_, _, err := ScanDir(ctx, tmpDir, ScanOpts{})
 	if err != nil && err != context.Canceled {
 		t.Errorf("expected nil or context.Canceled, got: %v", err)
 	}
@@ -517,7 +517,7 @@ func TestScanDirFileReadErrorSkipped(t *testing.T) {
 	}
 	defer os.Chmod(unreadable, 0o644)
 
-	findings, stats, err := ScanDir(context.Background(), tmpDir)
+	findings, stats, err := ScanDir(context.Background(), tmpDir, ScanOpts{})
 	if err != nil {
 		t.Fatalf("unexpected ScanDir error: %v", err)
 	}

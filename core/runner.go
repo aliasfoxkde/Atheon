@@ -1,7 +1,10 @@
 package core
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -15,6 +18,7 @@ import (
 var skipDirs = map[string]bool{
 	".git": true, "node_modules": true, "vendor": true,
 	".terraform": true, "dist": true, "build": true, "__pycache__": true,
+	".idea": true, ".vscode": true, ".svn": true, ".hg": true, ".cache": true,
 }
 
 var binaryExts = map[string]bool{
@@ -26,6 +30,18 @@ var binaryExts = map[string]bool{
 // maxFileSize is the maximum file size to scan (10MB default).
 // Files larger than this are skipped to prevent memory exhaustion.
 const maxFileSize = 10 * 1024 * 1024
+
+// scanBinarySniffBytes is the head-of-file slice read to detect binaries
+// the extension allowlist misses (extensionless blobs, files saved
+// without a final dot). A NUL byte in the first 8 KiB is the de-facto
+// heuristic used by `grep -I` and most editors.
+const scanBinarySniffBytes = 8 * 1024
+
+// ErrFileTooLarge is returned by readFileCapped when a file exceeds the
+// configured size cap. Distinct from a plain read error so callers can
+// surface it as a per-file skip in Stats.Errors without flagging it as
+// a generic I/O failure.
+var ErrFileTooLarge = errors.New("core: file exceeds configured max bytes")
 
 func loadIgnorePatternsMatcher(root string) []*ignoreMatcher {
 	var matchers []*ignoreMatcher
@@ -46,6 +62,27 @@ func isIgnored(path string, matchers []*ignoreMatcher) bool {
 		}
 	}
 	return false
+}
+
+// readFileCapped reads path and returns its contents up to maxBytes. If the
+// file's size exceeds maxBytes it returns ErrFileTooLarge WITHOUT reading
+// the body — that's the property that bounds memory: a 10 GiB log can't
+// be OOM'd into the scanner just because the caller asked for it. Files of
+// exactly maxBytes are read in full (boundary inclusive). A zero-byte
+// file returns ([]byte{}, nil).
+//
+// Extracted from ScanFile so ScanDir workers can share the same guard;
+// before this helper existed ScanDir's per-file goroutines skipped the
+// size check entirely, which made the cap a no-op for directory scans.
+func readFileCapped(path string, maxBytes int64) ([]byte, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	if info.Size() > maxBytes {
+		return nil, fmt.Errorf("%w: %s is %d bytes (limit %d)", ErrFileTooLarge, path, info.Size(), maxBytes)
+	}
+	return os.ReadFile(path)
 }
 
 // ScanFile reads a single file and reports every Finding produced by the
@@ -72,17 +109,17 @@ func ScanFile(ctx context.Context, path string) ([]Finding, *Stats, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
 	}
-	// Check file size to prevent memory exhaustion
-	info, err := os.Stat(path)
+	data, err := readFileCapped(path, maxFileSize)
 	if err != nil {
-		return nil, nil, err
-	}
-	if info.Size() > maxFileSize {
-		slog.Warn("skipping file exceeds size limit", "path", path, "size", info.Size(), "limit", maxFileSize)
-		return []Finding{}, &Stats{Files: 1, Bytes: info.Size()}, nil
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
+		if errors.Is(err, ErrFileTooLarge) {
+			info, _ := os.Stat(path)
+			var size int64
+			if info != nil {
+				size = info.Size()
+			}
+			slog.Warn("skipping file exceeds size limit", "path", path, "size", size, "limit", maxFileSize)
+			return []Finding{}, &Stats{Files: 1, Bytes: size}, nil
+		}
 		return nil, nil, err
 	}
 	findings := scanLines(ctx, string(data), path)
@@ -91,6 +128,26 @@ func ScanFile(ctx context.Context, path string) ([]Finding, *Stats, error) {
 		Bytes:     int64(len(data)),
 		ElapsedMs: time.Since(start).Milliseconds(),
 	}, nil
+}
+
+// ScanOpts tunes ScanDir behaviour for contexts where the defaults aren't
+// right. The zero value preserves the historical behaviour, so callers
+// that don't care can pass ScanOpts{} (or, equivalently, no opts by
+// passing a fresh struct literal).
+type ScanOpts struct {
+	// NoFollowSymlinks, when true, skips every entry whose fs.DirEntry
+	// reports fs.ModeSymlink — including dangling symlinks and symlinks
+	// that resolve to files outside the scan root. The CLI keeps the
+	// historical "follow symlinks" behaviour by default (preserves
+	// user expectations); the MCP server defaults this to true because
+	// agents scanning untrusted trees shouldn't escape the boundary.
+	NoFollowSymlinks bool
+
+	// MaxFileSize caps the number of bytes a single file may contribute
+	// to the scan. Files larger than this are skipped (Stats.Errors is
+	// populated with the ErrFileTooLarge sentinel). Zero means use the
+	// package-level maxFileSize.
+	MaxFileSize int64
 }
 
 // ScanDir walks root and scans every non-binary, non-ignored file in
@@ -102,18 +159,47 @@ func ScanFile(ctx context.Context, path string) ([]Finding, *Stats, error) {
 // The context controls worker cancellation: if ctx is canceled mid-walk
 // the goroutines exit promptly and ScanDir returns ctx.Err() after
 // WaitGroup drains.
-func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
+func ScanDir(ctx context.Context, root string, opts ScanOpts) ([]Finding, *Stats, error) {
 	start := time.Now()
 	slog.Debug("scan started", "root", root)
 	ignoreMatcher := loadIgnorePatternsMatcher(root)
+	maxBytes := opts.MaxFileSize
+	if maxBytes <= 0 {
+		maxBytes = maxFileSize
+	}
 	var paths []string
+	var walkErrs []error
 
-	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+	walkErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		// Collect walk errors instead of swallowing them. Previously this
+		// returned nil with a //nolint:nilerr comment — callers had no way
+		// to learn that a permission error or vanished symlink had been
+		// silently dropped. Surfacing them in Stats.Errors lets the CLI
+		// exit non-zero and the MCP server return a useful error.
 		if err != nil {
-			return nil //nolint:nilerr // skip unreadable entries during walk; reported via stats
+			walkErrs = append(walkErrs, fmt.Errorf("walk %s: %w", path, err))
+			// SkipDir lets us keep walking the rest of the tree after an
+			// unreadable directory entry; returning err would abort the
+			// entire scan on the first permission error.
+			if d != nil && d.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
 		}
 		if err := ctx.Err(); err != nil {
 			return err
+		}
+		// Symlink guard. WalkDir reports the link itself (not the target)
+		// as the DirEntry, so d.Type() carries ModeSymlink. We skip
+		// unconditionally — a symlink that escapes the scan root
+		// (e.g. /tmp/leak -> /etc/passwd) would otherwise be followed by
+		// os.ReadFile and leak content into the findings.
+		if opts.NoFollowSymlinks && d.Type()&fs.ModeSymlink != 0 {
+			slog.Debug("skipping symlink", "path", path)
+			if d.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
 		}
 		rel, _ := filepath.Rel(root, path)
 		if d.IsDir() {
@@ -133,7 +219,13 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 			paths = append(paths, path)
 		}
 		return nil
-	}); err != nil {
+	})
+	if walkErr != nil && !errors.Is(walkErr, context.Canceled) && !errors.Is(walkErr, context.DeadlineExceeded) {
+		// ctx cancellation is reported separately below; merge any
+		// remaining walk errors into the stats so the caller sees them.
+		walkErrs = append(walkErrs, walkErr)
+	}
+	if err := ctx.Err(); err != nil {
 		return nil, nil, err
 	}
 
@@ -163,10 +255,22 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 			if err := ctx.Err(); err != nil {
 				return
 			}
-			data, err := os.ReadFile(p)
+			data, err := readFileCapped(p, maxBytes)
 			if err != nil {
 				errMu.Lock()
 				scanErrors[i] = err
+				errMu.Unlock()
+				return
+			}
+			// Content sniff: the extension allowlist misses extensionless
+			// binaries (build artefacts, minified blobs saved without a
+			// final dot). The de-facto heuristic — also used by `grep -I` —
+			// is a NUL byte in the first 8 KiB. We only check the head
+			// to keep the scan cheap; full-file binary detection would
+			// double the I/O.
+			if len(data) > 0 && bytes.IndexByte(data[:min(len(data), scanBinarySniffBytes)], 0) >= 0 {
+				errMu.Lock()
+				scanErrors[i] = fmt.Errorf("skipping binary file (NUL byte in first %d bytes): %s", scanBinarySniffBytes, p)
 				errMu.Unlock()
 				return
 			}
@@ -191,8 +295,12 @@ func ScanDir(ctx context.Context, root string) ([]Finding, *Stats, error) {
 		findings = append(findings, results[i]...)
 		totalBytes += sizes[i]
 	}
+	// Walk errors collected during the tree enumeration come BEFORE the
+	// per-file read errors so the listing reads chronologically (what was
+	// the tree doing vs what did individual reads see).
+	errs = append(walkErrs, errs...)
 
-	slog.Debug("scan complete", "root", root, "files", filesScanned, "findings", len(findings), "elapsed_ms", time.Since(start).Milliseconds())
+	slog.Debug("scan complete", "root", root, "files", filesScanned, "findings", len(findings), "errors", len(errs), "elapsed_ms", time.Since(start).Milliseconds())
 
 	return findings, &Stats{
 		Files:     filesScanned,

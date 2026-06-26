@@ -354,7 +354,13 @@ func handleScanDir(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
 		return nil, invalidParams(err)
 	}
 	core.SetActiveCategories(args.Categories)
-	findings, _, err := core.ScanDir(ctx, args.Path)
+	// MCP defaults to the safe symlink policy. Agents invoking scan_dir
+	// are typically operating on untrusted trees (third-party repos,
+	// generated code, scratch dirs), and a symlink escape would let a
+	// crafted repo leak /etc/passwd or ~/.aws/credentials into the
+	// findings without the operator ever noticing. The CLI keeps the
+	// historical follow-symlinks behaviour behind an opt-in flag.
+	findings, _, err := core.ScanDir(ctx, args.Path, core.ScanOpts{NoFollowSymlinks: true})
 	if err != nil {
 		return nil, &rpcError{Code: -32603, Message: err.Error()}
 	}

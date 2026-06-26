@@ -178,7 +178,7 @@ func run(ctx context.Context, args []string) int {
 		var findings []core.Finding
 		var stats *core.Stats
 		if info.IsDir() {
-			findings, stats, err = core.ScanDir(ctx, path)
+			findings, stats, err = core.ScanDir(ctx, path, scanOpts(args[1:]))
 		} else {
 			findings, stats, err = core.ScanFile(ctx, path)
 		}
@@ -211,6 +211,22 @@ func parseCategories(args []string) (cats, rest []string, enableAll bool) {
 		}
 	}
 	return
+}
+
+// scanOpts extracts directory-scan flags from the post-path argument
+// tail and translates them into a core.ScanOpts. CLI defaults keep the
+// historical behaviour (follow symlinks, package-level maxFileSize) so
+// existing scripts don't change semantics silently; the new
+// --no-follow-symlinks flag opts in to the safer default that the MCP
+// server uses unconditionally.
+func scanOpts(rest []string) core.ScanOpts {
+	var opts core.ScanOpts
+	for _, a := range rest {
+		if a == "--no-follow-symlinks" {
+			opts.NoFollowSymlinks = true
+		}
+	}
+	return opts
 }
 
 func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput, sarifOutput bool) {
@@ -450,6 +466,7 @@ func printHelp() {
 
 usage:
   atheon <path>                       scan a directory or file
+  atheon <path> --no-follow-symlinks  scan a directory without following symlinks
   atheon --file <path>                scan a single file explicitly
   atheon --env                        scan environment variables
   atheon - / --stdin                  scan from stdin

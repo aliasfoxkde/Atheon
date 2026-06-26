@@ -74,7 +74,7 @@ func TestScanFileDirectory(t *testing.T) {
 // function returns nil for errors so filepath.WalkDir succeeds with empty
 // results — this test just verifies no panic.
 func TestScanDirMissing(t *testing.T) {
-	findings, _, err := ScanDir(context.Background(), "/this/dir/does/not/exist")
+	findings, _, err := ScanDir(context.Background(), "/this/dir/does/not/exist", ScanOpts{})
 	if err != nil {
 		t.Errorf("expected no error (walker swallows), got %v", err)
 	}

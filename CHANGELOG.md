@@ -8,6 +8,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `core.ScanOpts` struct with `NoFollowSymlinks` and `MaxFileSize`
+  fields; `ScanDir` now takes the opts as a third argument. The CLI
+  defaults to follow-symlinks and the package-level `maxFileSize`
+  (preserves historical behaviour); the MCP server defaults to
+  no-follow-symlinks so agents scanning untrusted trees can't escape
+  via planted symlinks (e.g. `repo/leak -> /etc/passwd`).
+- `--no-follow-symlinks` CLI flag for `atheon <dir>` directory scans.
+  Off by default (the historical behaviour); explicit opt-in for
+  environments where the operator wants the same safe default the MCP
+  server uses.
+- `core.readFileCapped(path, maxBytes)` helper, factored out of
+  `ScanFile` so ScanDir workers can share the size guard. Without it,
+  a single 10 GiB file could OOM the scanner on `atheon ./big-tree`
+  because the per-file goroutines bypassed the cap entirely.
+- `core.ErrFileTooLarge` sentinel: callers can `errors.Is(err,
+  ErrFileTooLarge)` to distinguish size-skips (benign) from
+  permission errors (operator-actionable) in `Stats.Errors`.
+- NUL-byte content sniff (8 KiB head) in ScanDir workers. The
+  extension allowlist misses extensionless binaries; the sniff catches
+  them before any per-pattern matching runs.
+- Walk-error capture in ScanDir: previously dropped via
+  `//nolint:nilerr` with no surface to the caller. Now collected into
+  `Stats.Errors` so the CLI can exit non-zero and the MCP server can
+  return a useful count.
+- `slog.Warn("combined regex compile failed; falling back to
+  per-pattern matching", ...)` in `rebuildActiveScanners`. The
+  historical silent drop meant a broken pattern lingered unnoticed —
+  matches just stopped appearing for its category.
+- Skip-dirs expanded to include `.idea`, `.vscode`, `.svn`, `.hg`,
+  `.cache` (IDE and VCS metadata noise that bloats scans without
+  yielding findings).
+- `core.TestReadFileCapped{UnderCap,Boundary,OverCap,ZeroBytes,Unreadable}`
+  and `core.TestScanDirSizeCapSurfacesError` pin the new size-cap
+  contract.
+- `core.TestScanDir{FollowsSymlinksByDefault,NoFollowSymlinks,
+  NoFollowSymlinksLoop,NoFollowSymlinksDangling}` pin the symlink
+  guard: default follows, opt-in doesn't (including the dangling-link
+  and loop cases).
+- `core.TestCombinedRegexCompileErrorLogged` pins the new
+  slog.Warn-on-compile-failure behaviour using a per-test
+  `slog.Handler` capture (no global slog mutation).
+
+### Changed
+- `core.ScanDir` signature: now `(ctx, root, opts ScanOpts)` instead of
+  `(ctx, root)`. All in-tree callers updated.
 - `docs/RELEASE.md` (maintainer runbook): tag format (`v0.YY.MM.DD[-rcN]`),
   pre-release checklist, GoReleaser publishing, hotfix workflow, ldflags,
   bundle regeneration, troubleshooting.

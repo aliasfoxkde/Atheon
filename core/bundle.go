@@ -241,7 +241,7 @@ func setActiveCategoriesLocked(cats []string) {
 	}
 
 	activeScanners = nil
-	for _, patterns := range byCategory {
+	for cat, patterns := range byCategory {
 		// Split bundle patterns (have a match regex) from external patterns (don't)
 		var bundlePs, extPs []Pattern
 		for _, p := range patterns {
@@ -259,6 +259,17 @@ func setActiveCategoriesLocked(cats []string) {
 			combined, err := regexp.Compile(strings.Join(parts, "|"))
 			if err == nil {
 				activeScanners = append(activeScanners, categoryScanner{combined: combined, patterns: bundlePs})
+			} else {
+				// Combined-regex compile failure isn't fatal — the per-pattern
+				// scanners below would still match correctly, just slower
+				// (every pattern is evaluated on every line instead of being
+				// pre-filtered by the category-level combined regex). The
+				// historical behaviour was a silent drop, which let broken
+				// patterns linger unnoticed: matches stopped appearing for a
+				// category but no error surfaced. Warn so operators can fix
+				// the offending pattern.
+				slog.Warn("combined regex compile failed; falling back to per-pattern matching",
+					"category", cat, "patterns", len(bundlePs), "err", err)
 			}
 		}
 		if len(extPs) > 0 {

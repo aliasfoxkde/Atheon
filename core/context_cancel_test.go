@@ -27,7 +27,7 @@ func TestScanFileCanceled(t *testing.T) {
 func TestScanDirCanceledBefore(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_, _, err := ScanDir(ctx, t.TempDir())
+	_, _, err := ScanDir(ctx, t.TempDir(), ScanOpts{})
 	if err == nil {
 		t.Error("expected ctx.Err() from canceled ScanDir")
 	}

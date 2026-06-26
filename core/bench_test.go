@@ -68,7 +68,7 @@ func BenchmarkScanDir(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_, _, err := ScanDir(context.Background(), root)
+		_, _, err := ScanDir(context.Background(), root, ScanOpts{})
 		if err != nil {
 			b.Fatal(err)
 		}
