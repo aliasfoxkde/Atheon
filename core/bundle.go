@@ -417,14 +417,14 @@ func DownloadBundle(ctx context.Context, force bool) error {
 // shouldSkipDownload returns (true, etag) if the bundle appears fresh:
 // the last check was within 24 hours and the stored ETag matches the
 // upstream value. Force downloads always return (false, "").
-func shouldSkipDownload() (bool, string) {
-	etag, lastChecked, err := loadBundleETag()
-	if err != nil || etag == "" {
+func shouldSkipDownload() (skipped bool, etag string) {
+	etagVal, lastChecked, err := loadBundleETag()
+	if err != nil || etagVal == "" {
 		return false, ""
 	}
 	// 24-hour freshness window
 	if time.Since(lastChecked) < 24*time.Hour {
-		return true, etag
+		return true, etagVal
 	}
 	return false, ""
 }
@@ -468,7 +468,7 @@ func currentPatternNames() []string {
 
 // fetchBundleData performs the HTTP GET against bundleDownloadURL and
 // returns the response body and ETag header on success.
-func fetchBundleData(ctx context.Context) ([]byte, string, error) {
+func fetchBundleData(ctx context.Context) (data []byte, etag string, err error) {
 	client := &http.Client{Timeout: 30 * time.Second}
 	urlPtr := bundleDownloadURL.Load()
 	if urlPtr == nil {
@@ -489,7 +489,7 @@ func fetchBundleData(ctx context.Context) ([]byte, string, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, "", fmt.Errorf("%w: server returned %d", ErrBundleDownload, resp.StatusCode)
 	}
-	data, err := io.ReadAll(resp.Body)
+	data, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, "", fmt.Errorf("%w: %v", ErrBundleDownload, err)
 	}
