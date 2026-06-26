@@ -1,33 +1,13 @@
-// Scaffolding for the file-size cap behaviour that Wave 8 PR #95 introduces
-// in ScanDir. PR #95 adds a readFileCapped(path, maxBytes) helper and wires
-// it into the worker goroutines so a single 10GB file can't exhaust process
-// memory. The test below exercises the contract once the helper lands —
-// until then it documents the expected behaviour with t.Skip so the file
-// compiles and the test is discoverable via `go test -list`.
-//
-// What's being asserted when PR #95 ships:
-//   - files < maxBytes: full content returned
-//   - files == maxBytes: full content returned (boundary inclusive)
-//   - files >  maxBytes: ErrFileTooLarge returned, no content read
-//   - files == 0: empty content returned, no error (zero is a valid size)
-//   - files unreadable (perm denied): read error surfaced, not silently dropped
-//
-// Keep this file's helpers (writeFileWithSize) — PR #95's tests will reuse
-// them.
-
 package core
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
-
-// ErrFileTooLarge is the sentinel error PR #95 returns when a file exceeds
-// the configured cap. Declared here so tests can assert on it before the
-// production helper exists.
-var ErrFileTooLarge = errors.New("core: file exceeds configured max bytes")
 
 // writeFileWithSize creates a file of exactly `size` bytes at the given
 // path. Uses Truncate so it works for size==0 (Seek(size-1) would fail for
@@ -45,15 +25,140 @@ func writeFileWithSize(t *testing.T, path string, size int64) {
 	}
 }
 
-// TestScanSizeCap_Scaffold is a placeholder until PR #95 lands the helper.
-// When the helper exists, replace this with concrete assertions:
-//   - under-cap file: returned in full
-//   - over-cap file: ErrFileTooLarge
-//   - zero-byte file: returned empty, no error
-func TestScanSizeCap_Scaffold(t *testing.T) {
-	t.Skip("readFileCapped helper ships in Wave 8 PR #95 — see plan:fix/wave8-runner-safety")
+// TestReadFileCappedUnderCap asserts that a file smaller than the cap
+// is read in full. This is the common case (every well-behaved source
+// file) and a regression here would silently truncate matches.
+func TestReadFileCappedUnderCap(t *testing.T) {
 	dir := t.TempDir()
-	small := filepath.Join(dir, "small.txt")
-	writeFileWithSize(t, small, 1024)
-	_ = small
+	path := filepath.Join(dir, "small.txt")
+	want := []byte("hello world\n")
+	if err := os.WriteFile(path, want, 0o644); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	got, err := readFileCapped(path, int64(len(want)+1))
+	if err != nil {
+		t.Fatalf("readFileCapped: %v", err)
+	}
+	if string(got) != string(want) {
+		t.Fatalf("contents: got %q, want %q", got, want)
+	}
+}
+
+// TestReadFileCappedBoundary asserts that a file of EXACTLY maxBytes
+// is read in full (boundary inclusive — the cap is "less than or equal",
+// not "strictly less than"). Off-by-one here would either truncate the
+// last byte of every file at the cap, or fail to enforce the cap on
+// files of exactly maxBytes+1.
+func TestReadFileCappedBoundary(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "exact.txt")
+	writeFileWithSize(t, path, 1024)
+	got, err := readFileCapped(path, 1024)
+	if err != nil {
+		t.Fatalf("readFileCapped at boundary: %v", err)
+	}
+	if int64(len(got)) != 1024 {
+		t.Fatalf("boundary read length: got %d, want 1024", len(got))
+	}
+}
+
+// TestReadFileCappedOverCap asserts the over-cap path: a single byte
+// over the limit must produce ErrFileTooLarge (not a generic I/O
+// error and not a partial read). This is the property that bounds
+// memory — without it, a 10 GiB log could OOM the scanner.
+func TestReadFileCappedOverCap(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "big.txt")
+	writeFileWithSize(t, path, 1025)
+	_, err := readFileCapped(path, 1024)
+	if err == nil {
+		t.Fatal("expected ErrFileTooLarge, got nil")
+	}
+	if !errors.Is(err, ErrFileTooLarge) {
+		t.Fatalf("expected ErrFileTooLarge, got %v", err)
+	}
+	// The error message should identify the file path so an operator
+	// scanning 100k files can find the offender without re-running
+	// with strace.
+	if !strings.Contains(err.Error(), path) {
+		t.Errorf("error %q should mention path %q", err.Error(), path)
+	}
+}
+
+// TestReadFileCappedZeroBytes asserts that a zero-byte file is read
+// successfully (zero is a valid size, not an error). Filesystem tools
+// (touch, truncate) frequently create zero-byte placeholders; rejecting
+// them would surface false-positive scan errors.
+func TestReadFileCappedZeroBytes(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "empty.txt")
+	writeFileWithSize(t, path, 0)
+	got, err := readFileCapped(path, 1024)
+	if err != nil {
+		t.Fatalf("readFileCapped zero bytes: %v", err)
+	}
+	if len(got) != 0 {
+		t.Fatalf("zero-byte file: got %d bytes, want 0", len(got))
+	}
+}
+
+// TestReadFileCappedUnreadable asserts that a permission-denied file
+// produces a regular os.ReadFile error (NOT ErrFileTooLarge — the cap
+// only triggers on size, not on permission). Callers need to distinguish
+// the two: a size skip is benign, a permission error is an environment
+// issue the operator should know about.
+func TestReadFileCappedUnreadable(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root bypasses file permissions; cannot test perm-denied path")
+	}
+	dir := t.TempDir()
+	path := filepath.Join(dir, "noperm.txt")
+	if err := os.WriteFile(path, []byte("secret"), 0o000); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(path, 0o644) })
+
+	_, err := readFileCapped(path, 1024)
+	if err == nil {
+		t.Fatal("expected error for unreadable file, got nil")
+	}
+	if errors.Is(err, ErrFileTooLarge) {
+		t.Fatalf("perm error should not be ErrFileTooLarge: %v", err)
+	}
+}
+
+// TestScanDirSizeCapSurfacesError asserts that ScanDir populates
+// stats.Errors with the ErrFileTooLarge sentinel when a worker hits
+// the cap, so the CLI can surface a non-zero exit and the MCP server
+// can return the count to the caller. Before PR #95, ScanDir's
+// per-file goroutines called os.ReadFile directly and bypassed the
+// ScanFile size check entirely — a 10 GiB file would just OOM.
+func TestScanDirSizeCapSurfacesError(t *testing.T) {
+	dir := t.TempDir()
+	big := filepath.Join(dir, "big.txt")
+	writeFileWithSize(t, big, 2048)
+
+	// Force a tiny cap via opts so we don't have to allocate a 10 MiB
+	// fixture. The helper respects opts.MaxFileSize, which is what
+	// we're actually testing.
+	_, stats, err := ScanDir(context.Background(), dir, ScanOpts{MaxFileSize: 1024})
+	if err != nil {
+		t.Fatalf("ScanDir: %v", err)
+	}
+	if stats == nil {
+		t.Fatal("stats nil")
+	}
+	if len(stats.Errors) == 0 {
+		t.Fatal("expected at least one error for over-cap file")
+	}
+	var sawTooLarge bool
+	for _, e := range stats.Errors {
+		if errors.Is(e, ErrFileTooLarge) {
+			sawTooLarge = true
+			break
+		}
+	}
+	if !sawTooLarge {
+		t.Fatalf("expected ErrFileTooLarge in stats.Errors, got: %v", stats.Errors)
+	}
 }

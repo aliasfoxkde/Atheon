@@ -113,7 +113,7 @@ func TestScanDirectory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := core.ScanDir(context.Background(), tmpDir)
+	findings, stats, err := core.ScanDir(context.Background(), tmpDir, core.ScanOpts{})
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -188,7 +188,7 @@ func TestIgnoreFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := core.ScanDir(context.Background(), tmpDir)
+	findings, stats, err := core.ScanDir(context.Background(), tmpDir, core.ScanOpts{})
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
@@ -419,7 +419,7 @@ func TestBinaryFilesExcluded(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	findings, stats, err := core.ScanDir(context.Background(), tmpDir)
+	findings, stats, err := core.ScanDir(context.Background(), tmpDir, core.ScanOpts{})
 	if err != nil {
 		t.Fatalf("ScanDir failed: %v", err)
 	}
