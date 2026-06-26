@@ -1,7 +1,7 @@
 # Task Ledger — Atheon Enhanced
 
 **Last Updated**: 2026-06-26
-**Status**: Active — Wave 9 in progress
+**Status**: Active — Wave 10 in progress (PR #102)
 
 ---
 
@@ -173,6 +173,43 @@ Three parallel Explore agents (2026-06-26) surfaced **62 findings** across MCP+D
 
 ---
 
+## Wave 10: Post-Wave 9 Hardening (PR #102)
+
+### MCP path traversal fix (`cmd/mcp/main.go`)
+- [x] Add `sandboxPath(path)` helper: `filepath.Clean` + `EvalSymlinks` on relative paths before dispatch
+- [x] Block `../../etc/passwd` and relative symlink escapes (`cwd/subdir -> /etc`)
+- [x] Absolute paths pass through unchanged (explicit user intent)
+- [x] `handleScanFile` and `handleScanDir` call `sandboxPath` before dispatch
+- [x] `cmd/mcp/mcp_sandbox_test.go`: 5 test cases
+
+### Bundle download hardening (`core/bundle.go`)
+- [x] `io.LimitedReader` caps bundle downloads at `maxBundleDownloadBytes` (100 MiB)
+- [x] `Content-Length` header vs actual-bytes validation in `fetchBundleData`
+- [x] `SetBundleDownloadURL` rejects non-HTTP(S) schemes (`file://`, `ftp://`, etc.) — SSRF prevention
+- [x] `verifyBundleHash` failure now propagates as error (was: warn-and-proceed)
+
+### TOCTOU fix (`core/runner.go`)
+- [x] `readFileCapped` calls `filepath.EvalSymlinks` before `os.Stat`
+- [x] Symlinks to huge files sized by resolved target, not symlink itself
+
+### JSON-RPC error `data` field (`cmd/mcp/main.go`)
+- [x] `rpcError` struct gains `Data any` field per JSON-RPC 2.0 spec
+- [x] `rate_limit` → `Data: "rate_limit"`, `concurrent_limit` → `Data: "concurrent_limit"`, `invalid_params` → `Data: "invalid_params"`
+
+### CI/Release fixes
+- [x] `release.yml`: add `-race` to pre-release test gate
+- [x] `release.yml`: pin goreleaser-action `version: '7.2.2'`
+- [x] `release.yml`: add `--prov` flag for SLSA provenance attestation
+- [x] `community-pattern-review.yml`: add `--max-time 30` to curl call
+
+### Test infrastructure (required by the fatal hash check)
+- [x] `bundle_download_test.go`: `serveBundle` and all mock servers serve `checksums.txt`
+- [x] `state_io_errors_test.go`: mock servers updated
+- [x] `cli_test.go`, `main_run_test.go`: mock servers updated, trailing-slash URL fix
+- [x] `bundle_hash_test.go`: `TestVerifyBundleHashMismatch` updated for fatal error expectation
+
+---
+
 ## Deferred / Backlog
 
 - [ ] Migrate `gopkg.in/yaml.v3` to `github.com/goccy/go-yaml` (breaking API change — requires careful review)
@@ -214,7 +251,8 @@ Historical (all closed in their respective waves):
 | 6 | [x] | #86-88 | Audit-followup + docs |
 | 7 | [x] | #89 | pattern_state mutex |
 | 8 | [x] | #92-98 | Detection, CI, patterns, MCP hardening |
-| 9 | [~] | #99-102 (in progress) | MCP protocol, SARIF ecosystem, bundle integrity |
+| 9 | [x] | #99-102 | MCP protocol, SARIF ecosystem, bundle integrity |
+| 10 | [~] | #102 (in progress) | Post-Wave 9 hardening: SSRF, TOCTOU, fatal hash, path sandbox |
 
 **Completed waves**: 8 / 8
 **Total merged PRs**: 27 through Wave 8
