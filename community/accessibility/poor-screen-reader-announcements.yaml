@@ -1,9 +1,0 @@
-name: poor-screen-reader-announcements
-match: aria-label.*hidden|sr-only.*hidden|screen-reader-only.*display.*none
-severity: medium
-language: html
-category: accessibility
-description: 'Pattern: ''poor screen reader announcements''. Accessibility issue that
-  may prevent users with disabilities from using the application effectively. This
-  is a medium-severity issue representing a moderate risk to security, privacy, or
-  code quality.'

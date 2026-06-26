@@ -1,5 +1,0 @@
-name: serverless
-match: timeout.*30|memorySize.*128|handler.*async.*await
-severity: medium
-description: 'Pattern: ''serverless''. Pattern in category ''''. This is a medium-severity
-  issue representing a moderate risk to security, privacy, or code quality.'

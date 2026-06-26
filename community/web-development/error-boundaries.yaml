@@ -1,5 +1,0 @@
-name: error-boundaries
-match: componentDidCatch|getDerivedStateFromError|class.*ErrorBoundary
-severity: low
-description: 'Pattern: ''error boundaries''. Pattern in category ''''. This is a low-severity
-  issue representing a minor risk or code quality concern.'

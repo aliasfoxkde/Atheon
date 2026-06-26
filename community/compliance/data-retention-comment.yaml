@@ -1,7 +1,0 @@
-name: data-retention-comment
-match: (never[-_]delete|keep[-_]forever|retain[-_]indefinitely|no[-_]expiration)\s*[;:]\s*(data|logs|records|files)
-severity: high
-enabled: true
-description: 'Pattern: ''data retention comment''. Pattern in category ''''. This
-  is a high-severity issue that could lead to security vulnerabilities or significant
-  quality problems.'

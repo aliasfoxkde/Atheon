@@ -1,6 +1,0 @@
-name: unused-import-comment
-match: //\s*nolint:unused
-severity: low
-enabled: true
-description: 'Pattern: ''unused import comment''. Pattern in category ''''. This is
-  a low-severity issue representing a minor risk or code quality concern.'

@@ -1,8 +1,0 @@
-name: poor-error-boundary
-match: componentDidCatch.*console\.log|ErrorBoundary.*return.*null|catch.*error.*render.*null
-severity: high
-language: javascript
-category: web-development
-description: 'Pattern: ''poor error boundary''. Web development issue affecting correctness
-  or user experience. This is a high-severity issue that could lead to security vulnerabilities
-  or significant quality problems.'

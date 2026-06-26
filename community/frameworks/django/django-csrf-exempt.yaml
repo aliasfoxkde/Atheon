@@ -1,7 +1,0 @@
-name: django-csrf-exempt
-match: '@csrf_exempt\b'
-severity: high
-enabled: true
-description: 'Detected missing CSRF protection: ''django csrf exempt''. Forms should
-  include CSRF tokens to prevent cross-site request forgery. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

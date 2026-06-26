@@ -1,6 +1,0 @@
-name: panic-in-handler
-match: panic\s*\(
-severity: low
-enabled: true
-description: 'Pattern: ''panic in handler''. Pattern in category ''''. This is a low-severity
-  issue representing a minor risk or code quality concern.'

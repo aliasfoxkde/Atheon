@@ -1,6 +1,0 @@
-name: python-sql-injection
-match: \.execute\(.*\{.*\}.*\)
-severity: high
-description: 'Detected potential SQL injection risk: ''python sql injection''. User
-  input should be properly sanitized before use in database queries. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

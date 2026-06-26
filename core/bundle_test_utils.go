@@ -1,4 +1,4 @@
-// bundle_test_utils.go provides test helpers for bundle-related tests.
+// Package core provides test helpers for bundle-related tests.
 // It is compiled as part of the core test binary.
 package core
 

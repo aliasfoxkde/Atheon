@@ -1,6 +1,0 @@
-name: terraform-state-sensitive
-match: (?i)(terraform\.tfstate|backend\s*\{|sensitive\s*=\s*false.*password)
-severity: medium
-description: 'Pattern: ''terraform state sensitive''. Pattern in category ''''. This
-  is a medium-severity issue representing a moderate risk to security, privacy, or
-  code quality.'

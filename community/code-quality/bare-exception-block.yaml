@@ -1,5 +1,0 @@
-name: bare-exception-block
-match: 'except(?: *[:\[].*)?: *pass'
-severity: low
-description: 'Pattern: ''bare exception block''. Pattern in category ''''. This is
-  a low-severity issue representing a minor risk or code quality concern.'

@@ -1,6 +1,0 @@
-name: chart-accessibility
-match: canvas[^>]*[^aria-]|tooltip.*enabled.*false|legend.*display.*false
-severity: medium
-description: 'Pattern: ''chart accessibility''. Pattern in category ''''. This is
-  a medium-severity issue representing a moderate risk to security, privacy, or code
-  quality.'

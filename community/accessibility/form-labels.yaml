@@ -1,5 +1,0 @@
-name: form-labels
-match: <input.*placeholder.*[^label]|<select.*[^label]|<textarea.*[^label]
-severity: low
-description: 'Pattern: ''form labels''. Pattern in category ''''. This is a low-severity
-  issue representing a minor risk or code quality concern.'

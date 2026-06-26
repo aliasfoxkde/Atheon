@@ -1,5 +1,0 @@
-name: patient-id
-match: \b(?:PATIENT|PT)[0-9]{8,12}\b
-severity: medium
-description: 'Pattern: ''patient id''. Pattern in category ''''. This is a medium-severity
-  issue representing a moderate risk to security, privacy, or code quality.'

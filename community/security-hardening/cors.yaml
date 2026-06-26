@@ -1,5 +1,0 @@
-name: cors
-match: Access-Control-Allow-Origin.*\*|cors.*origin.*true
-severity: high
-description: 'Pattern: ''cors''. Pattern in category ''''. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

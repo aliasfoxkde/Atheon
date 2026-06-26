@@ -1,9 +1,0 @@
-name: seo-meta-tags
-match: <!DOCTYPE html>|<meta name="description"|<meta property="og:|<link rel="canonical"|<meta
-  name="keywords"
-severity: low
-language: html
-category: web-development
-description: 'Pattern: ''seo meta tags''. Web development issue affecting correctness
-  or user experience. This is a low-severity issue representing a minor risk or code
-  quality concern.'

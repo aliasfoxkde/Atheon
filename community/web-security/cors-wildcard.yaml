@@ -1,6 +1,0 @@
-name: cors-wildcard
-match: (?i)Access-Control-Allow-Origin\s*:\s*\*
-severity: high
-enabled: true
-description: 'Pattern: ''cors wildcard''. Pattern in category ''''. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

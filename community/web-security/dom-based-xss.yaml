@@ -1,8 +1,0 @@
-name: dom-based-xss
-match: document\.write.*user|location\.hash.*innerHTML|document\.location.*=.*input|window\.name.*innerHTML
-severity: critical
-language: javascript
-category: web-security
-description: 'Detected potential XSS vulnerability: ''dom based xss''. User input
-  should be escaped before rendering in HTML. This is a critical security issue that
-  could lead to data breaches or system compromise.'

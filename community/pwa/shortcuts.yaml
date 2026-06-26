@@ -1,5 +1,0 @@
-name: shortcuts
-match: shortcuts.*name.*url|icons.*shortcuts.*manifest|app.*shortcuts.*home.*screen
-severity: medium
-description: 'Pattern: ''shortcuts''. Pattern in category ''''. This is a medium-severity
-  issue representing a moderate risk to security, privacy, or code quality.'

@@ -1,5 +1,0 @@
-name: rate-limiting
-match: setInterval.*fetch.*1000|for.*fetch.*break|while.*fetch.*condition
-severity: medium
-description: 'Pattern: ''rate limiting''. Pattern in category ''''. This is a medium-severity
-  issue representing a moderate risk to security, privacy, or code quality.'

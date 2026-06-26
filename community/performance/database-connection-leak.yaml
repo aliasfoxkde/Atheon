@@ -1,8 +1,0 @@
-name: database-connection-leak
-match: \.connect\(\).*\.close\(\)|\.open\(\).*\.close\(\)|new.*Connection.*no.*close|pool\.connect.*no.*disconnect
-severity: high
-language: python
-category: performance
-description: 'Pattern: ''database connection leak''. Performance issue that could
-  affect application speed or resource usage. This is a high-severity issue that could
-  lead to security vulnerabilities or significant quality problems.'

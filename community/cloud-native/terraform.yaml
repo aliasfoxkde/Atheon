@@ -1,5 +1,0 @@
-name: terraform
-match: resource.*.*count.*=.*0|terraform.*apply.*-auto-approve|variable.*default.*secret
-severity: medium
-description: 'Pattern: ''terraform''. Pattern in category ''''. This is a medium-severity
-  issue representing a moderate risk to security, privacy, or code quality.'

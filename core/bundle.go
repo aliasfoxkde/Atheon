@@ -389,9 +389,9 @@ var skipHostValidation bool
 // SetBundleDownloadURLForTest is like SetBundleDownloadURL but also disables
 // hostname validation so tests can point at httptest servers on loopback.
 // The returned restore function resets skipHostValidation to false.
-func SetBundleDownloadURLForTest(url string) func() {
+func SetBundleDownloadURLForTest(bundleURL string) func() {
 	skipHostValidation = true
-	return SetBundleDownloadURL(url)
+	return SetBundleDownloadURL(bundleURL)
 }
 
 // init-time default. Done as a function rather than a literal so a test
@@ -501,8 +501,8 @@ func isLinkLocal(ip net.IP) bool {
 // ErrBundleDownload so callers can use errors.Is.
 func DownloadBundle(ctx context.Context, force bool) error {
 	start := time.Now()
-	url := *bundleDownloadURL.Load()
-	slog.Info("bundle download started", "url", url, "force", force)
+	bundleURL := *bundleDownloadURL.Load()
+	slog.Info("bundle download started", "url", bundleURL, "force", force)
 
 	// Stale-bundle check: if not forced, see if we've checked recently with a
 	// matching ETag. This skips the network round-trip on repeated scans.
@@ -668,15 +668,15 @@ func computeBundleHash(data []byte) string {
 // where checksums haven't been published yet. Any other error is logged
 // but not propagated so a bad checksums.txt doesn't block bundle updates.
 func verifyBundleHash(ctx context.Context, data []byte) error {
-	url := *bundleDownloadURL.Load()
+	bundleURLVar := *bundleDownloadURL.Load()
 	// Derive checksums URL: strips filename, appends checksums.txt.
 	// https://github.com/.../download/v1.2.3/patterns.bundle
 	//   → https://github.com/.../download/v1.2.3/checksums.txt
-	idx := strings.LastIndex(url, "/")
+	idx := strings.LastIndex(bundleURLVar, "/")
 	if idx < 0 {
-		return fmt.Errorf("cannot derive checksums URL from %q", url)
+		return fmt.Errorf("cannot derive checksums URL from %q", bundleURLVar)
 	}
-	checksumsURL := url[:idx+1] + "checksums.txt"
+	checksumsURL := bundleURLVar[:idx+1] + "checksums.txt"
 
 	client := &http.Client{Timeout: 15 * time.Second}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, checksumsURL, http.NoBody)

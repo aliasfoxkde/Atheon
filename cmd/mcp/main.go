@@ -548,7 +548,7 @@ func sandboxPath(path string) (string, error) {
 	realPath, err := filepath.EvalSymlinks(path)
 	if err != nil {
 		// Broken or non-existent — let ScanFile/ScanDir report it.
-		return path, nil
+		return path, nil //nolint:nilerr // intentionally returning nil for non-existent paths
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -556,7 +556,7 @@ func sandboxPath(path string) (string, error) {
 	}
 	cwdReal, err := filepath.EvalSymlinks(cwd)
 	if err != nil {
-		return realPath, nil
+		return realPath, nil //nolint:nilerr // intentionally returning nil when cwd symlinks resolve
 	}
 	// Block traversal: e.g. cwd/subdir -> /etc via symlink.
 	if !strings.HasPrefix(realPath, cwdReal) {

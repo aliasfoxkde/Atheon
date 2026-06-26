@@ -1,6 +1,0 @@
-name: empty-catch-block
-match: (?i)catch\s*\([^)]*\)\s*\{\s*\}
-severity: low
-enabled: true
-description: 'Pattern: ''empty catch block''. Pattern in category ''''. This is a
-  low-severity issue representing a minor risk or code quality concern.'

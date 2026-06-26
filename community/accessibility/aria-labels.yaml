@@ -1,5 +1,0 @@
-name: aria-labels
-match: <button[^>]*>[^<]*$|<img[^>]*alt=
-severity: low
-description: 'Pattern: ''aria labels''. Pattern in category ''''. This is a low-severity
-  issue representing a minor risk or code quality concern.'

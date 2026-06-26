@@ -1,6 +1,0 @@
-name: missing-lazy-loading
-match: import.*from.*large|require.*large.*module|<img.*loading.*eager
-severity: low
-description: 'Detected missing security or quality feature: ''missing lazy loading''.
-  This pattern indicates a gap that should be addressed. This is a low-severity issue
-  representing a minor risk or code quality concern.'

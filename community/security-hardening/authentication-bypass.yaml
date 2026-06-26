@@ -1,8 +1,0 @@
-name: authentication-bypass
-match: if.*password.*==.*\..*|if.*username.*==.*\..*|auth.*simple.*comparison|password.*in.*\[
-severity: high
-language: python
-category: security-hardening
-description: 'Detected potential CI/security bypass: ''authentication bypass''. Bypass
-  mechanisms should be carefully reviewed and avoided in production. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

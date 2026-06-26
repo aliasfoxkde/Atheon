@@ -1,5 +1,0 @@
-name: git-force-push
-match: (?i)git push.*--force|-f.*git push|force.*push
-severity: low
-description: 'Pattern: ''git force push''. Pattern in category ''''. This is a low-severity
-  issue representing a minor risk or code quality concern.'

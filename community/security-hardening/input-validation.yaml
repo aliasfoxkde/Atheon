@@ -1,5 +1,0 @@
-name: input-validation
-match: req\.params.*\.|req\.body.*\.|req\.query.*\.|query.*raw.*|body.*raw
-severity: high
-description: 'Pattern: ''input validation''. Pattern in category ''''. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

@@ -1,6 +1,0 @@
-name: dob-format
-match: \b(dob|date[-_]of[-_]birth|birth[-_]date)\s*[:=]\s*\d{4}[-/]\d{2}[-/]\d{2}\b
-severity: high
-enabled: true
-description: 'Pattern: ''dob format''. Pattern in category ''''. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

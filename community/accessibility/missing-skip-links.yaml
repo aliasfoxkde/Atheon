@@ -1,8 +1,0 @@
-name: missing-skip-links
-match: skip.*link|skip.*to.*content|a\[href="#main"\]|skip.*navigation
-severity: medium
-language: html
-category: accessibility
-description: 'Detected potential CI/security bypass: ''missing skip links''. Bypass
-  mechanisms should be carefully reviewed and avoided in production. This is a medium-severity
-  issue representing a moderate risk to security, privacy, or code quality.'

@@ -1,5 +1,0 @@
-name: color-schemes
-match: backgroundColor.*#[fF]{6}|borderColor.*#[0F]{6}|color.*palette.*contrast
-severity: medium
-description: 'Pattern: ''color schemes''. Pattern in category ''''. This is a medium-severity
-  issue representing a moderate risk to security, privacy, or code quality.'

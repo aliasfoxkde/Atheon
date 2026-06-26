@@ -1,5 +1,0 @@
-name: placeholder-code
-match: (?i)\b(PLACEHOLDER|BOILERPLATE|SHIM|FILLER|CRUFT)\b
-severity: low
-description: 'Pattern: ''placeholder code''. Pattern in category ''''. This is a low-severity
-  issue representing a minor risk or code quality concern.'

@@ -1,8 +1,0 @@
-name: poor-focus-management
-match: useEffect.*focus.*\[\]|element\.focus\(\).*no.*trap|focus.*trap.*missing
-severity: high
-language: javascript
-category: accessibility
-description: 'Pattern: ''poor focus management''. Accessibility issue that may prevent
-  users with disabilities from using the application effectively. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

@@ -1,8 +1,0 @@
-name: inefficient-css
-match: '@import.*css|style.*attribute.*important|\*.*\{.*display.*none|animation.*no.*hardware'
-severity: low
-language: css
-category: web-development
-description: 'Pattern: ''inefficient css''. Web development issue affecting correctness
-  or user experience. This is a low-severity issue representing a minor risk or code
-  quality concern.'

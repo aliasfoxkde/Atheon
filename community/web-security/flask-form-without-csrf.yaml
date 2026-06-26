@@ -1,8 +1,0 @@
-name: flask-form-without-csrf
-match: render_template\(|Flask.*form.*no.*csrf
-severity: medium
-language: python
-category: web-security
-description: 'Detected missing CSRF protection: ''flask form without csrf''. Forms
-  should include CSRF tokens to prevent cross-site request forgery. This is a medium-severity
-  issue representing a moderate risk to security, privacy, or code quality.'

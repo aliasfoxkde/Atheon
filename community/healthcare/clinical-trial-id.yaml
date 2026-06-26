@@ -1,6 +1,0 @@
-name: clinical-trial-id
-match: \bNCT[0-9]{8}\b
-severity: medium
-description: 'Pattern: ''clinical trial id''. Pattern in category ''''. This is a
-  medium-severity issue representing a moderate risk to security, privacy, or code
-  quality.'

@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Documentation
-    url: https://github.com/aliasfoxkde/Atheon-Enhanced/wiki
-    about: Installation, usage guides, and pattern development docs
-  - name: Discussions
-    url: https://github.com/aliasfoxkde/Atheon-Enhanced/discussions
-    about: Questions, ideas, and general conversation

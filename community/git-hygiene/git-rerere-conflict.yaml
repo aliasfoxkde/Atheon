@@ -1,7 +1,0 @@
-name: git-rerere-conflict
-match: <<<<<<<\|=======\|>>>>>>>
-severity: medium
-enabled: true
-description: 'Pattern: ''git rerere conflict''. Pattern in category ''''. This is
-  a medium-severity issue representing a moderate risk to security, privacy, or code
-  quality.'

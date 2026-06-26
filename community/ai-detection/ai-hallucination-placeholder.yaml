@@ -1,7 +1,0 @@
-name: ai-hallucination-placeholder
-match: (?i)\[(?:INSERT|PLACEHOLDER|TODO|YOUR_\w+|EXAMPLE_\w+|REPLACE_THIS)\]
-severity: medium
-enabled: true
-description: 'Pattern: ''ai hallucination placeholder''. Pattern in category ''''.
-  This is a medium-severity issue representing a moderate risk to security, privacy,
-  or code quality.'

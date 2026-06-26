@@ -1,5 +1,0 @@
-name: inefficient-data-structures
-match: array\.find.*for.*length|\.concat.*push|\.indexOf.*for|\.includes.*for
-severity: low
-description: 'Pattern: ''inefficient data structures''. Pattern in category ''''.
-  This is a low-severity issue representing a minor risk or code quality concern.'

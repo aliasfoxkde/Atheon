@@ -1,6 +1,0 @@
-name: tax-id-ein
-match: \b\d{2}[-]\d{7}\b
-severity: high
-enabled: true
-description: 'Pattern: ''tax id ein''. Pattern in category ''''. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

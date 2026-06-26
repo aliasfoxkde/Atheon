@@ -1,5 +1,0 @@
-name: healthcare-code
-match: \b(?:CPT|HCPCS|ICD-10)[A-Z0-9]{5,8}\b
-severity: medium
-description: 'Pattern: ''healthcare code''. Pattern in category ''''. This is a medium-severity
-  issue representing a moderate risk to security, privacy, or code quality.'

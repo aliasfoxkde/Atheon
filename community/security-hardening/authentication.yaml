@@ -1,6 +1,0 @@
-name: hardcoded-auth-credential
-match: bcrypt.*hash.*password.*compare|JWT.*verify.*secret|session.*secret.*default
-severity: high
-description: 'Detected hardcoded value: ''hardcoded auth credential''. Hardcoded values
-  reduce flexibility and may expose sensitive information. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

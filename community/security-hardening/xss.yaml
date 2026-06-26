@@ -1,6 +1,0 @@
-name: xss
-match: innerHTML.*user|document\.write.*user|dangerouslySetInnerHTML.*props
-severity: high
-description: 'Detected potential XSS vulnerability: ''xss''. User input should be
-  escaped before rendering in HTML. This is a high-severity issue that could lead
-  to security vulnerabilities or significant quality problems.'

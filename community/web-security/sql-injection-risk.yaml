@@ -1,7 +1,0 @@
-name: sql-string-concat
-match: (?i)(?:SELECT|INSERT|UPDATE|DELETE|FROM|WHERE)[^;]*\+\s*(?:req\.|request\.|params\.|query\.|body\.|\$_(?:GET|POST|REQUEST))
-severity: high
-enabled: true
-description: 'Detected potential SQL injection risk: ''sql string concat''. User input
-  should be properly sanitized before use in database queries. This is a high-severity
-  issue that could lead to security vulnerabilities or significant quality problems.'

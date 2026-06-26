@@ -1,7 +1,0 @@
-name: nodejs-sync-fs-readfile
-match: \bfs\.readFileSync\s*\(
-severity: high
-enabled: true
-description: 'Pattern: ''nodejs sync fs readfile''. Pattern in category ''''. This
-  is a high-severity issue that could lead to security vulnerabilities or significant
-  quality problems.'

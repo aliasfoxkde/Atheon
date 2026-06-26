@@ -1,5 +1,0 @@
-name: table-headers
-match: <table[^>]*<td|scope.*row
-severity: low
-description: 'Pattern: ''table headers''. Pattern in category ''''. This is a low-severity
-  issue representing a minor risk or code quality concern.'

@@ -1,7 +1,0 @@
-name: ai-comment-disclaimer
-match: (?i)(?:generated|written|created|produced)\s+(?:by|with|using)\s+(?:AI|ChatGPT|GPT-4|Claude|Gemini|Copilot|LLM)
-severity: medium
-enabled: true
-description: 'Pattern: ''ai comment disclaimer''. Pattern in category ''''. This is
-  a medium-severity issue representing a moderate risk to security, privacy, or code
-  quality.'

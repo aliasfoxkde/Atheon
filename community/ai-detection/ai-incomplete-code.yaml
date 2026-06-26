@@ -1,6 +1,0 @@
-name: ai-incomplete-code
-match: (?i)(add\s+(your|implementation|logic|code)|implement\s+this|fix\s+this|TODO.*AI|generated\s+by\s+AI|AI.*generated)
-severity: medium
-description: 'Pattern: ''ai incomplete code''. Pattern in category ''''. This is a
-  medium-severity issue representing a moderate risk to security, privacy, or code
-  quality.'
