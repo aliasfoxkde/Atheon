@@ -1,8 +1,7 @@
-# Task List — Atheon-Enhanced
+# Task Ledger — Atheon Enhanced
 
-**Version**: 0.6.0 (post-Wave 6)
-**Last Updated**: 2026-06-25
-**Format**: One section per hardening wave. Each wave ends with a merged PR cluster; new waves begin when a gap-analysis subagent surfaces enough new work to justify a PR.
+**Last Updated**: 2026-06-26
+**Status**: Active — Wave 9 in progress
 
 ---
 
@@ -93,21 +92,100 @@ PRs: #86, #87, #88
 
 ---
 
-## Deferred / Open
+## Wave 7: Concurrent pattern state
 
-These came out of the Wave 5 subagent gap report and are intentionally not in Wave 6. The defer was an explicit user choice.
+PR: #89
 
-- [ ] **Item 2 — `pattern_state` race fix.** Add `sync.Mutex` around `core/pattern_state.go` writes; switch bundle temp-file write to tempfile+rename. Needs `-race` validation and a focused concurrent test harness. Best done as a single PR with its own review. **Candidate for Wave 7.**
-- [ ] **Item 3+** — minor items (TODO comments in non-core, lint cleanup). Fold into the next wave or a standalone refactor PR.
-- [ ] **Bundle format `version: 2` field.** Should land before the next breaking wire change. Tracked separately; not blocking.
-- [ ] **`dev/full-feature` branch.** Mentioned in CI `docs/BRANCH_STRATEGY.md` check but does not exist. Decide whether to create it or remove the reference.
-- [ ] **Doc tasks #171, #172, #173.** Resolved by PR #88 (the `{{...}}` placeholders and the duplicate `BRANCH_STRATEGY.md` are now gone).
+- [x] Add `sync.Mutex` around `core/pattern_state.go` writes
+- [x] Add concurrent pattern state test harness
+- [x] Document concurrent access contract
+
+---
+
+## Wave 8: Detection + CI + Patterns + MCP
+
+PRs: #92-98
+
+- [x] Add detection fixtures per category (`core/testdata/`)
+- [x] Add `-race` to CI test gate
+- [x] Fix float coverage comparison in CI
+- [x] Remove shotgun regex patterns (circleci-token, heroku-api-key, etc.)
+- [x] Add symlink guard to ScanDir
+- [x] Add maxFileSize enforcement in ScanDir workers
+- [x] Add NUL-byte binary content sniff
+- [x] Add walk-error capture to Stats.Errors
+- [x] Expand skip-dirs to include `.idea`, `.vscode`, etc.
+- [x] Add SARIF uriBaseId, columns, redacted snippets, severity=none
+- [x] Add panic recovery to MCP dispatchRequest
+- [x] Move rate limiting to top of MCP run loop
+- [x] Add MCP 64 MiB request cap and 30s timeout
+- [x] Add MCP scan_string content cap and scan_env categories cap
+- [x] Add JSON-RPC version validation and notification handling
+- [x] Update CHANGELOG for all Wave 8 changes
+
+---
+
+## Wave 9: MCP Protocol + SARIF Ecosystem + Bundle Integrity
+
+Three parallel Explore agents (2026-06-26) surfaced **62 findings** across MCP+DX, SARIF+ecosystem, and Security dimensions. Four PRs planned.
+
+### PR #99: MCP error sanitization + cancel handler + progress notifications + stale-bundle detection
+
+- [ ] Add `$/cancelRequest` notification handler to MCP server (sync.Map per-request tracking)
+- [ ] Add progress notifications during `handleUpdateBundle` (every 512 KiB)
+- [ ] Sanitize JSON-RPC error messages: map `os.IsNotExist` → `"file not found"`, `os.IsPermission` → `"permission denied"`, others → `"internal error: <category>"`
+- [ ] Add ETag-based stale-bundle detection with `force: bool` bypass parameter
+- [ ] Add `bundle.etag` and `bundle.lastChecked` to pattern state file
+- [ ] Add `cmd/mcp/mcp_cancel_test.go`
+- [ ] Add `cmd/mcp/mcp_progress_test.go`
+- [ ] Add `cmd/mcp/mcp_error_sanitization_test.go`
+- [ ] Add `core/bundle_etag_test.go`
+
+### PR #100: SARIF rules[].relationships + output parity + community pattern triage
+
+- [ ] Add CWE `relationships` to SARIF rules (secrets→CWE-798, web-security→CWE-79/601, etc.)
+- [ ] Add `severity`, `column`, `fingerprint`, `category` fields to JSON output
+- [ ] Scope `dummy-function`, `mock-stub`, `fake-data` patterns to test files only
+- [ ] Scope `sleep-in-test` to `*_test.go` / `test_*.py` files
+- [ ] Fix `skip-tests` overly-broad regex (anchor `skip` word boundary, remove `mvn.*skip.*test`)
+- [ ] Lower `todo-comment`/`fixme-comment` severity to `info`
+- [ ] Remove broken `helpUri` from SARIF rules (wiki/patterns#<name> does not exist)
+- [ ] Add `cmd/atheon/main_json_output_test.go`
+- [ ] Add `cmd/atheon/main_sarif_relationships_test.go`
+
+### PR #101: Bundle hash verification + rate-limiter hardening + binary sniff
+
+- [ ] Add SHA-256 verification for downloaded bundles (fetch checksums.txt first)
+- [ ] Publish `checksums.txt` alongside GitHub releases (bundler computes at release time)
+- [ ] Add concurrent request cap to MCP server (atomic.Int counter, maxConcurrent=50)
+- [ ] Add extension-based binary heuristic for large `.log`/`.cfg`/`.conf`/`.ini` files
+- [ ] Add UTF-16 BOM detection to binary sniff (`\xff\xfe` / `\xfe\xff`)
+- [ ] Add `core/bundle_hash_test.go`
+- [ ] Add `core/binary_sniff_test.go`
+- [ ] Add `cmd/mcp/mcp_concurrency_test.go`
+
+### PR #102: Help text + Go 1.25 prep + yaml.v3 deprecation
+
+- [ ] Document `--all` and `--no-follow-symlinks` in `--help`
+- [ ] Add Go 1.25 to CI matrix (go1.21, go1.22, go1.23, go1.24, go1.25)
+- [ ] Add `yaml.v3` deprecation comment to `go.mod`
+- [ ] Run `go vet ./...` and `golangci-lint` with latest version to catch new lints
+
+---
+
+## Deferred / Backlog
+
+- [ ] Migrate `gopkg.in/yaml.v3` to `github.com/goccy/go-yaml` (breaking API change — requires careful review)
+- [ ] Add per-tool MCP `isError` and `structuredContent` fields
+- [ ] Branch protection ruleset consolidation
+- [ ] Schema version for bundle format (`version: 2`)
+- [ ] `update_bundle` force confirmation parameter
 
 ---
 
 ## Bug Tracker (active)
 
-None open as of 2026-06-25.
+None open as of 2026-06-26.
 
 Historical (all closed in their respective waves):
 - Wave 4: severity dropped at SARIF boundary → closed in PR #84.
@@ -115,15 +193,12 @@ Historical (all closed in their respective waves):
 - Wave 6: legacy bundle flip indistinguishable from intentional all-disabled → closed in PR #86.
 - Wave 6: `atheon --json --version` errored → closed in PR #86.
 - Wave 6: MCP smoke test missed framing/parsing regressions → closed in PR #87.
-
----
-
-## Notes
-
-- **Subagent gap analysis** is the project's standing input channel. After each merged wave, an Explore agent enumerates new gaps with file/line citations. The output becomes the next wave's input.
-- **Each wave is one or more PRs** (typically 2-3) for reviewability. Never land >5 PRs in a single wave without an explicit reason.
-- **Coverage threshold is a guardrail, not a goal.** Coverage has held ≥70% across all shipped waves. If a deliberate drop is needed (e.g. to add a new package), adjust `vars.COVERAGE_THRESHOLD` in repo settings and call it out in the PR.
-- **CI gates that may surprise a contributor**: the `gofmt -l .` check, the `gofmt -d .` (prints diff on failure), the no-TODO / no-debug grep, the `goimports -l .` check, and the bundle-freshness check (`SOURCE_COUNT == BUNDLE_COUNT`). The bundle check is the one most likely to bite a first-time contributor — the fix is `go run ./bundler && git add core/patterns.bundle && git commit --amend`.
+- Wave 7: pattern_state race condition → closed in PR #89.
+- Wave 8: shotgun regexes fired on every UUID/SHA1 → closed in PR #94.
+- Wave 8: ScanDir unbounded file OOM → closed in PR #95.
+- Wave 8: MCP panic killed entire server → closed in PR #97.
+- Wave 8: SARIF missing uriBaseId/columns/snippets → closed in PR #96.
+- Wave 8: rate limiter bypassable via initialize flood → closed in PR #97.
 
 ---
 
@@ -131,14 +206,16 @@ Historical (all closed in their respective waves):
 
 | Wave | Status | PRs | Theme |
 |------|--------|-----|-------|
-| 1 | [x] | 4 (#74-76, #79-80) | Scaffold + rename |
-| 2 | [x] | 1 (#81) | CI/security plumbing |
-| 3 | [x] | 1 (#83) | Fuzz + SBOM |
-| 4 | [x] | 1 (#84) | Severity wiring |
-| 5 | [x] | 1 (#85) | Audit findings |
-| 6 | [x] | 3 (#86-88) | Audit-followup + docs |
-| 7 | [ ] | TBD | pattern_state mutex (deferred) |
+| 1 | [x] | #74-76, #79-80 | Scaffold + rename |
+| 2 | [x] | #81 | CI/security plumbing |
+| 3 | [x] | #83 | Fuzz + SBOM |
+| 4 | [x] | #84 | Severity wiring |
+| 5 | [x] | #85 | Audit findings |
+| 6 | [x] | #86-88 | Audit-followup + docs |
+| 7 | [x] | #89 | pattern_state mutex |
+| 8 | [x] | #92-98 | Detection, CI, patterns, MCP hardening |
+| 9 | [~] | #99-102 (planned) | MCP protocol, SARIF ecosystem, bundle integrity |
 
-**Completed waves**: 6 / 6 in flight.
-**Total merged PRs** (through Wave 6): 11.
-**Open work**: 1 (Item 2 mutex) + 1 (bundle v2 field) + 1 (`dev/full-feature` decision).
+**Completed waves**: 8 / 8
+**Total merged PRs**: 27 through Wave 8
+**Wave 9**: In progress — 4 PRs planned
