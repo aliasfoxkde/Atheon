@@ -155,21 +155,21 @@ Three parallel Explore agents (2026-06-26) surfaced **62 findings** across MCP+D
 
 ### PR #101: Bundle hash verification + rate-limiter hardening + binary sniff
 
-- [ ] Add SHA-256 verification for downloaded bundles (fetch checksums.txt first)
-- [ ] Publish `checksums.txt` alongside GitHub releases (bundler computes at release time)
-- [ ] Add concurrent request cap to MCP server (atomic.Int counter, maxConcurrent=50)
-- [ ] Add extension-based binary heuristic for large `.log`/`.cfg`/`.conf`/`.ini` files
-- [ ] Add UTF-16 BOM detection to binary sniff (`\xff\xfe` / `\xfe\xff`)
-- [ ] Add `core/bundle_hash_test.go`
-- [ ] Add `core/binary_sniff_test.go`
-- [ ] Add `cmd/mcp/mcp_concurrency_test.go`
+- [x] Add SHA-256 verification for downloaded bundles (fetch checksums.txt first)
+- [~] Publish `checksums.txt` alongside GitHub releases (bundler computes at release time) — release process step, tracked separately
+- [x] Add concurrent request cap to MCP server (atomic.Int counter, maxConcurrent=50)
+- [x] Add extension-based binary heuristic for large `.log`/`.cfg`/`.conf`/`.ini` files
+- [x] Add UTF-16 BOM detection to binary sniff (`\xff\xfe` / `\xfe\xff`)
+- [x] Add `core/bundle_hash_test.go`
+- [x] Add `core/binary_sniff_test.go`
+- [x] Add `cmd/mcp/mcp_concurrency_test.go`
 
 ### PR #102: Help text + Go 1.25 prep + yaml.v3 deprecation
 
-- [ ] Document `--all` and `--no-follow-symlinks` in `--help`
-- [ ] Add Go 1.25 to CI matrix
-- [ ] Add `yaml.v3` deprecation comment to `go.mod`
-- [ ] Run `go vet ./...` and `golangci-lint` with latest version to catch new lints
+- [x] Document `--all` and `--no-follow-symlinks` in `--help`
+- [x] Add Go 1.25 to CI matrix
+- [x] Add `yaml.v3` deprecation comment to `go.mod`
+- [x] Run `go vet ./...` and `golangci-lint` with latest version to catch new lints
 
 ---
 
@@ -214,8 +214,8 @@ Historical (all closed in their respective waves):
 | 6 | [x] | #86-88 | Audit-followup + docs |
 | 7 | [x] | #89 | pattern_state mutex |
 | 8 | [x] | #92-98 | Detection, CI, patterns, MCP hardening |
-| 9 | [~] | #99-102 (planned) | MCP protocol, SARIF ecosystem, bundle integrity |
+| 9 | [~] | #99-102 (in progress) | MCP protocol, SARIF ecosystem, bundle integrity |
 
 **Completed waves**: 8 / 8
 **Total merged PRs**: 27 through Wave 8
-**Wave 9**: In progress — 4 PRs planned
+**Wave 9**: In progress — PRs #99/100 merged, #101 open, #102 open
