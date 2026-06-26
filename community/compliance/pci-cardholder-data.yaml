@@ -1,4 +1,7 @@
 name: pci-cardholder-data
-match: '(card[-_]holder|cardholder|pan|card[-_]number)\s*[:=]\s*\d'
+match: (card[-_]holder|cardholder|pan|card[-_]number)\s*[:=]\s*\d
 severity: high
 enabled: true
+description: 'Pattern: ''pci cardholder data''. Pattern in category ''''. This is
+  a high-severity issue that could lead to security vulnerabilities or significant
+  quality problems.'

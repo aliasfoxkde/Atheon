@@ -1,3 +1,5 @@
 name: service-worker
-match: 'cache.*addAll.*urls.*100\+|fetch.*respondWith.*cache.*match.*network|skipWaiting\(\).*clients\.claim'
+match: cache.*addAll.*urls.*100\+|fetch.*respondWith.*cache.*match.*network|skipWaiting\(\).*clients\.claim
 severity: medium
+description: 'Pattern: ''service worker''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

@@ -1,3 +1,6 @@
 name: prescription-number
-match: '\bRX[0-9]{7,10}\b'
+match: \bRX[0-9]{7,10}\b
 severity: medium
+description: 'Pattern: ''prescription number''. Pattern in category ''''. This is
+  a medium-severity issue representing a moderate risk to security, privacy, or code
+  quality.'

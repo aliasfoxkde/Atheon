@@ -1,3 +1,5 @@
 name: phone-number
-match: '(?:^|[^0-9A-Za-z-])(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}(?:$|[^0-9A-Za-z-])'
+match: (?:^|[^0-9A-Za-z-])(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}(?:$|[^0-9A-Za-z-])
 severity: high
+description: 'Pattern: ''phone number''. Pattern in category ''''. This is a high-severity
+  issue that could lead to security vulnerabilities or significant quality problems.'

@@ -1,5 +1,8 @@
 name: large-object-cloning
-match: '\.clone\(\).*JSON\.stringify|structuredClone.*large|Object\.assign.*large.*object'
+match: \.clone\(\).*JSON\.stringify|structuredClone.*large|Object\.assign.*large.*object
 severity: medium
 language: javascript
 category: performance
+description: 'Pattern: ''large object cloning''. Performance issue that could affect
+  application speed or resource usage. This is a medium-severity issue representing
+  a moderate risk to security, privacy, or code quality.'

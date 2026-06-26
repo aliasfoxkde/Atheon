@@ -1,4 +1,7 @@
 name: azure-connection-string
-match: '\bDefaultEndpointsProtocol.*AccountKey=[a-zA-Z0-9+/]{20,}\b'
+match: \bDefaultEndpointsProtocol.*AccountKey=[a-zA-Z0-9+/]{20,}\b
 severity: medium
 enabled: true
+description: 'Pattern: ''azure connection string''. Pattern in category ''''. This
+  is a medium-severity issue representing a moderate risk to security, privacy, or
+  code quality.'

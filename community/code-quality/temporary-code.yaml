@@ -1,3 +1,5 @@
 name: temporary-code
-match: 'REMOVE\s+THIS|DELETE\s+SOON|FIXME.*PRODUCTION'
+match: REMOVE\s+THIS|DELETE\s+SOON|FIXME.*PRODUCTION
 severity: low
+description: 'Pattern: ''temporary code''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

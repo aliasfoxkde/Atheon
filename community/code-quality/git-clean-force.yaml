@@ -1,3 +1,5 @@
 name: git-clean-force
-match: '(?i)git clean.*-f|-ff.*git clean'
+match: (?i)git clean.*-f|-ff.*git clean
 severity: low
+description: 'Pattern: ''git clean force''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

@@ -1,3 +1,5 @@
 name: n-plus-one-query
-match: '\.find\(|\.findOne\(|\.select\(|\.query\('
+match: \.find\(|\.findOne\(|\.select\(|\.query\(
 severity: low
+description: 'Pattern: ''n plus one query''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

@@ -1,5 +1,9 @@
 name: inaccessible-modal-dialogs
-match: 'dialog.*role.*dialog.*no.*aria-modal|modal.*no.*focus.*trap|dialog.*no.*escape.*close'
+match: dialog.*role.*dialog.*no.*aria-modal|modal.*no.*focus.*trap|dialog.*no.*escape.*close
 severity: high
 language: javascript
 category: accessibility
+description: 'Pattern: ''inaccessible modal dialogs''. Accessibility issue that may
+  prevent users with disabilities from using the application effectively. This is
+  a high-severity issue that could lead to security vulnerabilities or significant
+  quality problems.'

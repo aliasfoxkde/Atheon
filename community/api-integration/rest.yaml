@@ -1,3 +1,5 @@
 name: rest
-match: 'fetch.*\.then.*\.then.*\.catch|await\s+fetch.*await\s+fetch'
+match: fetch.*\.then.*\.then.*\.catch|await\s+fetch.*await\s+fetch
 severity: medium
+description: 'Pattern: ''rest''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

@@ -1,5 +1,8 @@
 name: missing-form-labels
-match: '<input\s|<textarea\s|<select\s'
+match: <input\s|<textarea\s|<select\s
 severity: high
 language: html
 category: accessibility
+description: 'Detected missing security or quality feature: ''missing form labels''.
+  This pattern indicates a gap that should be addressed. This is a high-severity issue
+  that could lead to security vulnerabilities or significant quality problems.'

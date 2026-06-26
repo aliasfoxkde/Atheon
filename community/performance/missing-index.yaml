@@ -1,3 +1,6 @@
 name: missing-index
-match: 'WHERE.*LIKE.*%|ORDER BY.*RAND\(\)|WHERE.*OR.*OR.*OR'
+match: WHERE.*LIKE.*%|ORDER BY.*RAND\(\)|WHERE.*OR.*OR.*OR
 severity: low
+description: 'Detected missing security or quality feature: ''missing index''. This
+  pattern indicates a gap that should be addressed. This is a low-severity issue representing
+  a minor risk or code quality concern.'

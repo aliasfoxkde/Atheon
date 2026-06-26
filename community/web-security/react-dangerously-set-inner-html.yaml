@@ -1,3 +1,6 @@
 name: react-dangerously-set-inner-html
-match: 'dangerouslySetInnerHTML'
+match: dangerouslySetInnerHTML
 severity: high
+description: 'Pattern: ''react dangerously set inner html''. Pattern in category ''''.
+  This is a high-severity issue that could lead to security vulnerabilities or significant
+  quality problems.'

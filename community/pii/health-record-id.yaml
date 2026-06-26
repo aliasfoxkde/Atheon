@@ -1,4 +1,6 @@
 name: health-record-id
-match: '\b(MRN|mrn|medical[-_]record[-_]number|patient[-_]id)\s*[:=]\s*[A-Z0-9]{6,20}\b'
+match: \b(MRN|mrn|medical[-_]record[-_]number|patient[-_]id)\s*[:=]\s*[A-Z0-9]{6,20}\b
 severity: high
 enabled: true
+description: 'Pattern: ''health record id''. Pattern in category ''''. This is a high-severity
+  issue that could lead to security vulnerabilities or significant quality problems.'

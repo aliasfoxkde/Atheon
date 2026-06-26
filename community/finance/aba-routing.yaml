@@ -1,3 +1,6 @@
 name: aba-routing-number
-match: '(?i)routing[\s_-]*(number|num|no)?[\s:=]+\b[0-9]{9}\b'
+match: (?i)routing[\s_-]*(number|num|no)?[\s:=]+\b[0-9]{9}\b
 severity: medium
+description: 'Pattern: ''aba routing number''. Pattern in category ''''. This is a
+  medium-severity issue representing a moderate risk to security, privacy, or code
+  quality.'

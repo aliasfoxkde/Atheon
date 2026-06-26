@@ -1,3 +1,6 @@
 name: django-csrf-missing
 match: '@csrf_exempt'
 severity: high
+description: 'Detected missing CSRF protection: ''django csrf missing''. Forms should
+  include CSRF tokens to prevent cross-site request forgery. This is a high-severity
+  issue that could lead to security vulnerabilities or significant quality problems.'

@@ -1,5 +1,8 @@
 name: missing-aria-live-regions
-match: 'aria-live.*assertive|aria-live.*polite|role.*status|role.*alert'
+match: aria-live.*assertive|aria-live.*polite|role.*status|role.*alert
 severity: medium
 language: html
 category: accessibility
+description: 'Detected missing security or quality feature: ''missing aria live regions''.
+  This pattern indicates a gap that should be addressed. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

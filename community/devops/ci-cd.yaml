@@ -1,3 +1,5 @@
 name: ci-cd
-match: '(?i)(jenkins|travis|circleci|github.*actions|workflow|pipeline)'
+match: (?i)(jenkins|travis|circleci|github.*actions|workflow|pipeline)
 severity: medium
+description: 'Pattern: ''ci cd''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

@@ -1,5 +1,8 @@
 name: innerhtml-user-input
-match: 'innerHTML.*=.*(user|input|params|query|window\.location|document\.cookie)'
+match: innerHTML.*=.*(user|input|params|query|window\.location|document\.cookie)
 severity: critical
 language: javascript
 category: web-security
+description: 'Pattern: ''innerhtml user input''. Web security vulnerability that could
+  be exploited by attackers. This is a critical security issue that could lead to
+  data breaches or system compromise.'

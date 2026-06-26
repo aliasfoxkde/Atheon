@@ -1,3 +1,6 @@
 name: missing-caching
-match: 'fetch.*headers.*cache.*no-cache|fetch.*cache.*no-store|cache.*false'
+match: fetch.*headers.*cache.*no-cache|fetch.*cache.*no-store|cache.*false
 severity: low
+description: 'Detected missing security or quality feature: ''missing caching''. This
+  pattern indicates a gap that should be addressed. This is a low-severity issue representing
+  a minor risk or code quality concern.'

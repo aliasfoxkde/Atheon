@@ -1,3 +1,5 @@
 name: blocking-main-thread
-match: 'while.*true.*\{|for.*while.*true|sleep.*main.*thread'
+match: while.*true.*\{|for.*while.*true|sleep.*main.*thread
 severity: low
+description: 'Pattern: ''blocking main thread''. Pattern in category ''''. This is
+  a low-severity issue representing a minor risk or code quality concern.'

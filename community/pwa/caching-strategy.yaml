@@ -1,3 +1,5 @@
 name: caching-strategy
-match: 'cache.*first.*network|network.*first.*cache|stale.*while.*revalidate'
+match: cache.*first.*network|network.*first.*cache|stale.*while.*revalidate
 severity: medium
+description: 'Pattern: ''caching strategy''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

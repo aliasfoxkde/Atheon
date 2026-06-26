@@ -1,4 +1,7 @@
 name: debug-breakpoint
-match: '(?i)(?:debugger;|breakpoint\(\)|pdb\.set_trace\(\)|binding\.pry|byebug)'
+match: (?i)(?:debugger;|breakpoint\(\)|pdb\.set_trace\(\)|binding\.pry|byebug)
 severity: low
 enabled: true
+description: 'Detected debug or logging statement: ''debug breakpoint''. Debug code
+  should be removed before production deployment. This is a low-severity issue representing
+  a minor risk or code quality concern.'

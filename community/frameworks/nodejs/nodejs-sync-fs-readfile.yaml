@@ -1,5 +1,7 @@
 name: nodejs-sync-fs-readfile
-# Synchronous filesystem read in a hot path — common perf smell.
-match: '\bfs\.readFileSync\s*\('
+match: \bfs\.readFileSync\s*\(
 severity: high
 enabled: true
+description: 'Pattern: ''nodejs sync fs readfile''. Pattern in category ''''. This
+  is a high-severity issue that could lead to security vulnerabilities or significant
+  quality problems.'

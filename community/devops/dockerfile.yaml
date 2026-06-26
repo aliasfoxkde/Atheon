@@ -1,3 +1,5 @@
 name: dockerfile
-match: '(?i)(FROM|dockerfile|docker.*build|docker.*compose)'
+match: (?i)(FROM|dockerfile|docker.*build|docker.*compose)
 severity: medium
+description: 'Pattern: ''dockerfile''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

@@ -1,4 +1,7 @@
 name: gdpr-personal-data-comment
-match: '(personal[-_]data|PII|PHI|protected[-_]health)\s+(data|information)\s+(stored|collected|logged)'
+match: (personal[-_]data|PII|PHI|protected[-_]health)\s+(data|information)\s+(stored|collected|logged)
 severity: high
 enabled: true
+description: 'Pattern: ''gdpr personal data comment''. Pattern in category ''''. This
+  is a high-severity issue that could lead to security vulnerabilities or significant
+  quality problems.'

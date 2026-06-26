@@ -1,3 +1,5 @@
 name: offline-support
-match: 'offline.*html.*503|navigator\.onLine.*false|fallback.*page.*offline'
+match: offline.*html.*503|navigator\.onLine.*false|fallback.*page.*offline
 severity: medium
+description: 'Pattern: ''offline support''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

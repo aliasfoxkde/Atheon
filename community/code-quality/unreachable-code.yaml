@@ -1,3 +1,5 @@
 name: unreachable-code
-match: '(?i)throw.*return|return.*throw|exit.*return|die.*return'
+match: (?i)throw.*return|return.*throw|exit.*return|die.*return
 severity: low
+description: 'Pattern: ''unreachable code''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

@@ -1,3 +1,5 @@
 name: bundler-optimization
-match: 'import.*\*.*from|require.*dynamic.*import|import.*\(?.*await'
+match: import.*\*.*from|require.*dynamic.*import|import.*\(?.*await
 severity: low
+description: 'Pattern: ''bundler optimization''. Pattern in category ''''. This is
+  a low-severity issue representing a minor risk or code quality concern.'

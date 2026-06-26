@@ -1,3 +1,5 @@
 name: iban
-match: '\b[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}\b'
+match: \b[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}\b
 severity: medium
+description: 'Pattern: ''iban''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

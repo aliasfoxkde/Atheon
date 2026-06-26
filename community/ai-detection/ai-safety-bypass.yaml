@@ -1,3 +1,6 @@
 name: ai-safety-bypass
-match: '(?i)(add error handling|fix this later|implement this|todo.*fix|hack|workaround|temporary)'
+match: (?i)(add error handling|fix this later|implement this|todo.*fix|hack|workaround|temporary)
 severity: medium
+description: 'Detected potential CI/security bypass: ''ai safety bypass''. Bypass
+  mechanisms should be carefully reviewed and avoided in production. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

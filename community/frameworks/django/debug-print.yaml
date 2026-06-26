@@ -1,4 +1,6 @@
 name: django-debug-print
-match: '(?i)(print\(.*request|DEBUG\s*=\s*True|django.*debug)'
-
+match: (?i)(print\(.*request|DEBUG\s*=\s*True|django.*debug)
 severity: low
+description: 'Detected debug or logging statement: ''django debug print''. Debug code
+  should be removed before production deployment. This is a low-severity issue representing
+  a minor risk or code quality concern.'

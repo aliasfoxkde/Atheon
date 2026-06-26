@@ -1,3 +1,5 @@
 name: chart-types
-match: 'type.*bar.*data.*1000\+|type.*line.*categories.*10\+|type.*pie.*slices.*20\+'
+match: type.*bar.*data.*1000\+|type.*line.*categories.*10\+|type.*pie.*slices.*20\+
 severity: medium
+description: 'Pattern: ''chart types''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

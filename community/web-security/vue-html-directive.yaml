@@ -1,3 +1,6 @@
 name: vue-html-directive
-match: 'v-html.*\$\{'
+match: v-html.*\$\{
 severity: high
+description: 'Pattern: ''vue html directive''. Pattern in category ''''. This is a
+  high-severity issue that could lead to security vulnerabilities or significant quality
+  problems.'

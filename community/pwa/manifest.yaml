@@ -1,3 +1,5 @@
 name: manifest
-match: 'manifest.*name.*short_name.*different|display.*standalone.*theme_color.*different|icons.*192.*512'
+match: manifest.*name.*short_name.*different|display.*standalone.*theme_color.*different|icons.*192.*512
 severity: medium
+description: 'Pattern: ''manifest''. Pattern in category ''''. This is a medium-severity
+  issue representing a moderate risk to security, privacy, or code quality.'

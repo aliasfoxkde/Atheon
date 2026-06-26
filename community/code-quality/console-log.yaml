@@ -1,3 +1,6 @@
 name: console-log
-match: 'console\.(log|debug|info|warn|error)\('
+match: console\.(log|debug|info|warn|error)\(
 severity: low
+description: 'Detected debug or logging statement: ''console log''. Debug code should
+  be removed before production deployment. This is a low-severity issue representing
+  a minor risk or code quality concern.'

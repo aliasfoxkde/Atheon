@@ -1,3 +1,5 @@
 name: state-management
-match: 'useState.*useEffect.*useState|setState.*prevState|dispatch.*action.*type'
+match: useState.*useEffect.*useState|setState.*prevState|dispatch.*action.*type
 severity: low
+description: 'Pattern: ''state management''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

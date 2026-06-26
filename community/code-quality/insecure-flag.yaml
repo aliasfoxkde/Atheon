@@ -1,3 +1,5 @@
 name: insecure-flag
-match: '(?i)(--insecure|insecure.*flag|skip.*verify|no.*check)'
+match: (?i)(--insecure|insecure.*flag|skip.*verify|no.*check)
 severity: low
+description: 'Pattern: ''insecure flag''. Pattern in category ''''. This is a low-severity
+  issue representing a minor risk or code quality concern.'

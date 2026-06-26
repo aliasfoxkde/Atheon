@@ -1,3 +1,6 @@
 name: kubernetes-misconfiguration
-match: 'imagePullPolicy.*Always|resources:.*limits.*memory.*128Mi|replicas:.*1'
+match: imagePullPolicy.*Always|resources:.*limits.*memory.*128Mi|replicas:.*1
 severity: medium
+description: 'Pattern: ''kubernetes misconfiguration''. Pattern in category ''''.
+  This is a medium-severity issue representing a moderate risk to security, privacy,
+  or code quality.'

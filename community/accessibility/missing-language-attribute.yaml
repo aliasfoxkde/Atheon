@@ -1,5 +1,8 @@
 name: missing-language-attribute
-match: '<html[^>]*>|document\.documentElement\.lang'
+match: <html[^>]*>|document\.documentElement\.lang
 severity: low
 language: html
 category: accessibility
+description: 'Detected missing security or quality feature: ''missing language attribute''.
+  This pattern indicates a gap that should be addressed. This is a low-severity issue
+  representing a minor risk or code quality concern.'

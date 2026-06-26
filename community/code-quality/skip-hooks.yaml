@@ -1,3 +1,6 @@
 name: skip-hooks
-match: '(?i)(--no-verify|skip.*hook|hook.*skip|--no-hooks)'
+match: (?i)(--no-verify|skip.*hook|hook.*skip|--no-hooks)
 severity: low
+description: 'Detected potential CI/security bypass: ''skip hooks''. Bypass mechanisms
+  should be carefully reviewed and avoided in production. This is a low-severity issue
+  representing a minor risk or code quality concern.'

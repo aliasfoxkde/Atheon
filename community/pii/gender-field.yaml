@@ -1,4 +1,6 @@
 name: gender-field
-match: '\b(gender|sex)\s*[:=]\s*(male|female|other|non[-_]binary)\b'
+match: \b(gender|sex)\s*[:=]\s*(male|female|other|non[-_]binary)\b
 severity: high
 enabled: true
+description: 'Pattern: ''gender field''. Pattern in category ''''. This is a high-severity
+  issue that could lead to security vulnerabilities or significant quality problems.'

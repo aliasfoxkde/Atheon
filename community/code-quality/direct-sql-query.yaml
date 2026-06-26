@@ -1,4 +1,7 @@
 name: direct-sql-query
-match: '(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER)\s+.*\s+FROM\s+[a-zA-Z0-9_]+'
+match: (SELECT|INSERT|UPDATE|DELETE|DROP|ALTER)\s+.*\s+FROM\s+[a-zA-Z0-9_]+
 severity: low
 enabled: true
+description: 'Detected potential SQL injection risk: ''direct sql query''. User input
+  should be properly sanitized before use in database queries. This is a low-severity
+  issue representing a minor risk or code quality concern.'
