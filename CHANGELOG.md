@@ -38,6 +38,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   SLSA provenance attestations for every release artifact.
 - `.github/workflows/community-pattern-review.yml` curl call gains
   `--max-time 30` to prevent infinite hangs on an unresponsive Azure endpoint.
+- `core/bundle.go` `SetBundleDownloadURL` now rejects non-HTTP(S) URL schemes
+  (`file://`, `ftp://`, etc.) before any network access, preventing SSRF
+  attacks that read local files or scan internal networks. Only `http://` and
+  `https://` pass through to the HTTP layer.
+- `core/bundle.go` `DownloadBundle` now returns an error when hash verification
+  fails (was: warn-and-proceed). A hash mismatch means the bundle may have
+  been tampered with in transit — proceeding is insecure.
+- `core/runner.go` `readFileCapped` now calls `filepath.EvalSymlinks` before
+  `os.Stat` so that a symlink to a huge file (e.g. `scan_root/lnk ->
+  /proc/kcore`) is sized by its resolved target rather than the symlink
+  itself. Closes the TOCTOU race where a small file passes the size check
+  and is swapped for a huge-target symlink before `ReadFile` runs.
 
 ### Deprecated
 - `go.mod` `gopkg.in/yaml.v3 v3.0.1` marked with a DEPRECATED comment;
