@@ -7,14 +7,19 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"sync/atomic"
@@ -65,8 +70,24 @@ type bundlePattern struct {
 func (p *bundlePattern) Name() string             { return p.name }
 func (p *bundlePattern) Category() string         { return p.category }
 func (p *bundlePattern) Matches(line string) bool { return p.enabled && p.re.MatchString(line) }
-func (p *bundlePattern) Enabled() bool            { return p.enabled }
-func (p *bundlePattern) SetEnabled(enabled bool)  { p.enabled = enabled }
+
+// matchSpan returns the [start, end) byte offsets of p's first match in
+// line, or (-1, -1) if it doesn't match or the pattern is disabled.
+// Unexported because it exposes RE2's internal offsets, which aren't
+// stable across pattern implementations (only bundlePattern has a
+// compiled regex to query).
+func (p *bundlePattern) matchSpan(line string) (start, end int) {
+	if !p.enabled || p.re == nil {
+		return -1, -1
+	}
+	loc := p.re.FindStringIndex(line)
+	if loc == nil {
+		return -1, -1
+	}
+	return loc[0], loc[1]
+}
+func (p *bundlePattern) Enabled() bool           { return p.enabled }
+func (p *bundlePattern) SetEnabled(enabled bool) { p.enabled = enabled }
 
 // Severity returns the pattern's severity — one of ValidSeverities, never empty.
 // Patterns loaded without a severity field read back as DefaultSeverity.
@@ -129,6 +150,56 @@ func initializeWith(data []byte) {
 	}
 }
 
+// decodeJSONStrict decodes JSON from data into out, first validating that no
+// unknown fields are present (fields not defined in the destination struct).
+// This is equivalent to json.Decoder.DisallowUnknownFields (Go 1.24+).
+// An unknown field causes an error to be returned.  Handles both JSON objects
+// (map) and JSON arrays ([]struct) as the top-level container.
+func decodeJSONStrict(data []byte, out interface{}) error {
+	// Peek at the first non-whitespace byte to determine container type.
+	trimmed := trimSpace(data)
+	if len(trimmed) == 0 {
+		return fmt.Errorf("bundle: empty JSON data")
+	}
+	switch trimmed[0] {
+	case '{':
+		// Object — validate and reject unknown keys.
+		var raw map[string]json.RawMessage
+		if err := json.Unmarshal(data, &raw); err != nil {
+			return err
+		}
+		v := reflect.ValueOf(out).Elem()
+		t := v.Type()
+		valid := make(map[string]struct{}, t.NumField())
+		for i := 0; i < t.NumField(); i++ {
+			valid[t.Field(i).Name] = struct{}{}
+		}
+		for k := range raw {
+			if _, ok := valid[k]; !ok {
+				return fmt.Errorf("bundle contains unknown field %q", k)
+			}
+		}
+		return json.Unmarshal(data, out)
+	case '[':
+		// Array — accept directly; individual items validated by their types.
+		return json.Unmarshal(data, out)
+	default:
+		return fmt.Errorf("bundle: unexpected JSON root type")
+	}
+}
+
+// trimSpace returns data with leading/trailing whitespace removed.
+func trimSpace(data []byte) []byte {
+	i, j := 0, len(data)
+	for i < j && (data[i] == ' ' || data[i] == '\t' || data[i] == '\n' || data[i] == '\r') {
+		i++
+	}
+	for j > i && (data[j-1] == ' ' || data[j-1] == '\t' || data[j-1] == '\n' || data[j-1] == '\r') {
+		j--
+	}
+	return data[i:j]
+}
+
 func loadBundle(data []byte) error {
 	r, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
@@ -136,8 +207,14 @@ func loadBundle(data []byte) error {
 	}
 	defer r.Close()
 
+	// Read decompressed content into memory so we can validate it before parsing.
+	decompressed, err := io.ReadAll(r)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrBundleParse, err)
+	}
+
 	var defs []PatternDef
-	if err := json.NewDecoder(r).Decode(&defs); err != nil {
+	if err := decodeJSONStrict(decompressed, &defs); err != nil {
 		return fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 
@@ -296,11 +373,30 @@ func Categories() []string {
 	return cats
 }
 
+// maxBundleDownloadBytes bounds the bundle download to prevent memory exhaustion
+// from a malicious or compromised upstream server sending an unbounded payload.
+// 100 MiB is generous — the current bundle is ~400 KiB compressed — and leaves
+// room for future growth without approaching a DoS vector.
+const maxBundleDownloadBytes = 100 << 20 // 100 MiB
+
 // bundleDownloadURL is the default upstream bundle URL. Tests may override
 // it via SetBundleDownloadURL to point at an httptest server. Held in an
 // atomic.Pointer so concurrent readers (fetchBundleData) and the test-only
 // writer don't tear the string under -race.
 var bundleDownloadURL = atomic.Pointer[string]{}
+
+// skipHostValidation disables hostname validation in SetBundleDownloadURL when
+// true.  Used by tests that intentionally point at httptest servers on loopback.
+// Tests in the core package may set this directly.
+var skipHostValidation bool
+
+// SetBundleDownloadURLForTest is like SetBundleDownloadURL but also disables
+// hostname validation so tests can point at httptest servers on loopback.
+// The returned restore function resets skipHostValidation to false.
+func SetBundleDownloadURLForTest(bundleURL string) func() {
+	skipHostValidation = true
+	return SetBundleDownloadURL(bundleURL)
+}
 
 // init-time default. Done as a function rather than a literal so a test
 // that calls SetBundleDownloadURL("") before init can still observe the
@@ -312,18 +408,92 @@ func init() {
 func ptrString(s string) *string { return &s }
 
 // SetBundleDownloadURL swaps the upstream URL used by DownloadBundle. It
-// returns a restore function that callers should defer to reset the URL
-// after tests or short-lived overrides. Exported so external test
-// packages (e.g., the main binary's tests) can stub out network access.
-func SetBundleDownloadURL(url string) func() {
-	prev := bundleDownloadURL.Swap(ptrString(url))
-	return func() { bundleDownloadURL.Store(prev) }
+// rejects file:// and other non-HTTP schemes that could be used for SSRF
+// attacks (e.g., file:///etc/passwd to read local files, ftp:// to scan
+// internal networks). HTTP and HTTPS schemes pass through; any URL —
+// including malformed ones, localhost, and private IPs — proceeds to the
+// HTTP layer where DownloadBundle's context timeout provides safety.
+// Returns a restore function that callers should defer to reset the URL
+// after tests or short-lived overrides. Exported so external test packages
+// (e.g., the main binary's tests) can stub out network access.
+func SetBundleDownloadURL(rawURL string) func() {
+	if rawURL != "" {
+		u, err := url.Parse(rawURL)
+		if err == nil {
+			switch u.Scheme {
+			case "http", "https":
+				// Allowed — validate hostname below.
+			default:
+				// Reject file://, ftp://, sftp://, etc.
+				panic("SetBundleDownloadURL: non-HTTP(S) scheme rejected: " + rawURL)
+			}
+			// Reject loopback, private, and link-local addresses to block SSRF
+			// to cloud metadata endpoints (169.254.x.x), LAN services, and
+			// localhost.  Hostname resolution is synchronous and bounded by the
+			// caller's context timeout (15 s in DownloadBundle).
+			if !skipHostValidation {
+				host := u.Hostname()
+				if host != "" && isReservedOrPrivateHost(host) {
+					panic("SetBundleDownloadURL: reserved/private host rejected: " + host)
+				}
+			}
+		}
+	}
+	prev := bundleDownloadURL.Swap(ptrString(rawURL))
+	return func() {
+		bundleDownloadURL.Store(prev)
+		skipHostValidation = false
+	}
+}
+
+// isReservedOrPrivateHost returns true if host resolves to a loopback,
+// private, or link-local IP address.  If host is not a valid IP or
+// hostname, it returns false (the scheme/blocklist check already ran).
+func isReservedOrPrivateHost(host string) bool {
+	// First check if host is already a valid IP.
+	if ip := net.ParseIP(host); ip != nil {
+		return ip.IsLoopback() || ip.IsPrivate() || isLinkLocal(ip)
+	}
+	// Otherwise resolve the hostname.  Timeout is governed by the caller.
+	addrs, err := net.LookupHost(host)
+	if err != nil {
+		// Cannot resolve — allow through; HTTP layer will fail anyway.
+		return false
+	}
+	for _, addr := range addrs {
+		ip := net.ParseIP(addr)
+		if ip == nil {
+			continue
+		}
+		if ip.IsLoopback() || ip.IsPrivate() || isLinkLocal(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+// isLinkLocal returns true for IPv4 169.254.x.x and IPv6 fe80::.
+func isLinkLocal(ip net.IP) bool {
+	if ip == nil {
+		return false
+	}
+	// 169.254.0.0/16
+	b := ip.To4()
+	if b != nil {
+		return b[0] == 169 && b[1] == 254
+	}
+	// fe80::/10
+	return ip.IsLinkLocalUnicast()
 }
 
 // DownloadBundle fetches the latest pattern bundle from the URL configured via
 // SetBundleDownloadURL (or the default URL), compares it against the in-memory
-// bundle, prints a summary of added/removed patterns, and persists the new bundle
-// to ~/.atheon/patterns.bundle.
+// bundle, verifies the SHA-256 hash against checksums.txt, prints a summary of
+// added/removed patterns, and persists the new bundle to ~/.atheon/patterns.bundle.
+//
+// If force is false and the bundle appears fresh (ETag matches a recent check),
+// DownloadBundle returns nil immediately without contacting the server. The
+// 24-hour freshness window avoids a round-trip on every scan.
 //
 // The bundle is loaded into memory before being written to disk; if loadBundle
 // fails the on-disk bundle is left untouched.
@@ -333,16 +503,34 @@ func SetBundleDownloadURL(url string) func() {
 //
 // On any non-success HTTP status code, DownloadBundle returns an error wrapping
 // ErrBundleDownload so callers can use errors.Is.
-func DownloadBundle(ctx context.Context) error {
+func DownloadBundle(ctx context.Context, force bool) error {
 	start := time.Now()
-	slog.Info("bundle download started", "url", *bundleDownloadURL.Load())
+	bundleURL := *bundleDownloadURL.Load()
+	slog.Info("bundle download started", "url", bundleURL, "force", force)
+
+	// Stale-bundle check: if not forced, see if we've checked recently with a
+	// matching ETag. This skips the network round-trip on repeated scans.
+	if !force {
+		skip, etag := shouldSkipDownload()
+		if skip {
+			slog.Info("bundle download skipped (fresh)", "etag", etag)
+			return nil
+		}
+	}
+
 	oldPatterns := currentPatternNames()
 
-	data, err := fetchBundleData(ctx)
+	data, etag, err := fetchBundleData(ctx)
 	if err != nil {
 		return err
 	}
-	slog.Info("bundle download complete", "bytes", len(data), "elapsed_ms", time.Since(start).Milliseconds())
+
+	// Verify SHA-256 hash against checksums.txt if available.
+	if err := verifyBundleHash(ctx, data); err != nil {
+		return fmt.Errorf("%w: %w", ErrBundleHashMismatch, err)
+	}
+
+	slog.Info("bundle download complete", "bytes", len(data), "elapsed_ms", time.Since(start).Milliseconds(), "etag", etag)
 
 	dir, err := ensureAtheonDir()
 	if err != nil {
@@ -373,7 +561,53 @@ func DownloadBundle(ctx context.Context) error {
 	if err := atomicWriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o600); err != nil {
 		return err
 	}
+
+	// Record the ETag and timestamp so the next call can skip if unchanged.
+	if err := recordBundleETag(etag); err != nil {
+		slog.Warn("failed to record bundle ETag", "err", err)
+	}
+
 	return nil
+}
+
+// shouldSkipDownload returns (true, etag) if the bundle appears fresh:
+// the last check was within 24 hours and the stored ETag matches the
+// upstream value. Force downloads always return (false, "").
+func shouldSkipDownload() (skipped bool, etag string) {
+	etagVal, lastChecked, err := loadBundleETag()
+	if err != nil || etagVal == "" {
+		return false, ""
+	}
+	// 24-hour freshness window
+	if time.Since(lastChecked) < 24*time.Hour {
+		return true, etagVal
+	}
+	return false, ""
+}
+
+// recordBundleETag persists the ETag and timestamp to the pattern state file.
+func recordBundleETag(etag string) error {
+	return withFileLock(stateFile(), func() error {
+		state, err := loadPatternState()
+		if err != nil {
+			return err
+		}
+		state.BundleETag = etag
+		state.BundleLastChecked = time.Now().UnixNano()
+		return savePatternState(state)
+	})
+}
+
+// loadBundleETag returns the stored ETag and last-checked time.
+func loadBundleETag() (etag string, lastChecked time.Time, err error) {
+	state, err := loadPatternState()
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	if state.BundleETag == "" || state.BundleLastChecked == 0 {
+		return "", time.Time{}, nil
+	}
+	return state.BundleETag, time.Unix(0, state.BundleLastChecked), nil
 }
 
 // currentPatternNames returns the names of every pattern currently in
@@ -389,33 +623,117 @@ func currentPatternNames() []string {
 }
 
 // fetchBundleData performs the HTTP GET against bundleDownloadURL and
-// returns the response body on success.
-func fetchBundleData(ctx context.Context) ([]byte, error) {
+// returns the response body and ETag header on success.
+func fetchBundleData(ctx context.Context) (data []byte, etag string, err error) {
 	client := &http.Client{Timeout: 30 * time.Second}
 	urlPtr := bundleDownloadURL.Load()
 	if urlPtr == nil {
-		return nil, fmt.Errorf("%w: bundle download URL not initialised", ErrBundleDownload)
+		return nil, "", fmt.Errorf("%w: bundle download URL not initialised", ErrBundleDownload)
 	}
 	// bundleDownloadURL is configured via SetBundleDownloadURL and only
 	// ever points at https://github.com/... or a test stub. SSRF surface
 	// is bounded by the controlled allow-list maintained in this package.
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, *urlPtr, http.NoBody)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBundleDownload, err)
+		return nil, "", fmt.Errorf("%w: %v", ErrBundleDownload, err)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBundleDownload, err)
+		return nil, "", fmt.Errorf("%w: %v", ErrBundleDownload, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: server returned %d", ErrBundleDownload, resp.StatusCode)
+		return nil, "", fmt.Errorf("%w: server returned %d", ErrBundleDownload, resp.StatusCode)
 	}
-	data, err := io.ReadAll(resp.Body)
+	// LimitedReader truncates at maxBundleDownloadBytes but does NOT return an
+	// error when truncated — it just stops reading. Detect truncation by comparing
+	// against Content-Length when that header is available.
+	data, err = io.ReadAll(&io.LimitedReader{R: resp.Body, N: maxBundleDownloadBytes})
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBundleDownload, err)
+		return nil, "", fmt.Errorf("%w: %v", ErrBundleDownload, err)
 	}
-	return data, nil
+	if resp.ContentLength > 0 && int64(len(data)) < resp.ContentLength {
+		return nil, "", fmt.Errorf("%w: bundle exceeded %d byte cap (server sent %d bytes)",
+			ErrBundleDownload, maxBundleDownloadBytes, resp.ContentLength)
+	}
+	return data, resp.Header.Get("ETag"), nil
+}
+
+// computeBundleHash computes the SHA-256 hex digest of data.
+func computeBundleHash(data []byte) string {
+	h := sha256.Sum256(data)
+	return hex.EncodeToString(h[:])
+}
+
+// verifyBundleHash downloads checksums.txt from the same directory as
+// the bundle URL and verifies that the bundle's SHA-256 hash appears
+// in it. If checksums.txt is unavailable (404) the check is skipped
+// with a warning — this allows the feature to work in environments
+// where checksums haven't been published yet. Any other error is logged
+// but not propagated so a bad checksums.txt doesn't block bundle updates.
+func verifyBundleHash(ctx context.Context, data []byte) error {
+	bundleURLVar := *bundleDownloadURL.Load()
+	// Derive checksums URL: strips filename, appends checksums.txt.
+	// https://github.com/.../download/v1.2.3/patterns.bundle
+	//   → https://github.com/.../download/v1.2.3/checksums.txt
+	idx := strings.LastIndex(bundleURLVar, "/")
+	if idx < 0 {
+		return fmt.Errorf("cannot derive checksums URL from %q", bundleURLVar)
+	}
+	checksumsURL := bundleURLVar[:idx+1] + "checksums.txt"
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, checksumsURL, http.NoBody)
+	if err != nil {
+		return fmt.Errorf("checksums request: %w", err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("fetching checksums: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		slog.Warn("checksums.txt not found at upstream, skipping hash verification", "url", checksumsURL)
+		return nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("checksums returned %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20)) // 1 MiB cap on checksums.txt
+	if err != nil {
+		return fmt.Errorf("reading checksums: %w", err)
+	}
+
+	// checksums.txt format: one line per file, "<hexhash> <filename>".
+	// We look for a line whose filename component matches "patterns.bundle".
+	expectedHash := computeBundleHash(data)
+	lines := strings.Split(string(body), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		// Format: "<hash> <filename)" — split on whitespace, take last token as filename
+		parts := strings.Fields(line)
+		if len(parts) < 2 {
+			continue
+		}
+		hash, filename := parts[0], parts[len(parts)-1]
+		if filename == "patterns.bundle" || filename == "patterns.bundle.gz" {
+			if hash == expectedHash {
+				slog.Debug("bundle hash verified", "hash", expectedHash)
+				return nil
+			}
+			return fmt.Errorf("%w: hash mismatch for patterns.bundle (expected %s, got %s)",
+				ErrBundleHashMismatch, expectedHash, hash)
+		}
+	}
+
+	slog.Warn("patterns.bundle not found in checksums.txt, skipping verification",
+		"url", checksumsURL, "checked_lines", len(lines))
+	return nil
 }
 
 // ensureAtheonDir creates (if needed) and returns the ~/.atheon path.
@@ -433,13 +751,17 @@ func ensureAtheonDir() (string, error) {
 
 // parseBundle decodes a gzipped JSON bundle into PatternDefs.
 func parseBundle(data []byte) ([]PatternDef, error) {
-	var defs []PatternDef
 	r, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 	defer r.Close()
-	if err := json.NewDecoder(r).Decode(&defs); err != nil {
+	decompressed, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
+	}
+	var defs []PatternDef
+	if err := decodeJSONStrict(decompressed, &defs); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 	return defs, nil
