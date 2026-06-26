@@ -509,15 +509,38 @@ func ensureAtheonDir() (string, error) {
 	return dir, nil
 }
 
+// trimSpace returns data with leading/trailing whitespace removed.
+func trimSpace(data []byte) []byte {
+	i, j := 0, len(data)
+	for i < j && (data[i] == ' ' || data[i] == '\t' || data[i] == '\n' || data[i] == '\r') {
+		i++
+	}
+	for j > i && (data[j-1] == ' ' || data[j-1] == '\t' || data[j-1] == '\n' || data[j-1] == '\r') {
+		j--
+	}
+	return data[i:j]
+}
 // parseBundle decodes a gzipped JSON bundle into PatternDefs.
 func parseBundle(data []byte) ([]PatternDef, error) {
-	var defs []PatternDef
 	r, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 	defer r.Close()
-	if err := json.NewDecoder(r).Decode(&defs); err != nil {
+
+	decompressed, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
+	}
+
+	// Guard against empty or whitespace-only data
+	trimmed := trimSpace(decompressed)
+	if len(trimmed) == 0 {
+		return nil, fmt.Errorf("%w: empty bundle data", ErrBundleParse)
+	}
+
+	var defs []PatternDef
+	if err := json.Unmarshal(decompressed, &defs); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 	return defs, nil
