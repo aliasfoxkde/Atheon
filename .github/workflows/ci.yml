@@ -266,9 +266,20 @@ jobs:
       - name: Validate pattern YAMLs
         # Pre-bundle structural check: required fields, duplicate names,
         # severity values, declared-category-vs-dir consistency. The Go
-        # bundler does an authoritative RE2 compile afterwards, so this
-        # catches the common typos early without duplicating that work.
+        # bundler does an authoritative RE2 compile in the next step, so
+        # this catches the common typos early without duplicating that
+        # work.
         run: python3 scripts/validate-patterns.py community/
+
+      - name: Rebuild patterns.bundle from source
+        # Authoritative RE2 compile of every community/**/*.yaml. Without
+        # this step, a pattern whose regex is RE2-incompatible (e.g.
+        # uses PCRE lookahead) can pass the structural validator and
+        # the bundle freshness check, then break at runtime when
+        # scanLines hits the uncompilable regex. Bundling here means CI
+        # catches the breakage immediately, and the produced bundle
+        # becomes the source of truth for the count check below.
+        run: go run ./bundler
 
       - name: Build binaries
         run: |

@@ -67,8 +67,13 @@ def iter_yaml_files(root: Path) -> Iterable[Path]:
 
 
 def parent_category(path: Path, root: Path) -> str:
-    """The category the bundler assigns — always the immediate parent dir."""
-    return path.parent.relative_to(root).as_posix()
+    """The category the bundler assigns — always the immediate parent dir.
+
+    Uses the parent directory's basename rather than the path relative
+    to root, so this works whether the user points at community/ or at
+    community/secrets/ as the root.
+    """
+    return path.parent.name
 
 
 def validate_one(path: Path, root: Path, seen_names: dict[str, Path]) -> list[str]:
