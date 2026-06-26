@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -380,6 +381,24 @@ const maxBundleDownloadBytes = 100 << 20 // 100 MiB
 // writer don't tear the string under -race.
 var bundleDownloadURL = atomic.Pointer[string]{}
 
+// skipHostValidation disables hostname validation in SetBundleDownloadURL when
+// true.  Used by tests that intentionally point at httptest servers on loopback.
+// Tests in the core package may set this directly.
+var skipHostValidation bool
+
+// SetBundleDownloadURLForTest is like SetBundleDownloadURL but also disables
+// hostname validation so tests can point at httptest servers on loopback.
+// It is the only exported way to set skipHostValidation; the flag is reset
+// automatically when the returned restore function is called.
+func SetBundleDownloadURLForTest(url string) func() {
+	skipHostValidation = true
+	restore := SetBundleDownloadURL(url)
+	return func() {
+		restore()
+		skipHostValidation = false
+	}
+}
+
 // init-time default. Done as a function rather than a literal so a test
 // that calls SetBundleDownloadURL("") before init can still observe the
 // real default on first use.
@@ -404,15 +423,65 @@ func SetBundleDownloadURL(rawURL string) func() {
 		if err == nil {
 			switch u.Scheme {
 			case "http", "https":
-				// Allowed — proceeds to HTTP layer.
+				// Allowed — validate hostname below.
 			default:
 				// Reject file://, ftp://, sftp://, etc.
 				panic("SetBundleDownloadURL: non-HTTP(S) scheme rejected: " + rawURL)
+			}
+			// Reject loopback, private, and link-local addresses to block SSRF
+			// to cloud metadata endpoints (169.254.x.x), LAN services, and
+			// localhost.  Hostname resolution is synchronous and bounded by the
+			// caller's context timeout (15 s in DownloadBundle).
+			if !skipHostValidation {
+				host := u.Hostname()
+				if host != "" && isReservedOrPrivateHost(host) {
+					panic("SetBundleDownloadURL: reserved/private host rejected: " + host)
+				}
 			}
 		}
 	}
 	prev := bundleDownloadURL.Swap(ptrString(rawURL))
 	return func() { bundleDownloadURL.Store(prev) }
+}
+
+// isReservedOrPrivateHost returns true if host resolves to a loopback,
+// private, or link-local IP address.  If host is not a valid IP or
+// hostname, it returns false (the scheme/blocklist check already ran).
+func isReservedOrPrivateHost(host string) bool {
+	// First check if host is already a valid IP.
+	if ip := net.ParseIP(host); ip != nil {
+		return ip.IsLoopback() || ip.IsPrivate() || isLinkLocal(ip)
+	}
+	// Otherwise resolve the hostname.  Timeout is governed by the caller.
+	addrs, err := net.LookupHost(host)
+	if err != nil {
+		// Cannot resolve — allow through; HTTP layer will fail anyway.
+		return false
+	}
+	for _, addr := range addrs {
+		ip := net.ParseIP(addr)
+		if ip == nil {
+			continue
+		}
+		if ip.IsLoopback() || ip.IsPrivate() || isLinkLocal(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+// isLinkLocal returns true for IPv4 169.254.x.x and IPv6 fe80::.
+func isLinkLocal(ip net.IP) bool {
+	if ip == nil {
+		return false
+	}
+	// 169.254.0.0/16
+	b := ip.To4()
+	if b != nil {
+		return b[0] == 169 && b[1] == 254
+	}
+	// fe80::/10
+	return ip.IsLinkLocalUnicast()
 }
 
 // DownloadBundle fetches the latest pattern bundle from the URL configured via

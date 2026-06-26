@@ -419,7 +419,7 @@ func TestHandleCallListCategories(t *testing.T) {
 // an unreachable URL. We override the bundle download URL to one that
 // will fail fast, so the test does not depend on network state.
 func TestHandleCallUpdateBundle(t *testing.T) {
-	restore := core.SetBundleDownloadURL("http://127.0.0.1:1/nope")
+	restore := core.SetBundleDownloadURLForTest("http://127.0.0.1:1/nope")
 	defer restore()
 
 	params := json.RawMessage(`{"name":"update_bundle","arguments":{}}`)

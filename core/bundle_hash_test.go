@@ -80,7 +80,7 @@ func TestVerifyBundleHashOK(t *testing.T) {
 	}))
 	defer server.Close()
 
-	restore := SetBundleDownloadURL(server.URL + "/download/patterns.bundle")
+	restore := testSetBundleURL(server.URL + "/download/patterns.bundle")
 	defer restore()
 
 	home := t.TempDir()
@@ -115,7 +115,7 @@ func TestVerifyBundleHashMismatch(t *testing.T) {
 	}))
 	defer server.Close()
 
-	restore := SetBundleDownloadURL(server.URL + "/download/patterns.bundle")
+	restore := testSetBundleURL(server.URL + "/download/patterns.bundle")
 	defer restore()
 
 	home := t.TempDir()
@@ -143,7 +143,7 @@ func TestVerifyBundleHashMissing(t *testing.T) {
 	}))
 	defer server.Close()
 
-	restore := SetBundleDownloadURL(server.URL + "/download/patterns.bundle")
+	restore := testSetBundleURL(server.URL + "/download/patterns.bundle")
 	defer restore()
 
 	home := t.TempDir()

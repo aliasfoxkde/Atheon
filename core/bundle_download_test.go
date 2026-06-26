@@ -43,6 +43,17 @@ func checksumsHandler(bundleBytes []byte) http.HandlerFunc {
 	}
 }
 
+// testSetBundleURL calls SetBundleDownloadURL with skipHostValidation enabled so
+// tests can point at httptest servers on loopback without triggering the SSRF guard.
+func testSetBundleURL(url string) func() {
+	skipHostValidation = true
+	restore := SetBundleDownloadURL(url)
+	return func() {
+		restore()
+		skipHostValidation = false
+	}
+}
+
 // TestDownloadBundleMockOK exercises the happy path with a mock server.
 func TestDownloadBundleMockOK(t *testing.T) {
 	// Build a small but valid bundle
@@ -63,7 +74,7 @@ func TestDownloadBundleMockOK(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	restore := SetBundleDownloadURL(srv.URL + "/")
+	restore := testSetBundleURL(srv.URL + "/")
 	defer restore()
 
 	// Restore the embedded bundle after this test
@@ -111,7 +122,7 @@ func TestDownloadBundleMockServerError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	restore := SetBundleDownloadURL(srv.URL + "/")
+	restore := testSetBundleURL(srv.URL + "/")
 	defer restore()
 
 	err := DownloadBundle(context.Background(), false)
@@ -137,7 +148,7 @@ func TestDownloadBundleMockBadGzip(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	restore := SetBundleDownloadURL(srv.URL + "/")
+	restore := testSetBundleURL(srv.URL + "/")
 	defer restore()
 
 	err := DownloadBundle(context.Background(), false)
@@ -160,7 +171,7 @@ func TestDownloadBundleMockBadJSON(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	restore := SetBundleDownloadURL(srv.URL + "/")
+	restore := testSetBundleURL(srv.URL + "/")
 	defer restore()
 
 	err := DownloadBundle(context.Background(), false)
@@ -190,7 +201,7 @@ func TestDownloadBundleMockMkdirError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	restore := SetBundleDownloadURL(srv.URL + "/")
+	restore := testSetBundleURL(srv.URL + "/")
 	defer restore()
 
 	// Point HOME at a path under a non-directory so MkdirAll fails
@@ -235,7 +246,7 @@ func TestDownloadBundleMockChangesReported(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	restore := SetBundleDownloadURL(srv.URL + "/")
+	restore := testSetBundleURL(srv.URL + "/")
 	defer restore()
 
 	if err := DownloadBundle(context.Background(), false); err != nil {
@@ -250,7 +261,7 @@ func TestDownloadBundleNetworkError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	srv.Close() // immediately close so the URL is invalid
 
-	restore := SetBundleDownloadURL(srv.URL + "/")
+	restore := testSetBundleURL(srv.URL + "/")
 	defer restore()
 
 	err := DownloadBundle(context.Background(), false)
@@ -274,7 +285,7 @@ func TestDownloadBundleMockMkdirErrorUserProfile(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	restore := SetBundleDownloadURL(srv.URL + "/")
+	restore := testSetBundleURL(srv.URL + "/")
 	defer restore()
 
 	tmp := t.TempDir()
@@ -324,7 +335,7 @@ func TestDownloadBundleReadAllError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	restore := SetBundleDownloadURL(srv.URL + "/")
+	restore := testSetBundleURL(srv.URL + "/")
 	defer restore()
 
 	err := DownloadBundle(context.Background(), false)
