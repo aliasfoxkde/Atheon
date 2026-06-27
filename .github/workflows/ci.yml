@@ -180,12 +180,46 @@ jobs:
           fi
           echo "✅ No debug statements in production code"
 
+          # fmt.Print / fmt.Sprint in core/ (library) — bypasses structured logging.
+          # cmd/atheon/main.go is CLI output (help text) and is excluded.
+          # Allowed: Printf, Sprintf, Println, Sprintln, Fprint (explicit writer).
+          FMT_PRINTS=$(grep -rnE "fmt\.Print[^lnf]|fmt\.Sprint[^lnf]" core/*.go 2>/dev/null | grep -v "_test.go" || true)
+          if [ -n "$FMT_PRINTS" ]; then
+            echo "❌ fmt.Print/Sprint in core/ library code:"
+            echo "$FMT_PRINTS"
+            exit 1
+          fi
+          echo "✅ No fmt.Print/Sprint in core/ library code"
+
   # ─────────────────────────────────────────────────────────────────────
-  # Build — cross-platform binaries
+  # PR size check — warns on large PRs; informational only, not blocking
+  # ─────────────────────────────────────────────────────────────────────
+  pr-size:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    # Only run on PR events; skip for push to main
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Check PR size
+        run: |
+          FILE_COUNT=$(jq '.pull_request.changed_files' "$GITHUB_EVENT_PATH")
+          echo "PR changed files: $FILE_COUNT"
+          ADDITIONS=$(jq '.pull_request.additions' "$GITHUB_EVENT_PATH")
+          DELETIONS=$(jq '.pull_request.deletions' "$GITHUB_EVENT_PATH")
+          echo "PR net lines: +$ADDITIONS / -$DELETIONS"
+          if [ "$FILE_COUNT" -gt 30 ]; then
+            echo "::warning::Large PR: $FILE_COUNT files changed. Consider splitting for easier review."
+          fi
+          if [ "$FILE_COUNT" -gt 50 ]; then
+            echo "::warning::Very large PR: $FILE_COUNT files changed. Strongly consider splitting."
+          fi
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Build — cross-platform binaries (runs in parallel with tests)
   # ─────────────────────────────────────────────────────────────────────
   build:
     name: Build (${{ matrix.os }})
-    needs: test
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -434,7 +468,8 @@ jobs:
     name: Test Results & Coverage
     needs: test
     runs-on: ubuntu-latest
-    if: always()
+    # Only run if test job actually produced artifacts (not skipped/cancelled)
+    if: needs.test.result != 'skipped'
     permissions:
       # EnricoMi/publish-unit-test-result-action creates check runs via
       # the workflow's GITHUB_TOKEN; without checks:write it returns 403.
@@ -458,7 +493,7 @@ jobs:
 
       - name: Run tests with JUnit output
         run: |
-          go install github.com/jstemmer/go-junit-report/v2@latest
+          go install github.com/jstemmer/go-junit-report/v2@v2.1.0
           go test ./... -p 1 -v -coverprofile=coverage.out 2>&1 | go-junit-report -set-exit-code > report.xml
 
       - name: Publish test results
@@ -474,3 +509,8 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::CI failed on ${{ github.ref }}. Check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

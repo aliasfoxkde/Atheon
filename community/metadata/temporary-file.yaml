@@ -1,0 +1,5 @@
+name: temporary-file
+match: \.(tmp|temp|cache|swp|swo)$
+severity: low
+enabled: true
+description: 'Pattern: ''temporary file''. Pattern in category ''metadata''. Detects temporary files that should not be committed to source control.'

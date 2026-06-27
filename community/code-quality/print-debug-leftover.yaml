@@ -1,0 +1,5 @@
+name: print-debug-leftover
+match: (?i)\b(print\s*\(|println!\s*|fmt\.Print|console\.log|System\.out\.print|echo\s+[^|])
+severity: low
+enabled: true
+description: 'Pattern: ''print debug leftover''. Pattern in category ''code-quality''. Detects debug print statements left in production code.'

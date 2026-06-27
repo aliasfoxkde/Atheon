@@ -1,0 +1,5 @@
+name: docker-build-antipattern
+match: (?i)docker\s+build
+severity: low
+enabled: true
+description: 'Docker build command detected. Ensure --pull is used and a .dockerignore file excludes secrets from the build context.'

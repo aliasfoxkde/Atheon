@@ -1,0 +1,5 @@
+name: empty-code-block
+match: (?i)(if\s*\([^)]+\)\s*\{\s*\}|for\s*\([^)]*\)\s*\{\s*\}|while\s*\([^)]+\)\s*\{\s*\})
+severity: low
+enabled: true
+description: 'Pattern: ''empty code block''. Pattern in category ''code-quality''. Detects empty if/for/while blocks that may indicate unfinished code.'

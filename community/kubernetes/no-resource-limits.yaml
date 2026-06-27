@@ -1,0 +1,5 @@
+name: no-resource-limits
+match: (?i)(containers:|-\s+name:).*?(image:|containers:)|resources:\s*\n\s*limits:'
+severity: medium
+enabled: true
+description: 'Detects Kubernetes containers missing CPU/memory resource limits. Add resources.requests and resources.limits to container specs.'

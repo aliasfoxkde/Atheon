@@ -61,6 +61,14 @@ setup:
 	mkdir -p $(TOOLS_DIR)
 	GOBIN=$(PWD)/$(TOOLS_DIR) go install golang.org/x/tools/cmd/goimports@latest 2>/dev/null && echo "  installed: tools/goimports" || echo "  skipped: goimports (proxy blocked)"
 	GOBIN=$(PWD)/$(TOOLS_DIR) go install honnef.co/go/tools/cmd/staticcheck@latest 2>/dev/null && echo "  installed: tools/staticcheck" || echo "  skipped: staticcheck (proxy blocked)"
+	@echo "Hooks installed. To set up the commit template, run: make init"
+
+init:
+	git config commit.template .github/commit-template.txt
+	@echo "✅ Commit template installed."
+	@echo ""
+	@echo "When you run 'git commit', the template will guide you on commit format."
+	@echo "To bypass the template for special commits: git commit --no-template"
 
 clean:
 	rm -rf $(BINARY_DIR)/ $(COVERAGE_OUT) report.xml

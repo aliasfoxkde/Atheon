@@ -1,0 +1,5 @@
+name: self-signed-cert
+match: (?i)(self.?signed|self.?signed.?cert|insecure.?skip.?verify|verify\s*=\s*false|TLS_REJECT_UNAUTHORIZED\s*=\s*0)
+severity: medium
+enabled: true
+description: 'Pattern: ''self-signed certificate''. Pattern in category ''security-hardening''. Detects usage of self-signed certificates or disabled certificate verification.'

@@ -1,0 +1,5 @@
+name: unencrypted-storage
+match: (?i)encrypted\s*=\s*false|encryption\s*=\s*false|server_side_encryption_configuration\s*=\s*null
+severity: high
+enabled: true
+description: 'Pattern: ''unencrypted storage''. Pattern in category ''terraform''. Detects storage resources configured without encryption at rest.'

@@ -1,0 +1,5 @@
+name: http-url-detected
+match: http://[a-zA-Z0-9.-]+\.[a-z]{2,}
+severity: medium
+enabled: true
+description: 'HTTP URL detected. Ensure the endpoint uses HTTPS for encrypted transport.'

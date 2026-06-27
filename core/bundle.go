@@ -158,7 +158,11 @@ func initializeWith(data []byte) {
 // (map) and JSON arrays ([]struct) as the top-level container.
 func decodeJSONStrict(data []byte, out interface{}) error {
 	// Peek at the first non-whitespace byte to determine container type.
-	switch trimSpace(data)[0] {
+	trimmed := trimSpace(data)
+	if len(trimmed) == 0 {
+		return fmt.Errorf("bundle: empty JSON data")
+	}
+	switch trimmed[0] {
 	case '{':
 		// Object — validate and reject unknown keys.
 		var raw map[string]json.RawMessage
@@ -391,14 +395,14 @@ var bundleDownloadURL = atomic.Pointer[string]{}
 
 // skipHostValidation disables hostname validation in SetBundleDownloadURL when
 // true.  Used by tests that intentionally point at httptest servers on loopback.
-// Tests in the core package may set this directly.
-var skipHostValidation bool
+// Tests in the core package may set this via Store().
+var skipHostValidation atomic.Bool
 
 // SetBundleDownloadURLForTest is like SetBundleDownloadURL but also disables
 // hostname validation so tests can point at httptest servers on loopback.
 // The returned restore function resets skipHostValidation to false.
 func SetBundleDownloadURLForTest(bundleURL string) func() {
-	skipHostValidation = true
+	skipHostValidation.Store(true)
 	return SetBundleDownloadURL(bundleURL)
 }
 
@@ -435,7 +439,7 @@ func SetBundleDownloadURL(rawURL string) func() {
 			// to cloud metadata endpoints (169.254.x.x), LAN services, and
 			// localhost.  Hostname resolution is synchronous and bounded by the
 			// caller's context timeout (15 s in DownloadBundle).
-			if !skipHostValidation {
+			if !skipHostValidation.Load() {
 				host := u.Hostname()
 				if host != "" && isReservedOrPrivateHost(host) {
 					panic("SetBundleDownloadURL: reserved/private host rejected: " + host)
@@ -446,7 +450,7 @@ func SetBundleDownloadURL(rawURL string) func() {
 	prev := bundleDownloadURL.Swap(ptrString(rawURL))
 	return func() {
 		bundleDownloadURL.Store(prev)
-		skipHostValidation = false
+		skipHostValidation.Store(false)
 	}
 }
 

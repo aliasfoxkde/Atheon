@@ -1,0 +1,5 @@
+name: backup-file
+match: \.(bak|old|backup|orig|rpmorig|dpkg-(?:old|dist)|~\$)$
+severity: low
+enabled: true
+description: 'Pattern: ''backup file''. Pattern in category ''metadata''. Detects backup files that may contain sensitive data from previous versions.'

@@ -1,0 +1,5 @@
+name: IDE-config-leak
+match: \.(idea|vscode|vscodium|settings\.json|workspace\.json)$
+severity: medium
+enabled: true
+description: 'Pattern: ''IDE config leak''. Pattern in category ''metadata''. Detects IDE configuration files that may contain embedded credentials or settings.'

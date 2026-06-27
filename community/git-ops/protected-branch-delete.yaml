@@ -1,0 +1,5 @@
+name: protected-branch-delete
+match: (?i)(git\s+push\s+origin\s+--delete\s+(main|master|develop|release|prod)|git\s+branch\s+-D\s+(main|master|develop|release|prod)|branch\s*=\s*["']?(main|master|develop|release|prod)["']?\s*\n\s*protection\s*:\s*false)
+severity: critical
+enabled: true
+description: 'Pattern: ''protected branch deletion''. Pattern in category ''git-ops''. Detects deletion or modification of protected branch settings.'

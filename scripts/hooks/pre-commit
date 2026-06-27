@@ -24,6 +24,29 @@ if [ -z "$STAGED_GO" ] && [ -z "$STAGED_PATTERNS" ]; then
     exit 0
 fi
 
+# ── File-count guard ──────────────────────────────────────────────────────────
+# Warn when a commit touches many files — harder to review and bisect.
+MAX_FILES=20
+STAGED_COUNT=$(git diff --cached --name-only | wc -l)
+if [ "$STAGED_COUNT" -gt "$MAX_FILES" ]; then
+    echo "⚠️  $STAGED_COUNT files staged (limit: $MAX_FILES). Large commits are harder to review."
+    echo "   Consider splitting into logical units (e.g. separate refactor from new feature)."
+fi
+
+# ── Bare recover() check ──────────────────────────────────────────────────────
+# bare recover() without type assertion can leak internal state via slog or
+# return values. The MCP dispatchRequest pattern is allowlisted explicitly.
+BARE_RECOVER=$(grep -rnE 'recover\(\)' cmd/mcp/*.go core/*.go cmd/atheon/*.go 2>/dev/null | grep -v '_test.go' | grep -v '//nolint:bare-recover' | grep -v '// nolint:bare-recover' || true)
+if [ -n "$BARE_RECOVER" ]; then
+    # Check if it's only the known intentional pattern in cmd/mcp/main.go:dispatchRequest
+    KNOWN_BARE_RECOVER="cmd/mcp/main.go.*dispatchRequest.*recover"
+    if echo "$BARE_RECOVER" | grep -vE "$KNOWN_BARE_RECOVER" > /dev/null 2>&1; then
+        echo "⚠️  Bare recover() found without type assertion (may leak internal state):"
+        echo "$BARE_RECOVER"
+        echo "   Add //nolint:bare-recover if this is an intentional panic-catching pattern."
+    fi
+fi
+
 # Require Go for any of the below
 if ! command -v go &>/dev/null; then
     echo "ERROR: 'go' not found. Install Go: https://go.dev/dl/"

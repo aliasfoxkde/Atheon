@@ -252,13 +252,15 @@ Security / Go Vulnerability Check
 - [x] Extract safeError to shared package — PR #119 (internal/errors)
 - [x] Reject HTTP redirects in bundle download — PR #120 (SSRF prevention)
 - [x] Fix pre-commit temp dir leak — PR #120 (ERR+EXIT trap)
+- [x] Add ATHEON_BUNDLE_FRESHNESS_HOURS env var — PR #131
+- [x] Add ATHEON_HTTP_TIMEOUT env var — PR #131
 
 **Requires GitHub admin action:**
 - `enforce_admins: true` on branch protection
 
 ---
 
-**Merged PRs (2026-06-27):** #114, #115, #116, #117, #118, #119, #120
+**Merged PRs (2026-06-27):** #114, #115, #116, #117, #118, #119, #120, #129, #131
 
 ---
 
@@ -275,8 +277,10 @@ Security / Go Vulnerability Check
 | `go build ./bundler/` | ✅ PASS |
 | `bundler` produces valid bundle | ✅ PASS (272 patterns) |
 | `go build ./cmd/atheon/` | ✅ PASS |
-| `atheon list` | ✅ PASS (272 patterns listed) |
-| `gh pr create/merge` workflow | ✅ PASS (PRs #109-112 merged) |
+| `atheon --version` | ✅ PASS |
+| `./atheon --json --categories=secrets .` | ✅ PASS (scan works) |
+| MCP server JSON-RPC initialize | ✅ PASS |
+| `gh pr merge` workflow | ✅ PASS (PRs #129, #131 merged) |
 | Branch protection enforcement | ✅ CONFIRMED |
 
 ### What Needs Testing
@@ -284,7 +288,25 @@ Security / Go Vulnerability Check
 - [ ] Self-scan workflow end-to-end
 - [ ] Release workflow (requires tag push — manual)
 - [ ] Benchmark comparison across commits
-- [ ] MCP server JSON-RPC roundtrip
+
+---
+
+## Wave 13 Updates (2026-06-27)
+
+### CI/CD Fixes Applied
+
+| Fix | PR | Status |
+|---|---|---|
+| Remove Go 1.21 from test matrix | #129 | ✅ Merged |
+| Pin GoReleaser to ~> 2.0 | #129 | ✅ Merged |
+| Disable ascend-again in stale.yml | #129 | ✅ Merged |
+| Add jitter to auto-merge polling | #129 | ✅ Merged |
+| Add MODEL env var to community-pattern-review | #129 | ✅ Merged |
+| Fix actions/labeler v6.1.0 | #129 | ✅ Merged |
+| Add package comment to internal/errors | #129 | ✅ Merged |
+| Remove duplicate permissions in security.yml | #129 | ✅ Merged |
+| Add ATHEON_BUNDLE_FRESHNESS_HOURS env var | #131 | ✅ Merged |
+| Add ATHEON_HTTP_TIMEOUT env var | #131 | ✅ Merged |
 
 ---
 

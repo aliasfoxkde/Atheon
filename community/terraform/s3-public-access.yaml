@@ -1,0 +1,5 @@
+name: s3-public-access
+match: (?i)acl\s*=\s*["']public-read["']|acl\s*=\s*["']public-read-write["']|acl\s*=\s*["']aws-auth["']|block_public_acls\s*=\s*false|block_public_policy\s*=\s*false
+severity: high
+enabled: true
+description: 'Pattern: ''S3 public access''. Pattern in category ''terraform''. Detects S3 bucket configurations allowing public access.'

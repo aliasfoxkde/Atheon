@@ -1,0 +1,5 @@
+name: force-push-detected
+match: (?i)(git\s+push\s+--force|git\s+push\s+-f\s+origin|push\s+--force-with-lease|--force-with-lease)
+severity: high
+enabled: true
+description: 'Pattern: ''force push detected''. Pattern in category ''git-ops''. Detects force push commands which can overwrite remote history.'

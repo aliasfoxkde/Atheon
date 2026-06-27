@@ -1,0 +1,5 @@
+name: db-public-access
+match: (?i)publicly_accessible\s*=\s*true|skip_final_snapshot\s*=\s*true
+severity: high
+enabled: true
+description: 'Pattern: ''database public access''. Pattern in category ''terraform''. Detects database instances configured with public accessibility.'

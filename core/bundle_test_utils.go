@@ -5,10 +5,10 @@ package core
 // testSetBundleURL calls SetBundleDownloadURL with skipHostValidation enabled so
 // tests can point at httptest servers on loopback without triggering the SSRF guard.
 func testSetBundleURL(url string) func() {
-	skipHostValidation = true
+	skipHostValidation.Store(true)
 	restore := SetBundleDownloadURL(url)
 	return func() {
 		restore()
-		skipHostValidation = false
+		skipHostValidation.Store(false)
 	}
 }

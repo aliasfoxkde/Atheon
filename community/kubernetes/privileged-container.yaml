@@ -1,0 +1,5 @@
+name: privileged-container
+match: (?i)securityContext:\s*\n\s*privileged:\s*true
+severity: critical
+enabled: true
+description: 'Pattern: ''privileged container''. Pattern in category ''kubernetes''. Detects containers running in privileged mode with full host access.'

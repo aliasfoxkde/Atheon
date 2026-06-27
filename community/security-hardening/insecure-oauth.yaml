@@ -1,0 +1,5 @@
+name: insecure-oauth
+match: (?i)(oauth.*response_type\s*=\s*token|oauth.*without\s+pkce|pkce\s*=\s*false|oauth.*implicit\s+flow)
+severity: high
+enabled: true
+description: 'Pattern: ''insecure OAuth''. Pattern in category ''security-hardening''. Detects OAuth implementations without PKCE or using implicit flow.'
