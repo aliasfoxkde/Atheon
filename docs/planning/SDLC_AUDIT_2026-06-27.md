@@ -227,16 +227,16 @@ Security / Go Vulnerability Check
 
 ### Phase 2: CI/CD Gaps — COMPLETED ✓
 
-- [ ] Add lint/coverage/integration to release validation gate — **Pending** (medium priority)
+- [x] Add lint/coverage/integration to release validation gate — PR #115 (go vet, gofmt, integration tests)
 - [x] Add auto-merge status-check gate — PR #113 (polling gate with 60s timeout)
 - [x] Add stale PR cleanup workflow — PR #114 (`.github/workflows/stale.yml`)
-- [ ] Add dependabot for Go module updates — **Pending** (low priority)
+- [x] Add dependabot for Go module updates — `.github/dependabot.yml` (weekly, batched)
 
 ### Phase 3: Documentation — COMPLETED ✓
 
 - [x] Create `docs/planning/SDLC.md` with full system documentation — `SDLC_AUDIT_2026-06-27.md`
 - [x] Create `docs/planning/COMMIT_CONVENTIONS.md` — PR #113
-- [ ] Update `CONTRIBUTING.md` with all SDLC details — **Pending** (low priority)
+- [x] Update `CONTRIBUTING.md` with all SDLC details — PR #115 (commit format, PR workflow)
 
 ### Phase 4: Observability (Future)
 
@@ -246,8 +246,9 @@ Security / Go Vulnerability Check
 
 ---
 
-**PR #114 Status (2026-06-27):** CI passing, pending human review. Contains:
-auto-merge timeout fix (60s→10min), GO_VERSION fix, stale.yml, labeler.yml, sync.yml removal.
+**PR #115 Status (2026-06-27):** Release validation gate + CONTRIBUTING.md SDLC details.
+
+**PR #114 Status (2026-06-27):** Merged ✓ — auto-merge timeout fix, GO_VERSION fix, stale.yml, labeler.yml, sync.yml removal.
 
 ---
 
