@@ -1,0 +1,5 @@
+name: race-condition
+match: (?i)\bcount\s*\+\+|counter\s*\+\+|shared\s*\[|shared\s*\.\w+
+severity: high
+enabled: true
+description: 'Pattern: Detect potential race conditions (shared variable modified without synchronization)'

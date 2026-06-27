@@ -1,0 +1,5 @@
+name: ignored-error-underscore
+match: = ?_|\b_\s*=\s*err|_ = err|\(err\).*_\s*=\s*_
+severity: medium
+enabled: true
+description: 'Pattern: Detect error values assigned to underscore (suppressed errors in Go, Python, Rust)'

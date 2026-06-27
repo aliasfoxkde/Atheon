@@ -1,0 +1,5 @@
+name: print-statement
+match: (?i)^\s*print\s+\(|^\s*System\.out\.print|^\s*fmt\.Print|^\s*console\.log|^\s*console\.debug|^\s*console\.warn
+severity: low
+enabled: true
+description: 'Pattern: Detect print statements that may be debug leftovers'

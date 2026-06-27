@@ -1,0 +1,5 @@
+name: infinite-loop
+match: while\s*\(\s*true\s*\)|for\s*\(\s*;\s*;\s*\)|for\s*\(\s*;\s*\)|while\s*\(\s*1\s*\)
+severity: high
+enabled: true
+description: 'Pattern: Detect obvious infinite loops'

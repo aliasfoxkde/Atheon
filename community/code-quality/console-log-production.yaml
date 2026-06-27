@@ -1,0 +1,5 @@
+name: console-log-production
+match: (?i)\bconsole\.(log|debug|warn)\s*\(
+severity: low
+enabled: true
+description: 'Pattern: Detect console.log/debug/warn left in production code'
