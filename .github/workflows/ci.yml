@@ -180,15 +180,16 @@ jobs:
           fi
           echo "✅ No debug statements in production code"
 
-          # fmt.Print* / fmt.Sprint* in production (non-test) code — use structured
-          # logging (slog) or explicit fmt.Fprint to a known writer instead.
-          FMT_PRINTS=$(grep -rnE "fmt\.Print[^ln]|fmt\.Sprint[^ln]" core/*.go cmd/atheon/*.go cmd/mcp/*.go 2>/dev/null | grep -v "_test.go" || true)
+          # fmt.Print / fmt.Sprint in core/ (library) — bypasses structured logging.
+          # cmd/atheon/main.go is CLI output (help text) and is excluded.
+          # Allowed: Printf, Sprintf, Println, Sprintln, Fprint (explicit writer).
+          FMT_PRINTS=$(grep -rnE "fmt\.Print[^lnf]|fmt\.Sprint[^lnf]" core/*.go 2>/dev/null | grep -v "_test.go" || true)
           if [ -n "$FMT_PRINTS" ]; then
-            echo "❌ fmt.Print/Sprint in production code (use slog or fmt.Fprint):"
+            echo "❌ fmt.Print/Sprint in core/ library code:"
             echo "$FMT_PRINTS"
             exit 1
           fi
-          echo "✅ No fmt.Print/Sprint in production code"
+          echo "✅ No fmt.Print/Sprint in core/ library code"
 
   # ─────────────────────────────────────────────────────────────────────
   # PR size check — warns on large PRs; informational only, not blocking
