@@ -261,8 +261,9 @@ Historical (all closed in their respective waves):
 | 11 | [x] | #109-111 | Test fix, CHANGELOG fix, yaml.v3 → goccy/go-yaml |
 | 12 | [x] | #113-125 | SDLC: commitlint, stale cleanup, PR labeler, goreleaser fixes, release v1.3.1 |
 | 13 | [x] | #129, #131, #132 | Comprehensive audit: CI/CD fixes (Go 1.21 EOL, goreleaser pin, ascend-again, MODEL env, jitter), labeler v6.1.0 fix, lint fix, SDLC docs update |
+| 14 | [x] | (pending) | Security hardening: concurrent cap, sandboxPath, error sanitization, resource limits, atomicio extraction |
 
-**Completed waves**: 13 / 13
+**Completed waves**: 14 / 14
 **Total merged PRs**: 44 through Wave 13
 
 ---
@@ -279,6 +280,18 @@ PRs: #134 (pending)
 - [x] Add `decodeBundleDefs()` supporting both v1 (flat array) and v2 (`{"schema_version":2,"data":[...]}`) bundle formats with backwards compatibility
 - [x] `loadBundleFrom()` now uses `decodeBundleDefs` for v1/v2 detection
 - [x] Document branch protection ruleset in `docs/planning/BRANCH_PROTECTION_RULESET.md`
+
+### Wave 14 Security Hardening (2026-06-27)
+
+- [x] Fix MCP concurrent cap double-decrement (`didIncrement` flag)
+- [x] Fix sandboxPath for non-existent paths (return cleaned path, nil error)
+- [x] Add `mcpScanStringSourceMaxBytes` (1 KiB limit) to prevent source field exhaustion
+- [x] Sanitize all CLI error messages via `errors.SafeError()` (no path leakage)
+- [x] Add `maxWalkErrors` cap (1000) to prevent memory exhaustion in `walkErrs`
+- [x] Extract `atomicWriteFile` to `internal/atomicio` package (DRY)
+- [x] Add `maxPatternCount` (10000) to prevent malicious bundle exhaustion
+- [x] Add `maxIgnoreRules` (10000) to prevent malicious ignore file exhaustion
+- [x] Fix Makefile lint target (`|| true` masking failures)
 
 ---
 
