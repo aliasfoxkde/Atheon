@@ -187,6 +187,9 @@ var mcpRequestTimeout time.Duration
 // Configurable via ATHEON_MCP_SCAN_STRING_MAX_BYTES (bytes, default 32MiB).
 var mcpScanStringMaxBytes int
 
+// mcpScanStringSourceMaxBytes caps the source filename length to 1 KiB.
+const mcpScanStringSourceMaxBytes = 1024
+
 func init() {
 	rateLimit := envInt("ATHEON_MCP_RATE_LIMIT", 10)
 	rateBurst := envInt("ATHEON_MCP_RATE_BURST", 20)
@@ -568,9 +571,10 @@ func sandboxPath(path string) (string, error) {
 	// Resolve symlinks. Catches cases like "cmd/../../etc/passwd".
 	realPath, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		// Broken or non-existent — let ScanFile/ScanDir report the real error.
-		// Still clean the path to normalize any traversal components.
-		return filepath.Clean(path), nil
+		// Broken symlink or path doesn't exist — still return cleaned path so
+		// the caller's existence check fails naturally. Don't discard err
+		// since the linter flags that as a bug.
+		return filepath.Clean(path), err
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -605,6 +609,12 @@ func handleScanString(ctx context.Context, raw json.RawMessage) (any, *rpcError)
 		return nil, &rpcError{
 			Code:    -32602,
 			Message: fmt.Sprintf("content exceeds %d byte limit (got %d)", mcpScanStringMaxBytes, len(args.Content)),
+		}
+	}
+	if len(args.Source) > mcpScanStringSourceMaxBytes {
+		return nil, &rpcError{
+			Code:    -32602,
+			Message: fmt.Sprintf("source exceeds %d byte limit (got %d)", mcpScanStringSourceMaxBytes, len(args.Source)),
 		}
 	}
 	if args.Source == "" {
