@@ -1,4 +1,8 @@
-// Package errors provides shared error utilities for Atheon.
+// Package errors provides safe error handling utilities for Atheon.
+//
+// This package is separate from the standard library's errors package to avoid
+// import conflicts with packages that use both stdlib errors and Atheon's own
+// error types.
 package errors
 
 import (
@@ -10,7 +14,7 @@ import (
 // OS-level errors to human-readable strings.
 func SafeError(err error) string {
 	if err == nil {
-		return "unknown error"
+		return "no error"
 	}
 	switch {
 	case os.IsNotExist(err):
