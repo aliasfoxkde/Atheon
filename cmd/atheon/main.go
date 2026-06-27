@@ -294,9 +294,6 @@ func printJSONFindings(findings []core.Finding) {
 			"match":       redact(f.Content),
 			"severity":    f.Severity,
 			"category":    f.Category,
-			"description": f.Description,
-			"reference":   f.Reference,
-			"tags":        f.Tags,
 			"fingerprint": f.Fingerprint,
 		})
 	}
