@@ -1,7 +1,7 @@
 # Task Ledger — Atheon Enhanced
 
-**Last Updated**: 2026-06-26
-**Status**: Active — Wave 10 PR #102 open, ready for review
+**Last Updated**: 2026-06-27
+**Status**: Active — Wave 11 complete (PRs #102, #109, #110, #111 merged)
 
 ---
 
@@ -217,7 +217,7 @@ Three parallel Explore agents (2026-06-26) surfaced **62 findings** across MCP+D
 
 ## Deferred / Backlog
 
-- [ ] Migrate `gopkg.in/yaml.v3` to `github.com/goccy/go-yaml` (breaking API change — requires careful review)
+- [x] ~~Migrate `gopkg.in/yaml.v3` to `github.com/goccy/go-yaml`~~ — DONE PR #111
 - [ ] Add per-tool MCP `isError` and `structuredContent` fields
 - [ ] Branch protection ruleset consolidation
 - [ ] Schema version for bundle format (`version: 2`)
@@ -256,9 +256,9 @@ Historical (all closed in their respective waves):
 | 6 | [x] | #86-88 | Audit-followup + docs |
 | 7 | [x] | #89 | pattern_state mutex |
 | 8 | [x] | #92-98 | Detection, CI, patterns, MCP hardening |
-| 9 | [x] | #99-102 | MCP protocol, SARIF ecosystem, bundle integrity |
-| 10 | [~] | #102 (open, ready) | Post-Wave 9 hardening: SSRF, TOCTOU, fatal hash, path sandbox |
+| 9 | [x] | #99-100 | MCP protocol, SARIF ecosystem, bundle integrity |
+| 10 | [x] | #102 | Post-Wave 9 hardening: SSRF, TOCTOU, fatal hash, path sandbox |
+| 11 | [x] | #109-111 | Test fix, CHANGELOG fix, yaml.v3 → goccy/go-yaml |
 
-**Completed waves**: 8 / 8
-**Total merged PRs**: 27 through Wave 8
-**Wave 9/10**: PRs #99/100/101 merged, #102 open — supersedes PR #100
+**Completed waves**: 11 / 11
+**Total merged PRs**: 31 through Wave 11
