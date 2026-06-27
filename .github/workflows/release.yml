@@ -115,6 +115,10 @@ jobs:
           fi
           echo "  ✓ gofmt passed"
 
+          # Lint: golangci-lint (comprehensive)
+          golangci-lint run . || exit 1
+          echo "  ✓ golangci-lint passed"
+
           # Integration tests (fast, no -race flag to save time)
           go test ./... -p 1 -timeout 5m
           echo "  ✓ integration tests passed"

@@ -113,14 +113,16 @@ There is no `.pre-commit-config.yaml` in this repo yet — the framework is wire
 
 ## Atheon as a pre-commit hook (self-scan)
 
-You can also run Atheon itself as a pre-commit check to scan staged files for secrets before they leave your machine:
+You can run Atheon itself as a pre-commit check to scan staged files for secrets before they leave your machine. To add this, edit `scripts/hooks/pre-commit` and append:
 
 ```bash
-# Add to scripts/hooks/pre-commit (already wired):
+# Scan staged files for secrets before they leave your machine:
 STAGED_FILES=$(git diff --cached --name-only)
 if [ -n "$STAGED_FILES" ]; then
     ./atheon --categories=secrets $STAGED_FILES 2>/dev/null
 fi
 ```
+
+> **Note**: This is proposed configuration — the self-scan snippet above is not currently in `scripts/hooks/pre-commit`. It must be added manually.
 
 The self-scan CI job (`.github/workflows/security.yml`, `self-scan-secrets` job) already does this on every push to main and every PR. The local hook adds an earlier catch point before the code leaves your machine.

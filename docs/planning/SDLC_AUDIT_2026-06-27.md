@@ -17,7 +17,7 @@ CI/CD pipelines, git hooks, commit conventions, PR/merge workflow, and branching
 
 | Workflow | File | Purpose |
 |---|---|---|
-| **CI** | `ci.yml` | Go tests (5 versions), lint, build (3 OSes), integration, benchmarks, docs check, coverage |
+| **CI** | `ci.yml` | Go tests (4 versions: 1.22–1.25), lint, build (3 OSes), integration, benchmarks, docs check, coverage |
 | **Security** | `security.yml` | CodeQL, self-scan (secrets blocking), anti-patterns, govulncheck |
 | **Release** | `release.yml` | Tag-based GoReleaser publishing, scheduled (10th/21st) |
 | **Community Pattern Review** | `community-pattern-review.yml` | AI review of YAML pattern changes via GitHub Models API |
@@ -25,10 +25,11 @@ CI/CD pipelines, git hooks, commit conventions, PR/merge workflow, and branching
 | **Sync** | `sync.yml` | **NON-FUNCTIONAL** — blocked by branch protection on `stable/clean` |
 | **Wiki** | `wiki.yml` | Publishes `.github/wiki/*.md` to GitHub Wiki |
 | **Auto Merge** | `auto-merge.yml` | Enables squash-merge + conflict reporting on PRs |
+| **Auto Label** | `label.yml` | Auto-labels PRs by path (`/community/` → `community`, `/.github/` → `ci`, etc.) |
 
 ### Strengths
 
-- Multi-version Go testing (1.21–1.25)
+- Multi-version Go testing (1.22–1.25)
 - Cross-platform builds (Ubuntu/macOS/Windows)
 - `-race` flag enabled in CI
 - Coverage gate at 70%
@@ -43,9 +44,9 @@ CI/CD pipelines, git hooks, commit conventions, PR/merge workflow, and branching
 
 | # | Gap | Risk | Fix |
 |---|---|---|---|
-| 1 | **Release workflow skips lint/coverage/integration** | A release can tag with failing lint or coverage | Add lint + integration steps to release validation, or gate on `ci.yml` status |
+| 1 | ~~Release workflow skips lint~~ | ✅ Fixed — `golangci-lint` added to release validation (PR #136) |
 | 2 | **Auto-merge enables without verifying required checks** | Auto-merge fires even when CI is still running/failing | Add status-check gate before enabling auto-merge |
-| 3 | **No commit message linting** | Conventional commits documented but not enforced | Add `commitlint` to pre-commit or CI |
+| 3 | ~~No commit message linting~~ | ✅ Fixed — `commit-msg` hook enforces conventional commits (PR #113) |
 
 #### MEDIUM Priority
 
@@ -89,11 +90,11 @@ CI/CD pipelines, git hooks, commit conventions, PR/merge workflow, and branching
 
 | # | Gap | Severity | Fix |
 |---|---|---|---|
-| 1 | **No commit message linting** | HIGH | Add `commitlint` to pre-commit hook |
+| 1 | ~~No commit message linting~~ | ✅ Fixed | `commit-msg` hook enforces conventional commits (PR #113) |
 | 2 | **No commit template** | MEDIUM | Add `commit.template` git config |
-| 3 | **`Makefile setup` points to wrong path** | LOW | Fix `setup` target: `.githooks` → `scripts/hooks` |
+| 3 | ~~`Makefile setup` points to wrong path~~ | ✅ Fixed PR #113 | `.githooks` → `scripts/hooks` |
 | 4 | **Hooks not wired by default** | LOW | Add `git config core.hooksPath scripts/hooks` to setup or README |
-| 5 | **No secrets pre-commit scan** | LOW | Wire `scripts/self-scan.sh` into pre-commit |
+| 5 | **No secrets pre-commit scan** | LOW | Proposed self-scan snippet documented in `docs/integrations/pre-commit.md` |
 
 ---
 
@@ -107,7 +108,7 @@ CI/CD pipelines, git hooks, commit conventions, PR/merge workflow, and branching
 
 ### Enforced By
 
-- **Nothing** — No `commitlint`, no `commit-msg` hook, no CI check
+- **`scripts/hooks/commit-msg`** — validates conventional commit format when hooks are installed via `make setup` or `./scripts/install-hooks.sh`
 
 ### Gaps
 
@@ -169,7 +170,7 @@ CI/CD pipelines, git hooks, commit conventions, PR/merge workflow, and branching
 ### Required Status Checks (Branch Protection)
 
 ```
-CI / Test (Go 1.21, 1.22, 1.23, 1.24, 1.25)
+CI / Test (Go 1.22, 1.23, 1.24, 1.25)
 CI / Lint
 CI / Build (ubuntu-latest, macos-latest, windows-latest)
 CI / Integration Tests
