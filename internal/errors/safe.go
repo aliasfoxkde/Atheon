@@ -1,3 +1,8 @@
+// Package errors provides safe error handling utilities for Atheon.
+//
+// This package is separate from the standard library's errors package to avoid
+// import conflicts with packages that use both stdlib errors and Atheon's own
+// error types.
 package errors
 
 import (

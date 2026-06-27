@@ -260,6 +260,7 @@ Historical (all closed in their respective waves):
 | 10 | [x] | #102 | Post-Wave 9 hardening: SSRF, TOCTOU, fatal hash, path sandbox |
 | 11 | [x] | #109-111 | Test fix, CHANGELOG fix, yaml.v3 → goccy/go-yaml |
 | 12 | [x] | #113-125 | SDLC: commitlint, stale cleanup, PR labeler, goreleaser fixes, release v1.3.1 |
+| 13 | [~] | #129 | Comprehensive audit: CI/CD fixes (Go 1.21 EOL, goreleaser pin, ascend-again, MODEL env, jitter), docs update |
 
-**Completed waves**: 12 / 12
+**Completed waves**: 12 / 13
 **Total merged PRs**: 43 through Wave 12

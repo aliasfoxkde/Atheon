@@ -144,7 +144,7 @@ Patterns are organized into categories:
 
 **External Dependencies:**
 - github.com/sabhiram/go-gitignore: Gitignore compliance
-- gopkg.in/yaml.v3: YAML parsing
+- github.com/goccy/go-yaml: YAML parsing (migrated from deprecated gopkg.in/yaml.v3)
 
 ## Security Considerations
 
