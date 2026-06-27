@@ -19,8 +19,8 @@ func (f *fakePattern) Category() string         { return f.category }
 func (f *fakePattern) Enabled() bool            { return f.enabled }
 func (f *fakePattern) Severity() string         { return "medium" }
 func (f *fakePattern) Matches(line string) bool { return f.matched }
-func (f *fakePattern) Description() string       { return "" }
-func (f *fakePattern) Reference() string         { return "" }
+func (f *fakePattern) Description() string      { return "" }
+func (f *fakePattern) Reference() string        { return "" }
 func (f *fakePattern) Tags() []string           { return nil }
 
 // TestSetActiveCategoriesExternalPatterns exercises the path that includes
