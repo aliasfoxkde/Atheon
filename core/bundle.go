@@ -621,7 +621,15 @@ func currentPatternNames() []string {
 // fetchBundleData performs the HTTP GET against bundleDownloadURL and
 // returns the response body and ETag header on success.
 func fetchBundleData(ctx context.Context) (data []byte, etag string, err error) {
-	client := &http.Client{Timeout: 30 * time.Second}
+	// Reject redirects to prevent SSRF via redirect (e.g., https://trusted.com →
+	// file:///etc/passwd or http://169.254.169.254/...). The allow-list in
+	// SetBundleDownloadURL only permits known hosts, but a redirect can bypass it.
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return fmt.Errorf("redirect rejected: SSRF prevention")
+		},
+	}
 	urlPtr := bundleDownloadURL.Load()
 	if urlPtr == nil {
 		return nil, "", fmt.Errorf("%w: bundle download URL not initialised", ErrBundleDownload)
