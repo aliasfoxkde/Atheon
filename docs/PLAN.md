@@ -1,8 +1,8 @@
 # Project Plan — Atheon-Enhanced
 
-**Version**: 0.6.0+ (post-Wave 8)
-**Last Updated**: 2026-06-26
-**Status**: Active — Wave 9 planning in progress
+**Version**: 0.7.0+ (post-Wave 11)
+**Last Updated**: 2026-06-27
+**Status**: Active — Wave 11 complete; yaml.v3 migration done
 
 ---
 
