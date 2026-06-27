@@ -13,6 +13,7 @@ import (
 	"syscall"
 
 	"github.com/aliasfoxkde/Atheon/core"
+	"github.com/aliasfoxkde/Atheon/internal/errors"
 )
 
 // version is injected at build time via ldflags
@@ -58,21 +59,7 @@ func configureLogging() {
 
 // safeError maps low-level OS errors to user-safe messages so that absolute
 // filesystem paths, internal network addresses, and implementation details
-// are never leaked to stdout/stderr.  This mirrors the contract used by the
-// MCP server's safeError helper.
-func safeError(err error) string {
-	if err == nil {
-		return "unknown error"
-	}
-	switch {
-	case os.IsNotExist(err):
-		return "file not found"
-	case os.IsPermission(err):
-		return "permission denied"
-	default:
-		return "internal error"
-	}
-}
+// are never leaked to stdout/stderr.  Uses the shared internal/errors.SafeError.
 
 // run executes the CLI with the given args and returns the exit code.
 // This is separated from main() so tests can call it without os.Exit
@@ -178,7 +165,7 @@ func run(ctx context.Context, args []string) int {
 		}
 		findings, stats, err := core.ScanFile(ctx, args[1])
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "error:", safeError(err))
+			fmt.Fprintln(os.Stderr, "error:", errors.SafeError(err))
 			return 1
 		}
 		printFindings(findings, stats, jsonOutput, sarifOutput)
@@ -191,7 +178,7 @@ func run(ctx context.Context, args []string) int {
 		path := args[0]
 		info, err := os.Stat(path)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s: %s\n", safeError(err), path)
+			fmt.Fprintf(os.Stderr, "error: %s: %s\n", errors.SafeError(err), path)
 			return 1
 		}
 		var findings []core.Finding
@@ -202,7 +189,7 @@ func run(ctx context.Context, args []string) int {
 			findings, stats, err = core.ScanFile(ctx, path)
 		}
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "error:", safeError(err))
+			fmt.Fprintln(os.Stderr, "error:", errors.SafeError(err))
 			return 1
 		}
 		printFindings(findings, stats, jsonOutput, sarifOutput)
@@ -283,7 +270,7 @@ func printFindings(findings []core.Finding, stats *core.Stats, jsonOutput, sarif
 	if !jsonOutput && !sarifOutput && stats != nil && len(stats.Errors) > 0 {
 		fmt.Fprintf(os.Stderr, "\n%d file(s) could not be read:\n", len(stats.Errors))
 		for _, e := range stats.Errors {
-			fmt.Fprintf(os.Stderr, "  %s\n", safeError(e))
+			fmt.Fprintf(os.Stderr, "  %s\n", errors.SafeError(e))
 		}
 	}
 }
