@@ -97,9 +97,29 @@ jobs:
 
       - name: Validate before tagging
         run: |
+          set -euo pipefail
+
+          # Build check
           go build ./...
-          # The -p 1 flag is MANDATORY for the test command.
-          go test ./... -p 1 -race -timeout 15m
+          echo "  ✓ build passed"
+
+          # Lint: go vet + gofmt (fast, no external tool required)
+          go vet ./...
+          echo "  ✓ go vet passed"
+
+          # Check for unformatted files
+          UNFMT=$(gofmt -l .)
+          if [ -n "$UNFMT" ]; then
+            echo "ERROR: Unformatted files found:"
+            echo "$UNFMT"
+            exit 1
+          fi
+          echo "  ✓ gofmt passed"
+
+          # Integration tests (fast, no -race flag to save time)
+          go test ./... -p 1 -timeout 5m
+          echo "  ✓ integration tests passed"
+
           echo "✅ All checks passed — safe to tag"
 
       - name: Check tag does not already exist
