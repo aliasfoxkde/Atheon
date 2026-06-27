@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+<!-- No pending changes — all Wave 8/9/10 items merged as of 2026-06-26 -->
+
+### Deprecated
+- `go.mod` `gopkg.in/yaml.v3 v3.0.1` marked with a DEPRECATED comment;
+  migration to `github.com/goccy/go-yaml` is tracked for Wave 11+ due to
+  breaking API changes.
+
+---
+
+## [0.6.2] - 2026-06-26 (Wave 10)
+
 ### Added
 - `cmd/mcp/main.go` `sandboxPath(path)` helper: canonicalizes relative paths
   via `filepath.Clean` and `EvalSymlinks` to block traversal attacks
@@ -51,14 +62,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   itself. Closes the TOCTOU race where a small file passes the size check
   and is swapped for a huge-target symlink before `ReadFile` runs.
 
-### Deprecated
-- `go.mod` `gopkg.in/yaml.v3 v3.0.1` marked with a DEPRECATED comment;
-  migration to `github.com/goccy/go-yaml` is tracked for Wave 11+ due to
-  breaking API changes.
-
 ---
 
-## [Unreleased] — Wave 9 (merged to main as PRs #99–#102)
+## [0.6.1] - 2026-06-26
 
 ### Added
 - `cmd/mcp/main.go` `$/cancelRequest` notification handler: stores
