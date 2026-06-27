@@ -26,10 +26,10 @@ jobs:
       - name: Check PR is mergeable
         id: check
         run: |
-          # Wait up to 60s for required status checks to complete
-          for i in $(seq 1 12); do
+          # Wait up to 10 min for required status checks to complete (CI takes ~6 min)
+          for i in $(seq 1 20); do
             state=$(gh api repos/${REPO}/pulls/${PR_NUMBER} --jq '.mergeable_state')
-            echo "Attempt $i/12: mergeable_state=${state}"
+            echo "Attempt $i/20: mergeable_state=${state}"
             case "${state}" in
               clean|unstable)
                 echo "PR is mergeable, proceeding..."
@@ -46,7 +46,7 @@ jobs:
                 echo "Unexpected state: ${state}, waiting..."
                 ;;
             esac
-            sleep 5
+            sleep 30
           done
           echo "Timeout waiting for PR to become mergeable"
           exit 1
