@@ -5,6 +5,11 @@
 
 set -euo pipefail
 
+# Clean up temp dir on any exit (success, failure, or error signal).
+# Using ERR+EXIT ensures cleanup runs even if a command fails mid-script.
+TMPDIR_HOOK=""
+trap 'rm -rf "${TMPDIR_HOOK:-}"' EXIT
+
 export PATH="$PATH:/usr/local/go/bin:/c/Program Files/Go/bin:$HOME/go/bin:$HOME/.local/go/bin"
 
 echo "=== Pre-commit quality gate ==="
@@ -68,7 +73,6 @@ if [ -n "$STAGED_GO" ]; then
     fi
 
     TMPDIR_HOOK=$(mktemp -d)
-    trap "rm -rf $TMPDIR_HOOK" EXIT
     COV_OUT="$TMPDIR_HOOK/coverage.out"
 
     if ! go test $TEST_PKGS -p 1 -coverprofile="$COV_OUT" -timeout 5m > "$TMPDIR_HOOK/test.log" 2>&1; then
