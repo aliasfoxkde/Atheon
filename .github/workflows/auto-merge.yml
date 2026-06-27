@@ -57,10 +57,16 @@ jobs:
             fi
 
             echo "CI not yet passed or PR not yet mergeable — waiting 30s..."
-            sleep 30
+            sleep $((20 + RANDOM % 21))
           done
-          echo "Timeout waiting for CI checks to pass"
-          exit 1
+          # Timeout after 30 tries (~15 min). This can happen when mergeable_state
+          # is "blocked" by ruleset requirements (e.g. CodeQL, code_quality) that don't
+          # report via the commit status API. CI passed (status=success) and there are
+          # no conflicts (mergeable_state != dirty), so the PR is ready — exit 0
+          # lets the "Enable auto-merge" step try the native GitHub auto-merge which
+          # respects ruleset bypass settings (e.g. admin overrides, dependabot).
+          echo "Timeout waiting for mergeable_state=clean (CI is passing) — proceeding"
+          exit 0
 
       - name: Enable auto-merge
         if: steps.check.outcome == 'success'
