@@ -667,11 +667,18 @@ func handleScanDir(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
 	// crafted repo leak /etc/passwd or ~/.aws/credentials into the
 	// findings without the operator ever noticing. The CLI keeps the
 	// historical follow-symlinks behaviour behind an opt-in flag.
-	findings, _, err := core.ScanDir(ctx, args.Path, core.ScanOpts{NoFollowSymlinks: true})
+	findings, stats, err := core.ScanDir(ctx, args.Path, core.ScanOpts{NoFollowSymlinks: true})
 	if err != nil {
 		return nil, &rpcError{Code: -32603, Message: errors.SafeError(err)}
 	}
-	return textResult(findings), nil
+	result := textResult(findings)
+	result["stats"] = map[string]any{
+		"files":      stats.Files,
+		"bytes":      stats.Bytes,
+		"elapsedMs":  stats.ElapsedMs,
+		"errorCount": len(stats.Errors),
+	}
+	return result, nil
 }
 
 func handleScanEnv(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
@@ -768,8 +775,8 @@ func textResult(findings []core.Finding) map[string]any {
 // Category() matches are returned.
 func patternsResult(patterns []core.Pattern, category string) map[string]any {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "| Name | Category | Enabled |\n")
-	fmt.Fprintf(&sb, "|------|----------|---------|\n")
+	fmt.Fprintf(&sb, "| Name | Category | Severity | Enabled |\n")
+	fmt.Fprintf(&sb, "|------|----------|----------|--------|\n")
 	count := 0
 	structured := make([]map[string]any, 0)
 	for _, p := range patterns {
@@ -780,10 +787,11 @@ func patternsResult(patterns []core.Pattern, category string) map[string]any {
 		if p.Enabled() {
 			enabled = "yes"
 		}
-		fmt.Fprintf(&sb, "| %s | %s | %s |\n", p.Name(), p.Category(), enabled)
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s |\n", p.Name(), p.Category(), p.Severity(), enabled)
 		structured = append(structured, map[string]any{
 			"name":     p.Name(),
 			"category": p.Category(),
+			"severity": p.Severity(),
 			"enabled":  p.Enabled(),
 		})
 		count++

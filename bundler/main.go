@@ -17,18 +17,24 @@ import (
 )
 
 type patternFile struct {
-	Name     string `yaml:"name"`
-	Match    string `yaml:"match"`
-	Enabled  *bool  `yaml:"enabled,omitempty"`
-	Severity string `yaml:"severity,omitempty"`
+	Name        string   `yaml:"name"`
+	Match       string   `yaml:"match"`
+	Enabled     *bool    `yaml:"enabled,omitempty"`
+	Severity    string   `yaml:"severity,omitempty"`
+	Description string   `yaml:"description,omitempty"`
+	Reference   string   `yaml:"reference,omitempty"`
+	Tags        []string `yaml:"tags,omitempty"`
 }
 
 type patternDef struct {
-	Name     string `json:"name"`
-	Category string `json:"category"`
-	Match    string `json:"match"`
-	Enabled  bool   `json:"enabled"`
-	Severity string `json:"severity,omitempty"`
+	Name        string   `json:"name"`
+	Category    string   `json:"category"`
+	Match       string   `json:"match"`
+	Enabled     bool     `json:"enabled"`
+	Severity    string   `json:"severity,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Reference   string   `json:"reference,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
 }
 
 // bundleWalkErr is a sentinel for WalkDir errors so the loop above still
@@ -38,7 +44,12 @@ type bundleWalkErr struct {
 	err  error
 }
 
-func (e *bundleWalkErr) Error() string { return e.path + ": " + e.err.Error() }
+func (e *bundleWalkErr) Error() string {
+	if e.err != nil {
+		return e.path + ": " + e.err.Error()
+	}
+	return e.path
+}
 func (e *bundleWalkErr) Unwrap() error { return e.err }
 
 // bundleToWriter bundles the community directory and writes the result to out.
@@ -130,11 +141,14 @@ func walkPatterns(communityDir string) ([]patternDef, error) {
 			enabled = *pf.Enabled
 		}
 		defs = append(defs, patternDef{
-			Name:     pf.Name,
-			Category: category,
-			Match:    pf.Match,
-			Enabled:  enabled,
-			Severity: pf.Severity,
+			Name:        pf.Name,
+			Category:    category,
+			Match:       pf.Match,
+			Enabled:     enabled,
+			Severity:    pf.Severity,
+			Description: pf.Description,
+			Reference:   pf.Reference,
+			Tags:        pf.Tags,
 		})
 		return nil
 	})

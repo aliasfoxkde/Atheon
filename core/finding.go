@@ -23,8 +23,11 @@ type Finding struct {
 	Column      int
 	Content     string
 	Severity    string
-	Category    string // Pattern category at match time (copied like Severity)
-	Fingerprint string // Stable deduplication key: "pattern|file|line|col"
+	Category    string   // Pattern category at match time (copied like Severity)
+	Description string   // Pattern description at match time
+	Reference   string   // Pattern reference URL at match time
+	Tags        []string // Pattern tags at match time
+	Fingerprint string   // Stable deduplication key: "pattern|file|line|col"
 }
 
 // Stats summarizes the work performed by ScanFile or ScanDir. Files is the
