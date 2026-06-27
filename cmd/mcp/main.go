@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/aliasfoxkde/Atheon/core"
+	"github.com/aliasfoxkde/Atheon/internal/errors"
 )
 
 // version is the server version, set at build time via:
@@ -531,23 +532,8 @@ func invalidParams(err error) *rpcError {
 // that parse error messages (a HIGH-severity finding from the Wave 9 audit).
 //
 // Mapping rules:
-//   - os.IsNotExist → "file not found"
-//   - os.IsPermission → "permission denied"
-//   - core.ErrFileTooLarge → "file exceeds size limit"
-//   - everything else → "internal error: <category>" (no raw message)
-func safeError(err error) string {
-	if err == nil {
-		return "unknown error"
-	}
-	switch {
-	case os.IsNotExist(err):
-		return "file not found"
-	case os.IsPermission(err):
-		return "permission denied"
-	default:
-		return "internal error"
-	}
-}
+// Uses the shared internal/errors.SafeError. The per-comment above describes
+// the mapping: os.IsNotExist → "file not found", etc.
 
 // sandboxPath evaluates any symlinks in path and verifies the result
 // stays within the process's current working directory. This prevents
@@ -630,12 +616,12 @@ func handleScanFile(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
 	// CRITICAL: canonicalize and sandbox the path before passing to ScanFile.
 	// This prevents ../../etc/passwd and symlink-escape attacks.
 	if _, err := sandboxPath(args.Path); err != nil {
-		return nil, &rpcError{Code: -32603, Message: safeError(err)}
+		return nil, &rpcError{Code: -32603, Message: errors.SafeError(err)}
 	}
 	core.SetActiveCategories(args.Categories)
 	findings, _, err := core.ScanFile(ctx, args.Path)
 	if err != nil {
-		return nil, &rpcError{Code: -32603, Message: safeError(err)}
+		return nil, &rpcError{Code: -32603, Message: errors.SafeError(err)}
 	}
 	return textResult(findings), nil
 }
@@ -653,7 +639,7 @@ func handleScanDir(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
 	// NoFollowSymlinks is true (WalkDir doesn't follow, but the path
 	// itself could escape if we pass an absolute path outside cwd).
 	if _, err := sandboxPath(args.Path); err != nil {
-		return nil, &rpcError{Code: -32603, Message: safeError(err)}
+		return nil, &rpcError{Code: -32603, Message: errors.SafeError(err)}
 	}
 	core.SetActiveCategories(args.Categories)
 	// MCP defaults to the safe symlink policy. Agents invoking scan_dir
@@ -664,7 +650,7 @@ func handleScanDir(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
 	// historical follow-symlinks behaviour behind an opt-in flag.
 	findings, _, err := core.ScanDir(ctx, args.Path, core.ScanOpts{NoFollowSymlinks: true})
 	if err != nil {
-		return nil, &rpcError{Code: -32603, Message: safeError(err)}
+		return nil, &rpcError{Code: -32603, Message: errors.SafeError(err)}
 	}
 	return textResult(findings), nil
 }
@@ -714,7 +700,7 @@ func handleUpdateBundle(ctx context.Context, raw json.RawMessage) (any, *rpcErro
 		return nil, invalidParams(err)
 	}
 	if err := core.DownloadBundle(ctx, args.Force); err != nil {
-		return nil, &rpcError{Code: -32603, Message: safeError(err)}
+		return nil, &rpcError{Code: -32603, Message: errors.SafeError(err)}
 	}
 	return map[string]any{
 		"content": []map[string]any{{
