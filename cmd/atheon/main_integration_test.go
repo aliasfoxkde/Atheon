@@ -124,9 +124,16 @@ func TestMainJSONOutput(t *testing.T) {
 	}
 
 	cmd := exec.Command(bin, "--json", "--file", tmpFile)
-	output, err := cmd.CombinedOutput()
+	// Use Output() instead of CombinedOutput() to avoid race with stderr pipe
+	// The binary outputs JSON to stdout and errors to stderr
+	output, err := cmd.Output()
 	if err != nil {
-		t.Logf("JSON command completed with exit code: %v", err)
+		// Exit code 1 means findings were found (expected for secret detection)
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			t.Logf("JSON command completed with exit code: %d, stderr: %s", exitErr.ExitCode(), string(exitErr.Stderr))
+		} else {
+			t.Logf("JSON command completed with error: %v", err)
+		}
 	}
 
 	if len(output) == 0 {
