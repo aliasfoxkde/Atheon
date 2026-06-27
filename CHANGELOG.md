@@ -7,12 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-<!-- No pending changes — all Wave 8/9/10 items merged as of 2026-06-26 -->
+<!-- No pending changes — all Wave 8/9/10/11 items merged as of 2026-06-27 -->
 
-### Deprecated
-- `go.mod` `gopkg.in/yaml.v3 v3.0.1` marked with a DEPRECATED comment;
-  migration to `github.com/goccy/go-yaml` is tracked for Wave 11+ due to
-  breaking API changes.
+---
+
+## [0.7.0] - 2026-06-27 (Wave 11)
+
+### Changed
+- `bundler/main.go` migrated from `gopkg.in/yaml.v3` to `github.com/goccy/go-yaml`
+  for YAML pattern parsing. The `yaml.Unmarshal` API is identical; struct tags
+  (`yaml:"name"`) are unchanged. This removes the last unmaintained direct
+  dependency. The `yaml.v3` DEPRECATED comment in `go.mod` is now removed.
 
 ---
 
