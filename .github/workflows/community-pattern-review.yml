@@ -26,6 +26,8 @@ jobs:
     # Gate to the canonical repo so a fork of Atheon-Enhanced cannot trigger
     # this workflow against a malicious community/ directory.
     if: github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      MODEL: gpt-4o-mini
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -158,14 +160,15 @@ jobs:
               --arg system 'You are reviewing an Atheon pattern YAML file for a security scanner. Analyze it concisely (3-5 sentences max). Check: (1) Is the regex overly broad — would it match common variable names or identifiers that are NOT the target? (2) Do the true_positives cover realistic examples? (3) Do the false_positives cover common safe patterns? (4) Is the severity appropriate for the detection type? Reply with: CONCERNS (if any issues) or LGTM (if the pattern looks solid), followed by your brief analysis.' \
               --arg pattern_file "${FILE}" \
               --arg content "${CONTENT}" \
-              '{model: "gpt-4o-mini", messages: [{role: "system", content: $system}, {role: "user", content: ($pattern_file + "\n\n" + $content)}], max_tokens: 300}')"
+              --arg model "${MODEL}" \
+              '{model: $model, messages: [{role: "system", content: $system}, {role: "user", content: ($pattern_file + "\n\n" + $content)}], max_tokens: 300}')"
 
             RESPONSE="$(curl -sf --max-time 30 \
               "https://models.inference.ai.azure.com/chat/completions" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Content-Type: application/json" \
               -d "${PAYLOAD}" \
-              2>/dev/null || echo '{"choices":[{"message":{"content":"GitHub Models API unavailable — review skipped"}}]}')"
+              2>&1 || { echo "::warning::GitHub Models API unavailable for ${FILE} — review skipped"; echo '{"choices":[{"message":{"content":"API unavailable"}}]}'; }')"
 
             ANALYSIS="$(echo "${RESPONSE}" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['choices'][0]['message']['content'])" 2>/dev/null || echo "Parse error")"
 

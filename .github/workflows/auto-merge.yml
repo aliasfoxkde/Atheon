@@ -46,7 +46,7 @@ jobs:
                 echo "Unexpected state: ${state}, waiting..."
                 ;;
             esac
-            sleep 30
+            sleep $((30 + RANDOM % 10))
           done
           echo "Timeout waiting for PR to become mergeable"
           exit 1

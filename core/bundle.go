@@ -121,10 +121,11 @@ func init() {
 	// Default initialization reads the user's local bundle from ~/.atheon
 	// and falls back to the embedded bundle. Splitting this out as
 	// initializeWith lets tests exercise the error branches.
-	home, _ := os.UserHomeDir()
 	data := embeddedBundle
-	if b, err := os.ReadFile(filepath.Join(home, ".atheon", "patterns.bundle")); err == nil {
-		data = b
+	if home, err := os.UserHomeDir(); err == nil {
+		if b, err := os.ReadFile(filepath.Join(home, ".atheon", "patterns.bundle")); err == nil {
+			data = b
+		}
 	}
 	initializeWith(data)
 }
@@ -200,19 +201,26 @@ func trimSpace(data []byte) []byte {
 	return data[i:j]
 }
 
-func loadBundle(data []byte) error {
+// decompress gzip-decompresses data and returns the raw bytes.
+func decompress(data []byte) ([]byte, error) {
 	r, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrBundleParse, err)
+		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 	defer r.Close()
+	return io.ReadAll(r)
+}
 
-	// Read decompressed content into memory so we can validate it before parsing.
-	decompressed, err := io.ReadAll(r)
+func loadBundle(data []byte) error {
+	decompressed, err := decompress(data)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrBundleParse, err)
+		return err
 	}
+	return loadBundleFrom(decompressed)
+}
 
+// loadBundleFrom loads patterns from already-decompressed JSON data.
+func loadBundleFrom(decompressed []byte) error {
 	var defs []PatternDef
 	if err := decodeJSONStrict(decompressed, &defs); err != nil {
 		return fmt.Errorf("%w: %v", ErrBundleParse, err)
@@ -537,16 +545,22 @@ func DownloadBundle(ctx context.Context, force bool) error {
 		return err
 	}
 
-	newDefs, err := parseBundle(data)
+	// Decompress once and reuse the result for both diff computation and loading.
+	decompressed, err := decompress(data)
 	if err != nil {
 		return err
+	}
+	var newDefs []PatternDef
+	if err := decodeJSONStrict(decompressed, &newDefs); err != nil {
+		return fmt.Errorf("%w: %v", ErrBundleParse, err)
 	}
 
 	added, removed := diffPatternNames(oldPatterns, newDefs)
 	printBundleDiff(len(oldPatterns), len(newDefs), added, removed)
 
-	// Load into memory first; only persist to disk if that succeeds
-	if err := loadBundle(data); err != nil {
+	// Load into memory first; only persist to disk if that succeeds.
+	// Use loadBundleFrom to avoid re-decompressing (data is already decompressed).
+	if err := loadBundleFrom(decompressed); err != nil {
 		return err
 	}
 	// loadBundle took the write lock and released it on return. Re-acquire
@@ -758,15 +772,11 @@ func ensureAtheonDir() (string, error) {
 }
 
 // parseBundle decodes a gzipped JSON bundle into PatternDefs.
+// parseBundle decodes a gzipped JSON bundle into PatternDefs.
 func parseBundle(data []byte) ([]PatternDef, error) {
-	r, err := gzip.NewReader(bytes.NewReader(data))
+	decompressed, err := decompress(data)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
-	}
-	defer r.Close()
-	decompressed, err := io.ReadAll(r)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
+		return nil, err
 	}
 	var defs []PatternDef
 	if err := decodeJSONStrict(decompressed, &defs); err != nil {

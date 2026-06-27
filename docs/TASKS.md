@@ -244,26 +244,6 @@ Historical (all closed in their respective waves):
 
 ---
 
-## Wave 13: DevOps & CI/CD Patterns
-
-PR: (pending)
-
-- [x] Add golangci-lint `lll` (line-length 88), `cyclop`, `funlen`, `nestif`
-- [x] Add per-file exclusions for intentional long lines in main.go, bundle.go, runner.go
-- [x] Fix long-line violations in `cmd/atheon/main.go`
-- [x] Align pre-commit `golangci-lint` to v2.5.0 (matching CI)
-- [x] Add `commit-msg` hook: conventional commits format, subject ≤72, total ≤800, body ≤80 (warn)
-- [x] Add file-count guard (warn at >20 files) to pre-commit hook
-- [x] Add bare `recover()` check to pre-commit hook with allowlist for MCP dispatchRequest
-- [x] Add `fmt.Print*` check to CI code-quality grep
-- [x] Add PR size check job to CI (warn at >30 files, strong warn at >50)
-- [x] Add `make init` target for commit template wiring
-- [x] Update CONTRIBUTING.md with setup instructions
-- [x] Fix pre-existing test bug: `skipHostValidation` was `bool` not `atomic.Bool`
-- [x] Add package doc comment to `internal/errors`
-
----
-
 ## Progress Summary
 
 | Wave | Status | PRs | Theme |
@@ -280,7 +260,7 @@ PR: (pending)
 | 10 | [x] | #102 | Post-Wave 9 hardening: SSRF, TOCTOU, fatal hash, path sandbox |
 | 11 | [x] | #109-111 | Test fix, CHANGELOG fix, yaml.v3 → goccy/go-yaml |
 | 12 | [x] | #113-125 | SDLC: commitlint, stale cleanup, PR labeler, goreleaser fixes, release v1.3.1 |
-| 13 | [~] | (pending) | DevOps & CI/CD patterns: linting, commit guards, PR size |
+| 13 | [x] | #129 | Comprehensive audit: CI/CD fixes (Go 1.21 EOL, goreleaser pin, ascend-again, MODEL env, jitter), labeler v6.1.0 fix, lint fix |
 
-**Completed waves**: 12 / 13
-**Total merged PRs**: 43 through Wave 12
+**Completed waves**: 13 / 13
+**Total merged PRs**: 44 through Wave 13
