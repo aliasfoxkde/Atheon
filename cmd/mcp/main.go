@@ -187,6 +187,9 @@ var mcpRequestTimeout time.Duration
 // Configurable via ATHEON_MCP_SCAN_STRING_MAX_BYTES (bytes, default 32MiB).
 var mcpScanStringMaxBytes int
 
+// mcpScanStringSourceMaxBytes caps the source filename length to 1 KiB.
+const mcpScanStringSourceMaxBytes = 1024
+
 func init() {
 	rateLimit := envInt("ATHEON_MCP_RATE_LIMIT", 10)
 	rateBurst := envInt("ATHEON_MCP_RATE_BURST", 20)
@@ -345,6 +348,10 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 // to reconnect. With recover() in place the bad request gets an error
 // response and the server keeps serving.
 func dispatchRequest(ctx context.Context, req *request) (result any, rerr *rpcError) {
+	// Track whether we incremented the inflight counter so the defer
+	// knows whether to decrement. This avoids a double-decrement when
+	// the cap-check early-return path also runs the defer.
+	didIncrement := false
 	//nolint:revive // intentional MCP server resilience: one tool panic must not kill the daemon
 	defer func() {
 		if r := recover(); r != nil {
@@ -352,7 +359,9 @@ func dispatchRequest(ctx context.Context, req *request) (result any, rerr *rpcEr
 			rerr = &rpcError{Code: -32603, Message: "internal error"}
 			result = nil
 		}
-		mcpInflight.Add(-1)
+		if didIncrement {
+			mcpInflight.Add(-1)
+		}
 	}()
 
 	// Concurrent request cap: check before doing any work. This prevents
@@ -361,9 +370,10 @@ func dispatchRequest(ctx context.Context, req *request) (result any, rerr *rpcEr
 	// counter is pessimistic — a handler that returns early still counts
 	// against the cap for the duration of its work.
 	if mcpInflight.Add(1) > int64(mcpConcurrentCap) {
-		mcpInflight.Add(-1)
+		mcpInflight.Add(-1) // undo the increment; didIncrement stays false
 		return nil, &rpcError{Code: -32001, Message: fmt.Sprintf("concurrent request limit reached (%d)", mcpConcurrentCap), Data: "concurrent_limit"}
 	}
+	didIncrement = true
 
 	// JSON-RPC 2.0 requires the jsonrpc field. Anything else is a
 	// protocol-level malformed request — return -32600 (Invalid
@@ -561,16 +571,18 @@ func sandboxPath(path string) (string, error) {
 	// Resolve symlinks. Catches cases like "cmd/../../etc/passwd".
 	realPath, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		// Broken or non-existent — let ScanFile/ScanDir report it.
-		return path, nil //nolint:nilerr // intentionally returning nil for non-existent paths
+		// Non-existent path — return cleaned path so the caller's ScanFile/ScanDir
+		// naturally reports the not-exist error. We intentionally return nil err
+		// so the path is still usable; the scanner will catch the real error.
+		return filepath.Clean(path), nil //nolint:nilerr // non-existent paths are handled by scanner
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
-		return realPath, nil //nolint:nilerr // intentionally returning nil when cwd lookup fails
+		return realPath, os.ErrPermission
 	}
 	cwdReal, err := filepath.EvalSymlinks(cwd)
 	if err != nil {
-		return realPath, nil //nolint:nilerr // intentionally returning nil when cwd symlinks resolve
+		return realPath, os.ErrPermission
 	}
 	// Block traversal: e.g. cwd/subdir -> /etc via symlink.
 	if !strings.HasPrefix(realPath, cwdReal) {
@@ -597,6 +609,12 @@ func handleScanString(ctx context.Context, raw json.RawMessage) (any, *rpcError)
 		return nil, &rpcError{
 			Code:    -32602,
 			Message: fmt.Sprintf("content exceeds %d byte limit (got %d)", mcpScanStringMaxBytes, len(args.Content)),
+		}
+	}
+	if len(args.Source) > mcpScanStringSourceMaxBytes {
+		return nil, &rpcError{
+			Code:    -32602,
+			Message: fmt.Sprintf("source exceeds %d byte limit (got %d)", mcpScanStringSourceMaxBytes, len(args.Source)),
 		}
 	}
 	if args.Source == "" {
@@ -649,11 +667,18 @@ func handleScanDir(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
 	// crafted repo leak /etc/passwd or ~/.aws/credentials into the
 	// findings without the operator ever noticing. The CLI keeps the
 	// historical follow-symlinks behaviour behind an opt-in flag.
-	findings, _, err := core.ScanDir(ctx, args.Path, core.ScanOpts{NoFollowSymlinks: true})
+	findings, stats, err := core.ScanDir(ctx, args.Path, core.ScanOpts{NoFollowSymlinks: true})
 	if err != nil {
 		return nil, &rpcError{Code: -32603, Message: errors.SafeError(err)}
 	}
-	return textResult(findings), nil
+	result := textResult(findings)
+	result["stats"] = map[string]any{
+		"files":      stats.Files,
+		"bytes":      stats.Bytes,
+		"elapsedMs":  stats.ElapsedMs,
+		"errorCount": len(stats.Errors),
+	}
+	return result, nil
 }
 
 func handleScanEnv(ctx context.Context, raw json.RawMessage) (any, *rpcError) {
@@ -721,8 +746,27 @@ func textResult(findings []core.Finding) map[string]any {
 		}
 		fmt.Fprintf(&sb, "\n%d finding(s)", len(findings))
 	}
+	// structuredContent carries machine-readable findings for clients that
+	// need parsed output rather than plain text.
+	structured := make([]map[string]any, 0, len(findings))
+	for _, f := range findings {
+		structured = append(structured, map[string]any{
+			"pattern":     f.Pattern,
+			"file":        f.File,
+			"line":        f.Line,
+			"column":      f.Column,
+			"content":     f.Content,
+			"severity":    f.Severity,
+			"category":    f.Category,
+			"fingerprint": f.Fingerprint,
+		})
+	}
 	return map[string]any{
-		"content": []map[string]any{{"type": "text", "text": sb.String()}},
+		"content": []map[string]any{{
+			"type":              "text",
+			"text":              sb.String(),
+			"structuredContent": structured,
+		}},
 	}
 }
 
@@ -731,9 +775,10 @@ func textResult(findings []core.Finding) map[string]any {
 // Category() matches are returned.
 func patternsResult(patterns []core.Pattern, category string) map[string]any {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "| Name | Category | Enabled |\n")
-	fmt.Fprintf(&sb, "|------|----------|---------|\n")
+	fmt.Fprintf(&sb, "| Name | Category | Severity | Enabled |\n")
+	fmt.Fprintf(&sb, "|------|----------|----------|--------|\n")
 	count := 0
+	structured := make([]map[string]any, 0)
 	for _, p := range patterns {
 		if category != "" && p.Category() != category {
 			continue
@@ -742,7 +787,13 @@ func patternsResult(patterns []core.Pattern, category string) map[string]any {
 		if p.Enabled() {
 			enabled = "yes"
 		}
-		fmt.Fprintf(&sb, "| %s | %s | %s |\n", p.Name(), p.Category(), enabled)
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s |\n", p.Name(), p.Category(), p.Severity(), enabled)
+		structured = append(structured, map[string]any{
+			"name":     p.Name(),
+			"category": p.Category(),
+			"severity": p.Severity(),
+			"enabled":  p.Enabled(),
+		})
 		count++
 	}
 	if count == 0 {
@@ -755,7 +806,11 @@ func patternsResult(patterns []core.Pattern, category string) map[string]any {
 		fmt.Fprintf(&sb, "\n%d pattern(s)", count)
 	}
 	return map[string]any{
-		"content": []map[string]any{{"type": "text", "text": sb.String()}},
+		"content": []map[string]any{{
+			"type":              "text",
+			"text":              sb.String(),
+			"structuredContent": structured,
+		}},
 	}
 }
 
@@ -769,6 +824,10 @@ func categoriesResult(cats []string) map[string]any {
 		fmt.Fprintf(&sb, "%s\n\n%d categories", strings.Join(cats, ", "), len(cats))
 	}
 	return map[string]any{
-		"content": []map[string]any{{"type": "text", "text": sb.String()}},
+		"content": []map[string]any{{
+			"type":              "text",
+			"text":              sb.String(),
+			"structuredContent": cats,
+		}},
 	}
 }

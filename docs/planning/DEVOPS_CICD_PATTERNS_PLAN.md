@@ -1,7 +1,7 @@
 # DevOps & CI/CD Patterns Plan — Wave 13
 
 **Date**: 2026-06-27
-**Status**: Draft — for review
+**Status**: Approved — Phase 1 complete
 **Branch**: `feat/devops-ci-cd-patterns`
 **Wave**: 13
 
@@ -116,17 +116,17 @@ val, ok := jsonMap["key"].(string)
 if !ok { /* handle error */ }
 ```
 
-**Approach**: golangci-lint's `staticcheck` (`SA1029`) catches this. Verify it is enabled. Additionally, add a CI grep step for `.(` patterns that suggest unchecked type assertions.
+**Approach**: Go vet and golangci-lint's `errcheck` can catch unchecked type assertions. Additionally, add a CI grep step for `.(` patterns as a supplementary safeguard.
 
 **Verify in `.golangci.yml`**:
 - `staticcheck` is already enabled (line 30) — confirm `SA1029` fires on the codebase
 - Add a `code-quality grep` step in `ci.yml` for `.(` followed by non-ok-check patterns
 
-### 1.4 `gofmt` Column Width
+### 1.4 `gofmt` Formatting
 
-**Current state**: `gofmt` itself uses 88 columns by default. Not enforced.
+**Current state**: `gofmt` formats code but does not enforce a line-length limit or wrap lines.
 
-**Approach**: `gofmt` respects the `GOFMT` environment variable or `-w` with column width. Already covered by existing `gofmt -l` check in CI and pre-commit. Confirm `gofmt` defaults are unchanged (88 chars).
+**Approach**: Already covered by existing `gofmt -l` check in CI and pre-commit, which enforces standard gofmt formatting. Line length is separately enforced by the `lll` linter (see §1.1).
 
 ---
 
@@ -268,6 +268,9 @@ fi
             echo "PR changed files: $FILE_COUNT"
             if [ "$FILE_COUNT" -gt 30 ]; then
               echo "::warning::Large PR: $FILE_COUNT files changed. Consider splitting for easier review."
+            fi
+            if [ "$FILE_COUNT" -gt 50 ]; then
+              echo "::warning::Very large PR: $FILE_COUNT files changed. Strongly consider splitting."
             fi
           else
             echo "Not a PR context — skipping file count check"
@@ -429,8 +432,9 @@ Based on the v2 migration analysis, the following high-value linters are **not y
 | File | Change |
 |-------|--------|
 | `.golangci.yml` | Add `lll`, `cyclop`, `funlen`, `nestif`; per-file exclusions |
-| `cmd/atheon/main.go` | Fix long lines, add `//nolint:bare-recover` if needed |
-| `core/bundle.go` | Fix long lines, add `//nolint:bare-recover` directive |
+| `cmd/atheon/main.go` | Fix long lines |
+| `cmd/mcp/main.go` | Add `//nolint:bare-recover` directive to `dispatchRequest` |
+| `core/bundle.go` | Fix long lines |
 | `core/runner.go` | Fix long error message lines |
 | `scripts/hooks/pre-commit` | Add bare-recover check, file count warning |
 | `scripts/hooks/commit-msg` | **NEW** — commit message validator |

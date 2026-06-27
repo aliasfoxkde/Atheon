@@ -130,68 +130,86 @@ jobs:
         if: steps.changed.outputs.files != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # CRIT-2 fix: bind PR-controlled filenames to env so they are never
-          # re-parsed as shell or Python code. `set -euo pipefail` then makes
-          # the script fail closed on any unexpected error.
           FILES: ${{ steps.changed.outputs.files }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
+          MODEL: ${{ env.MODEL }}
         run: |
-          set -euo pipefail
+          python3 << 'PYEOF'
+          import os, json, subprocess, urllib.request, urllib.error
 
-          if [ -z "${FILES}" ]; then
-            echo "No pattern files to review"
-            exit 0
-          fi
+          files_raw = os.environ.get('FILES', '').strip()
+          if not files_raw:
+              print("No pattern files to review")
+              raise SystemExit(0)
 
-          REVIEW_BODY=""
+          pr_number = os.environ.get('PR_NUMBER')
+          repo = os.environ.get('REPO')
+          model = os.environ.get('MODEL', 'gpt-4o-mini')
+          github_token = os.environ.get('GITHUB_TOKEN', '')
 
-          while IFS= read -r FILE; do
-            # Trim CR/LF/IFS whitespace; skip blank lines and missing files.
-            FILE="$(echo "$FILE" | xargs)"
-            [ -z "${FILE}" ] && continue
-            [ ! -f "${FILE}" ] && continue
+          files = [f.strip() for f in files_raw.splitlines() if f.strip()]
 
-            CONTENT="$(cat "${FILE}")"
+          SYSTEM_PROMPT = """You are reviewing an Atheon pattern YAML file for a security scanner. Analyze it concisely (3-5 sentences max). Check: (1) Is the regex overly broad — would it match common variable names or identifiers that are NOT the target? (2) Do the true_positives cover realistic examples? (3) Do the false_positives cover common safe patterns? (4) Is the severity appropriate for the detection type? Reply with: CONCERNS (if any issues) or LGTM (if the pattern looks solid), followed by your brief analysis."""
 
-            # Build the JSON payload with jq --arg so $content is escaped as a
-            # JSON string, not concatenated into shell.
-            PAYLOAD="$(jq -n \
-              --arg system 'You are reviewing an Atheon pattern YAML file for a security scanner. Analyze it concisely (3-5 sentences max). Check: (1) Is the regex overly broad — would it match common variable names or identifiers that are NOT the target? (2) Do the true_positives cover realistic examples? (3) Do the false_positives cover common safe patterns? (4) Is the severity appropriate for the detection type? Reply with: CONCERNS (if any issues) or LGTM (if the pattern looks solid), followed by your brief analysis.' \
-              --arg pattern_file "${FILE}" \
-              --arg content "${CONTENT}" \
-              --arg model "${MODEL}" \
-              '{model: $model, messages: [{role: "system", content: $system}, {role: "user", content: ($pattern_file + "\n\n" + $content)}], max_tokens: 300}')"
+          review_body = ""
 
-            RESPONSE="$(curl -sf --max-time 30 \
-              "https://models.inference.ai.azure.com/chat/completions" \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-              -H "Content-Type: application/json" \
-              -d "${PAYLOAD}" \
-              2>&1 || { echo "::warning::GitHub Models API unavailable for ${FILE} — review skipped"; echo '{"choices":[{"message":{"content":"API unavailable"}}]}'; }')"
+          for filepath in files:
+              filepath = filepath.strip()
+              if not filepath or not os.path.exists(filepath):
+                  continue
+              try:
+                  with open(filepath) as f:
+                      content = f.read()
+              except Exception as e:
+                  print(f"::warning::Could not read {filepath}: {e}")
+                  continue
 
-            ANALYSIS="$(echo "${RESPONSE}" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['choices'][0]['message']['content'])" 2>/dev/null || echo "Parse error")"
+              payload = json.dumps({
+                  "model": model,
+                  "messages": [
+                      {"role": "system", "content": SYSTEM_PROMPT},
+                      {"role": "user", "content": f"{filepath}\n\n{content}"}
+                  ],
+                  "max_tokens": 300
+              }).encode()
 
-            REVIEW_BODY="${REVIEW_BODY}
-          ### \`${FILE}\`
-          ${ANALYSIS}
-          "
-          done <<< "${FILES}"
+              req = urllib.request.Request(
+                  "https://models.inference.ai.azure.com/chat/completions",
+                  data=payload,
+                  headers={
+                      "Authorization": f"Bearer {github_token}",
+                      "Content-Type": "application/json"
+                  },
+                  method="POST"
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as resp:
+                      data = json.loads(resp.read())
+                      analysis = data["choices"][0]["message"]["content"]
+              except (urllib.error.URLError, urllib.error.HTTPError, KeyError, json.JSONDecodeError) as e:
+                  print(f"::warning::GitHub Models API unavailable for {filepath}: {e}")
+                  analysis = "API unavailable — review skipped"
 
-          if [ -z "${REVIEW_BODY}" ]; then
-            echo "No pattern files to review"
-            exit 0
-          fi
+              review_body += f"\n### `{filepath}`\n{analysis}\n"
 
-          COMMENT="## AI Pattern Review
+          if not review_body:
+              print("No patterns reviewed")
+              raise SystemExit(0)
 
-          Automated review of changed community patterns using GitHub Models (GPT-4o-mini). This is informational — human review is still required.
+          comment = "## AI Pattern Review\n\n" + \
+                   "Automated review of changed community patterns using GitHub Models (GPT-4o-mini). This is informational — human review is still required.\n\n" + \
+                   review_body + "\n\n" + \
+                   "——\n" + \
+                   "*Generated by [community-pattern-review.yml](.github/workflows/community-pattern-review.yml) \xb7 Model: gpt-4o-mini via GitHub Models API*"
 
-          ${REVIEW_BODY}
-
-          ---
-          *Generated by [community-pattern-review.yml](.github/workflows/community-pattern-review.yml) · Model: gpt-4o-mini via GitHub Models API*"
-
-          gh pr comment "${PR_NUMBER}" \
-            --repo "${REPO}" \
-            --body "${COMMENT}"
+          # Post comment; informational only — don't fail the step on error
+          result = subprocess.run(
+              ["gh", "pr", "comment", pr_number, "--repo", repo, "--body", comment],
+              capture_output=True, text=True
+          )
+          if result.returncode != 0:
+              print(f"::warning::Failed to post comment: {result.stderr}")
+          else:
+              print("AI review comment posted successfully")
+          PYEOF

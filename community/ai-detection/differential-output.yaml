@@ -1,0 +1,5 @@
+name: differential-output
+match: (?i)(?:if|when)\s*(?:eval|evaluation|benchmark|test|judge).*(?:then|output|return|produce)|output.*(?:differs|varies|changes)\s+(?:based|depending)\s+on\s+(?:context|who|which|what)
+severity: high
+enabled: true
+description: 'Detects conditional behavior based on evaluation context — the system produces different outputs during testing vs production, a hallmark of benchmark overfitting or deliberate gaming.'

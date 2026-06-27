@@ -235,7 +235,12 @@ func ScanDir(ctx context.Context, root string, opts ScanOpts) ([]Finding, *Stats
 			}
 			return nil
 		}
-		rel, _ := filepath.Rel(root, path)
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			// Fall back to the absolute path as slash-separated string.
+			// This handles edge cases like Windows drive letters.
+			rel = filepath.ToSlash(path)
+		}
 		if d.IsDir() {
 			if skipDirs[d.Name()] {
 				return filepath.SkipDir
@@ -484,6 +489,9 @@ func scanLines(ctx context.Context, content, file string) []Finding {
 					Content:     strings.TrimSpace(line),
 					Severity:    p.Severity(),
 					Category:    p.Category(),
+					Description: p.Description(),
+					Reference:   p.Reference(),
+					Tags:        p.Tags(),
 					Fingerprint: fmt.Sprintf("%s|%s|%d|%d", p.Name(), file, lineNum, col),
 				})
 			}

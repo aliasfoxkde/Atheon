@@ -33,7 +33,7 @@
 ### **Enhanced aliasfoxkde/Atheon (Atheon-Enhanced)** - Feature-Rich Testing Build
 - **Purpose**: Experimental "nightly build" testing the limits of pattern matching
 - **Focus**: Performance optimizations, advanced features, comprehensive pattern coverage
-- **Patterns**: 274 patterns across 19 categories (community-driven, comprehensive coverage)
+- **Patterns**: 327+ patterns across 23 categories (community-driven, comprehensive coverage)
 - **Update cadence**: Frequent updates with latest features and enhancements
 - **Best for**: Power users, CI/CD integration, comprehensive security scanning
 
@@ -56,7 +56,7 @@
 <summary><b>📊 Enhanced Features vs Official Release</b></summary>
 
 ### **What's Enhanced in This Testing Build?**
-- **274 patterns** across 19 categories - comprehensive coverage
+- **327+ patterns** across 23 categories - comprehensive coverage
 - **2-3x faster** with streaming API and performance optimizations
 - **10x less memory** usage with chunked file scanning
 - **MCP integration** with state persistence and category filtering

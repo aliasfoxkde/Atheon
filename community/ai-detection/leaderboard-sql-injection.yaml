@@ -1,0 +1,5 @@
+name: leaderboard-sql-injection
+match: (?i)(?:SELECT|INSERT|UPDATE|DELETE).*(?:FROM|INTO|WHERE).*\$PARAM|\?.*\{|\{\w+\}.*sql
+severity: high
+enabled: true
+description: 'Detects SQL injection vulnerabilities in leaderboard or scoring infrastructure — a compromised evaluation harness can be exploited to manipulate rankings or exfiltrate contestant data.'

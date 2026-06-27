@@ -1,0 +1,5 @@
+name: missing-await
+match: (?i)\.then\(
+severity: medium
+enabled: true
+description: 'Pattern: Detect async calls without await (missing await in async functions)'

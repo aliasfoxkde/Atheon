@@ -1,0 +1,5 @@
+name: insecure-randomness
+match: (?i)\bMath\.random\s*\(|new\s+Random\s*\(|Random\(\)\.next|randomized?\s*\(\s*\)
+severity: high
+enabled: true
+description: 'Pattern: Detect Math.random() or similar for security-sensitive randomness'

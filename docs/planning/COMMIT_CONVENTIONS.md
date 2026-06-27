@@ -66,7 +66,7 @@ BREAKING CHANGE: ScanDir signature changed to take ctx, root, opts
 
 **Enforced by**: `make commitlint` (local) and `commitlint` step in CI (when added)
 
-**NOT enforced by**: git hooks (currently), existing CI (gaps documented in SDLC_AUDIT)
+**Enforced by**: `scripts/hooks/commit-msg` (installed via `make setup` or `./scripts/install-hooks.sh`), existing CI (gaps documented in SDLC_AUDIT)
 
 ### Examples
 

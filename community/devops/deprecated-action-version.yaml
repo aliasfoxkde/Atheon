@@ -1,0 +1,5 @@
+name: deprecated-action-version
+match: (?:action|uses):\s*actions/checkout@[vV]\d+
+severity: medium
+enabled: true
+description: 'Pattern: deprecated-action-version — Detects use of deprecated actions/checkout version syntax (v1 or v2). Use actions/checkout@v4 or later for latest features and security fixes.'

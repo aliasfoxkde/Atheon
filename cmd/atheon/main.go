@@ -19,6 +19,11 @@ import (
 // version is injected at build time via ldflags
 var version = "dev"
 
+// maxStdinBytes caps stdin reads to prevent memory exhaustion.
+// 100 MiB is sufficient for realistic inputs; a 1 GiB file should not be
+// piped into a SAST scanner.
+const maxStdinBytes = 100 << 20 // 100 MiB
+
 func main() {
 	configureLogging()
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -86,6 +91,20 @@ func run(ctx context.Context, args []string) int {
 	}
 
 	cats, args, enableAll := parseCategories(args)
+	// Warn on unknown categories before scanning — a typo silently produces
+	// zero findings, which looks like the category is empty rather than unknown.
+	for _, c := range cats {
+		known := false
+		for _, k := range core.Categories() {
+			if c == k {
+				known = true
+				break
+			}
+		}
+		if !known {
+			fmt.Fprintf(os.Stderr, "warning: unknown category %q (will produce no findings)\n", c)
+		}
+	}
 	if enableAll {
 		core.EnableAllPatterns()
 	}
@@ -146,7 +165,7 @@ func run(ctx context.Context, args []string) int {
 		return 0
 
 	case "-", "--stdin":
-		data, err := io.ReadAll(os.Stdin)
+		data, err := io.ReadAll(io.LimitReader(os.Stdin, maxStdinBytes))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error: reading stdin:", err)
 			return 1
@@ -294,6 +313,9 @@ func printJSONFindings(findings []core.Finding) {
 			"match":       redact(f.Content),
 			"severity":    f.Severity,
 			"category":    f.Category,
+			"description": f.Description,
+			"reference":   f.Reference,
+			"tags":        f.Tags,
 			"fingerprint": f.Fingerprint,
 		})
 	}
@@ -448,6 +470,14 @@ func buildSARIFRules(findings []core.Finding) []map[string]any {
 		if !p.Enabled() {
 			continue
 		}
+		fullDesc := p.Description()
+		if fullDesc == "" {
+			fullDesc = "Atheon pattern " + p.Name() + " from category '" + p.Category() + "' matched a line. See the rule's match regex in community/" + p.Category() + "/" + p.Name() + ".yaml."
+		}
+		ruleTags := p.Tags()
+		if len(ruleTags) == 0 {
+			ruleTags = []string{p.Category(), "security"}
+		}
 		rules = append(rules, map[string]any{
 			"id":   p.Name(),
 			"name": p.Name(),
@@ -455,7 +485,7 @@ func buildSARIFRules(findings []core.Finding) []map[string]any {
 				"text": "Pattern " + p.Name() + " matched a line in the scanned tree.",
 			},
 			"fullDescription": map[string]any{
-				"text": "Atheon pattern " + p.Name() + " from category '" + p.Category() + "' matched a line. See the rule's match regex in community/" + p.Category() + "/" + p.Name() + ".yaml.",
+				"text": fullDesc,
 			},
 			"kind": "rule",
 			"defaultConfiguration": map[string]any{
@@ -465,7 +495,10 @@ func buildSARIFRules(findings []core.Finding) []map[string]any {
 				"security-severity":       sarifSeverityScore(p.Severity()),
 				"security-severity-label": p.Severity(),
 				"category":                p.Category(),
-				"tags":                    []string{p.Category(), "security"},
+				"tags":                    ruleTags,
+				"description":             p.Description(),
+				"reference":               p.Reference(),
+				"patternTags":             p.Tags(),
 				// Heuristic: bundle patterns are regex-exact → "high"
 				// precision. External Register() callers may be
 				// keyword-style → "medium". This is a placeholder that
@@ -623,6 +656,7 @@ usage:
   atheon --env                        scan environment variables
   atheon - / --stdin                  scan from stdin
   atheon --json <path>                print findings as JSON (must be first flag)
+  atheon --sarif <path>              print findings as SARIF 2.1.0 (must be first flag)
   atheon --categories=<c1,c2> <path>  scan specific categories only
   atheon --all <path>                 scan all patterns including disabled ones
   atheon list                         list all patterns with enabled/disabled status

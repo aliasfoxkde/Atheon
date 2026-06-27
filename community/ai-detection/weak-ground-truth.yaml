@@ -1,0 +1,5 @@
+name: weak-ground-truth
+match: (?i)(?:expected.*answer|solution.*may\s+vary|multiple.*correct|there\s+is\s+no\s+single|rubric.*flexible)
+severity: medium
+enabled: true
+description: 'Detects ambiguous or weak ground truth in evaluation harnesses — ambiguous correct answers make it impossible to fairly evaluate whether an AI produced a correct or incorrect result, enabling gaming.'

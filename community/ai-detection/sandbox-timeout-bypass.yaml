@@ -1,0 +1,5 @@
+name: sandbox-timeout-bypass
+match: (?i)(?:exec|spawn|fork|system|popen|run).*(?:timeout.*ignore|no\s+timeout|disable.*timeout|infinite.*loop|while.*true.*sleep)
+severity: high
+enabled: true
+description: 'Detects code that bypasses sandbox time limits — execution-time caps are a core harness security boundary; circumventing them allows resource exhaustion and denial-of-service attacks.'

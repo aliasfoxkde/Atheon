@@ -1,0 +1,5 @@
+name: unused-variable
+match: (?i)\b(?:unused|var|let|const)\s+\w+\s*(?:=\s*\w+)?\s*;?\s*$
+severity: low
+enabled: true
+description: 'Pattern: Detect unused variable declarations'

@@ -1,0 +1,5 @@
+name: sql-concatenation
+match: (?i)(?:SELECT|INSERT|UPDATE|DELETE|FROM|WHERE)\s*.*\+|\+.*(?:SELECT|INSERT|UPDATE|DELETE|FROM|WHERE)
+severity: critical
+enabled: true
+description: 'Pattern: Detect SQL built via string concatenation (SQL injection risk)'

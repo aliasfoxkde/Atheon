@@ -1,0 +1,5 @@
+name: innerhtml-usage
+match: (?i)\.innerHTML\s*=|innerHTML\s*=
+severity: high
+enabled: true
+description: 'Pattern: Detect innerHTML assignments (XSS risk)'

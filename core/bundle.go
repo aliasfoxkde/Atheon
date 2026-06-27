@@ -33,12 +33,16 @@ var embeddedBundle []byte
 // it appears inside a pattern bundle. Match holds the regular-expression
 // source; the compiled *regexp.Regexp is not part of the wire form. Severity
 // is optional — patterns that omit it default to "medium" (see DefaultSeverity).
+// Schema version 2 (bundle v2) adds Description, Reference, and Tags fields.
 type PatternDef struct {
-	Name     string `json:"name"`
-	Category string `json:"category"`
-	Match    string `json:"match"`
-	Enabled  bool   `json:"enabled"`
-	Severity string `json:"severity,omitempty"`
+	Name        string   `json:"name"`
+	Category    string   `json:"category"`
+	Match       string   `json:"match"`
+	Enabled     bool     `json:"enabled"`
+	Severity    string   `json:"severity,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Reference   string   `json:"reference,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
 }
 
 // DefaultSeverity is the severity assigned to patterns that don't declare one.
@@ -52,9 +56,12 @@ const DefaultSeverity = "medium"
 var ValidSeverities = []string{"low", "medium", "high", "critical"}
 
 type bundlePattern struct {
-	name     string
-	category string
-	match    string
+	name        string
+	category    string
+	match       string
+	description string
+	reference   string
+	tags        []string
 	// enabled is mutated under patternMu (write lock for any Store, read
 	// lock for any Load via scanLines/scanEnv snapshots). We keep it as a
 	// plain bool rather than atomic.Bool so the public test surface
@@ -69,6 +76,9 @@ type bundlePattern struct {
 
 func (p *bundlePattern) Name() string             { return p.name }
 func (p *bundlePattern) Category() string         { return p.category }
+func (p *bundlePattern) Description() string      { return p.description }
+func (p *bundlePattern) Reference() string        { return p.reference }
+func (p *bundlePattern) Tags() []string           { return p.tags }
 func (p *bundlePattern) Matches(line string) bool { return p.enabled && p.re.MatchString(line) }
 
 // matchSpan returns the [start, end) byte offsets of p's first match in
@@ -167,7 +177,7 @@ func decodeJSONStrict(data []byte, out interface{}) error {
 		// Object — validate and reject unknown keys.
 		var raw map[string]json.RawMessage
 		if err := json.Unmarshal(data, &raw); err != nil {
-			return err
+			return fmt.Errorf("bundle v1 unmarshal: %w", err)
 		}
 		v := reflect.ValueOf(out).Elem()
 		t := v.Type()
@@ -201,11 +211,53 @@ func trimSpace(data []byte) []byte {
 	return data[i:j]
 }
 
+// decodeBundleDefs parses the decompressed bundle data, handling both
+// schema v1 (flat []PatternDef) and schema v2 ({"schema_version":2,"data":[...]}).
+func decodeBundleDefs(decompressed []byte) ([]PatternDef, error) {
+	trimmed := trimSpace(decompressed)
+	if len(trimmed) == 0 {
+		return nil, fmt.Errorf("bundle: empty data")
+	}
+
+	// Detect v2 envelope: first non-whitespace char is '{'
+	if trimmed[0] == '{' {
+		// Validate no unknown fields in v2 envelope before unmarshaling.
+		var raw map[string]json.RawMessage
+		if err := json.Unmarshal(decompressed, &raw); err != nil {
+			return nil, fmt.Errorf("bundle v2 parse error: %w", err)
+		}
+		validEnv := map[string]struct{}{"schema_version": {}, "data": {}}
+		for k := range raw {
+			if _, ok := validEnv[k]; !ok {
+				return nil, fmt.Errorf("bundle v2: unknown field %q", k)
+			}
+		}
+		var v2 struct {
+			SchemaVersion int          `json:"schema_version"`
+			Data          []PatternDef `json:"data"`
+		}
+		if err := json.Unmarshal(decompressed, &v2); err != nil {
+			return nil, fmt.Errorf("bundle v2 unmarshal: %w", err)
+		}
+		if v2.SchemaVersion != 2 {
+			return nil, fmt.Errorf("bundle: unsupported schema version %d", v2.SchemaVersion)
+		}
+		return v2.Data, nil
+	}
+
+	// v1: flat array
+	var defs []PatternDef
+	if err := json.Unmarshal(decompressed, &defs); err != nil {
+		return nil, fmt.Errorf("bundle v1 parse error: %w", err)
+	}
+	return defs, nil
+}
+
 // decompress gzip-decompresses data and returns the raw bytes.
 func decompress(data []byte) ([]byte, error) {
 	r, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
+		return nil, fmt.Errorf("gzip reader: %w", err)
 	}
 	defer r.Close()
 	return io.ReadAll(r)
@@ -214,16 +266,16 @@ func decompress(data []byte) ([]byte, error) {
 func loadBundle(data []byte) error {
 	decompressed, err := decompress(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("bundle decompress: %w", err)
 	}
 	return loadBundleFrom(decompressed)
 }
 
 // loadBundleFrom loads patterns from already-decompressed JSON data.
 func loadBundleFrom(decompressed []byte) error {
-	var defs []PatternDef
-	if err := decodeJSONStrict(decompressed, &defs); err != nil {
-		return fmt.Errorf("%w: %v", ErrBundleParse, err)
+	defs, err := decodeBundleDefs(decompressed)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrBundleParse, err)
 	}
 
 	patternMu.Lock()
@@ -244,7 +296,17 @@ func loadBundleFrom(decompressed []byte) error {
 			slog.Warn("skipping pattern due to regex error", "pattern", def.Name, "err", err)
 			continue
 		}
-		bp := &bundlePattern{name: def.Name, category: def.Category, match: def.Match, enabled: def.Enabled, severity: normalizeSeverity(def.Severity), re: re}
+		bp := &bundlePattern{
+			name:        def.Name,
+			category:    def.Category,
+			match:       def.Match,
+			description: def.Description,
+			reference:   def.Reference,
+			tags:        def.Tags,
+			enabled:     def.Enabled,
+			severity:    normalizeSeverity(def.Severity),
+			re:          re,
+		}
 		allPatterns = append(allPatterns, bp)
 		registerLocked(bp)
 	}
@@ -424,6 +486,12 @@ func ptrString(s string) *string { return &s }
 // Returns a restore function that callers should defer to reset the URL
 // after tests or short-lived overrides. Exported so external test packages
 // (e.g., the main binary's tests) can stub out network access.
+//
+// NOTE: This function panics if rawURL has an non-HTTP(S) scheme or
+// resolves to a reserved/private IP address. This is intentional — it
+// rejects clearly wrong configuration at initialization time rather than
+// silently proceeding. Callers should only invoke this with values they
+// have validated or trust (e.g., env vars, config files, test overrides).
 func SetBundleDownloadURL(rawURL string) func() {
 	if rawURL != "" {
 		u, err := url.Parse(rawURL)
@@ -530,7 +598,7 @@ func DownloadBundle(ctx context.Context, force bool) error {
 
 	data, etag, err := fetchBundleData(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("bundle fetch: %w", err)
 	}
 
 	// Verify SHA-256 hash against checksums.txt if available.
@@ -542,17 +610,17 @@ func DownloadBundle(ctx context.Context, force bool) error {
 
 	dir, err := ensureAtheonDir()
 	if err != nil {
-		return err
+		return fmt.Errorf("ensure atheon dir: %w", err)
 	}
 
 	// Decompress once and reuse the result for both diff computation and loading.
 	decompressed, err := decompress(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("bundle decompress: %w", err)
 	}
 	var newDefs []PatternDef
 	if err := decodeJSONStrict(decompressed, &newDefs); err != nil {
-		return fmt.Errorf("%w: %v", ErrBundleParse, err)
+		return fmt.Errorf("%w: %w", ErrBundleParse, err)
 	}
 
 	added, removed := diffPatternNames(oldPatterns, newDefs)
@@ -561,7 +629,7 @@ func DownloadBundle(ctx context.Context, force bool) error {
 	// Load into memory first; only persist to disk if that succeeds.
 	// Use loadBundleFrom to avoid re-decompressing (data is already decompressed).
 	if err := loadBundleFrom(decompressed); err != nil {
-		return err
+		return fmt.Errorf("bundle load: %w", err)
 	}
 	// loadBundle took the write lock and released it on return. Re-acquire
 	// here so the rebuild stays inside the critical section — a concurrent
@@ -573,7 +641,7 @@ func DownloadBundle(ctx context.Context, force bool) error {
 	// Atomic write: write to .tmp + rename so a SIGKILL mid-write leaves
 	// the previous bundle intact. See pattern_state.go for the same pattern.
 	if err := atomicWriteFile(filepath.Join(dir, "patterns.bundle"), data, 0o600); err != nil {
-		return err
+		return fmt.Errorf("bundle persist: %w", err)
 	}
 
 	// Record the ETag and timestamp so the next call can skip if unchanged.
@@ -604,7 +672,7 @@ func recordBundleETag(etag string) error {
 	return withFileLock(stateFile(), func() error {
 		state, err := loadPatternState()
 		if err != nil {
-			return err
+			return fmt.Errorf("load pattern state: %w", err)
 		}
 		state.BundleETag = etag
 		state.BundleLastChecked = time.Now().UnixNano()
@@ -657,11 +725,11 @@ func fetchBundleData(ctx context.Context) (data []byte, etag string, err error) 
 	// is bounded by the controlled allow-list maintained in this package.
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, *urlPtr, http.NoBody)
 	if err != nil {
-		return nil, "", fmt.Errorf("%w: %v", ErrBundleDownload, err)
+		return nil, "", fmt.Errorf("%w: %w", ErrBundleDownload, err)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, "", fmt.Errorf("%w: %v", ErrBundleDownload, err)
+		return nil, "", fmt.Errorf("%w: %w", ErrBundleDownload, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
@@ -672,7 +740,7 @@ func fetchBundleData(ctx context.Context) (data []byte, etag string, err error) 
 	// against Content-Length when that header is available.
 	data, err = io.ReadAll(&io.LimitedReader{R: resp.Body, N: maxBundleDownloadBytes})
 	if err != nil {
-		return nil, "", fmt.Errorf("%w: %v", ErrBundleDownload, err)
+		return nil, "", fmt.Errorf("%w: %w", ErrBundleDownload, err)
 	}
 	if resp.ContentLength > 0 && int64(len(data)) < resp.ContentLength {
 		return nil, "", fmt.Errorf("%w: bundle exceeded %d byte cap (server sent %d bytes)",
@@ -769,20 +837,6 @@ func ensureAtheonDir() (string, error) {
 		return "", err
 	}
 	return dir, nil
-}
-
-// parseBundle decodes a gzipped JSON bundle into PatternDefs.
-// parseBundle decodes a gzipped JSON bundle into PatternDefs.
-func parseBundle(data []byte) ([]PatternDef, error) {
-	decompressed, err := decompress(data)
-	if err != nil {
-		return nil, err
-	}
-	var defs []PatternDef
-	if err := decodeJSONStrict(decompressed, &defs); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBundleParse, err)
-	}
-	return defs, nil
 }
 
 // diffPatternNames computes the symmetric set difference between the

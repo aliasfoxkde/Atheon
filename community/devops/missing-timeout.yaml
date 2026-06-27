@@ -1,0 +1,5 @@
+name: missing-timeout
+match: (?i)(?:workflow_dispatch|workflow_call)
+severity: medium
+enabled: true
+description: 'Pattern: missing-timeout — Detects workflows using workflow_dispatch or workflow_call without timeout-minutes set. Workflows should have a timeout to prevent runaway jobs.'

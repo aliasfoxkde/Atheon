@@ -1,0 +1,5 @@
+name: test-data-memorization
+match: (?i)(?:known|fixed|predefined|specific)\s*(?:input|test|data|example|case).*(?:output|result|answer|expected)
+severity: medium
+enabled: true
+description: 'Detects patterns that suggest a system has memorized test-case input-output pairs rather than solving problems generally. Look for hardcoded answer tables or direct mapping logic.'

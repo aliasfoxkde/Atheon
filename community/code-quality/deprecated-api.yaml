@@ -1,0 +1,5 @@
+name: deprecated-api
+match: (?i)@deprecated|#[ \t]*deprecated|\bdeprecated\s*\(|/\*\* @deprecated
+severity: medium
+enabled: true
+description: 'Pattern: Detect usage of deprecated APIs'

@@ -12,22 +12,29 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/aliasfoxkde/Atheon/internal/atomicio"
 	"github.com/goccy/go-yaml"
 )
 
 type patternFile struct {
-	Name     string `yaml:"name"`
-	Match    string `yaml:"match"`
-	Enabled  *bool  `yaml:"enabled,omitempty"`
-	Severity string `yaml:"severity,omitempty"`
+	Name        string   `yaml:"name"`
+	Match       string   `yaml:"match"`
+	Enabled     *bool    `yaml:"enabled,omitempty"`
+	Severity    string   `yaml:"severity,omitempty"`
+	Description string   `yaml:"description,omitempty"`
+	Reference   string   `yaml:"reference,omitempty"`
+	Tags        []string `yaml:"tags,omitempty"`
 }
 
 type patternDef struct {
-	Name     string `json:"name"`
-	Category string `json:"category"`
-	Match    string `json:"match"`
-	Enabled  bool   `json:"enabled"`
-	Severity string `json:"severity,omitempty"`
+	Name        string   `json:"name"`
+	Category    string   `json:"category"`
+	Match       string   `json:"match"`
+	Enabled     bool     `json:"enabled"`
+	Severity    string   `json:"severity,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Reference   string   `json:"reference,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
 }
 
 // bundleWalkErr is a sentinel for WalkDir errors so the loop above still
@@ -37,7 +44,12 @@ type bundleWalkErr struct {
 	err  error
 }
 
-func (e *bundleWalkErr) Error() string { return e.path + ": " + e.err.Error() }
+func (e *bundleWalkErr) Error() string {
+	if e.err != nil {
+		return e.path + ": " + e.err.Error()
+	}
+	return e.path
+}
 func (e *bundleWalkErr) Unwrap() error { return e.err }
 
 // bundleToWriter bundles the community directory and writes the result to out.
@@ -76,46 +88,9 @@ func bundle(communityDir, outPath string) (int, error) {
 	return n, nil
 }
 
-// atomicWriteFile writes data to path via tempfile-then-rename. See
-// core/atomic_file.go for the full rationale and the test that guards it.
-func atomicWriteFile(path string, data []byte, perm os.FileMode) (retErr error) {
-	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, filepath.Base(path)+".tmp-*")
-	if err != nil {
-		return fmt.Errorf("atomic write: create temp: %w", err)
-	}
-	tmpName := tmp.Name()
-	defer func() {
-		if retErr != nil {
-			_ = os.Remove(tmpName)
-		}
-	}()
-	if _, err := tmp.Write(data); err != nil {
-		_ = tmp.Close()
-		return fmt.Errorf("atomic write: write data: %w", err)
-	}
-	if err := tmp.Sync(); err != nil {
-		_ = tmp.Close()
-		return fmt.Errorf("atomic write: fsync: %w", err)
-	}
-	if err := tmp.Close(); err != nil {
-		return fmt.Errorf("atomic write: close: %w", err)
-	}
-	if err := os.Chmod(tmpName, perm); err != nil {
-		return fmt.Errorf("atomic write: chmod: %w", err)
-	}
-	if err := os.Rename(tmpName, path); err != nil {
-		return fmt.Errorf("atomic write: rename: %w", err)
-	}
-	// Directory fsync — see core/atomic_file.go for the rationale.
-	// #nosec G304 -- see core/atomic_file.go for the path-safety analysis.
-	if dirFd, err := os.Open(dir); err == nil {
-		if err := dirFd.Sync(); err != nil {
-			fmt.Fprintf(os.Stderr, "warn: directory fsync failed: dir=%s err=%v\n", dir, err)
-		}
-		_ = dirFd.Close()
-	}
-	return nil
+// atomicWriteFile is a wrapper around atomicio.WriteFile.
+func atomicWriteFile(path string, data []byte, perm os.FileMode) error {
+	return atomicio.WriteFile(path, data, perm)
 }
 
 // walkPatterns walks communityDir and returns all parsed pattern definitions.
@@ -166,11 +141,14 @@ func walkPatterns(communityDir string) ([]patternDef, error) {
 			enabled = *pf.Enabled
 		}
 		defs = append(defs, patternDef{
-			Name:     pf.Name,
-			Category: category,
-			Match:    pf.Match,
-			Enabled:  enabled,
-			Severity: pf.Severity,
+			Name:        pf.Name,
+			Category:    category,
+			Match:       pf.Match,
+			Enabled:     enabled,
+			Severity:    pf.Severity,
+			Description: pf.Description,
+			Reference:   pf.Reference,
+			Tags:        pf.Tags,
 		})
 		return nil
 	})

@@ -67,6 +67,11 @@ var detectionFixtures = []struct {
 	{"security-hardening", "authentication-bypass", "if password == user.password:"},
 	{"web-development", "bundler-optimization", "import * as utils from './utils';"},
 	{"web-security", "cors-wildcard", "Access-Control-Allow-Origin: *"},
+	// New categories (Wave 13)
+	{"git-ops", "protected-branch-delete", "git push origin --delete main"},
+	{"kubernetes", "latest-tag", "image: nginx:latest"},
+	{"metadata", "backup-file", "/backup/etc/passwd.bak"},
+	{"terraform", "db-public-access", "aws_db_instance.publicly_accessible = true"},
 }
 
 // TestPatternDetection is the headline test: for every fixture, the

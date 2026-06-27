@@ -1,0 +1,5 @@
+name: eval-usage
+match: (?i)\beval\s*\(|exec\s*\(|__import__\s*\(|import\s+lib\s*\(|Function\s*\(|new\s+Function\s*\(
+severity: critical
+enabled: true
+description: 'Pattern: Detect eval() and similar code execution functions'

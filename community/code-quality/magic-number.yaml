@@ -1,6 +1,5 @@
 name: magic-number
-match: \b(?:0x[0-9A-Fa-f]{3,}|[1-9][0-9]{3,})\b
+match: (?i)\b(?:86400|3600|1000|65535|1024|256|128|64|32|16|8|4|2|1)\b
 severity: low
-enabled: false
-description: 'Pattern: ''magic number''. Pattern in category ''''. This is a low-severity
-  issue representing a minor risk or code quality concern.'
+enabled: true
+description: 'Detects common magic numbers (86400 seconds/day, 1024 bytes/KB, 65535 max unsigned 16-bit, etc.) that should be replaced with named constants for readability and maintainability.'

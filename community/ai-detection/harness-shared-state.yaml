@@ -1,0 +1,5 @@
+name: harness-shared-state
+match: (?i)(?:global|shared|singleton|module.*level|class.*level).*(?:state|cache|config|settings|context)
+severity: medium
+enabled: true
+description: 'Detects shared mutable state in evaluation harnesses — multiple test runs can pollute each other, making results non-reproducible and enabling cross-run information leakage.'

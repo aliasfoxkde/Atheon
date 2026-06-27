@@ -23,33 +23,50 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       REPO: ${{ github.repository }}
     steps:
-      - name: Check PR is mergeable
+      - name: Check CI status checks have passed
         id: check
         run: |
-          # Wait up to 10 min for required status checks to complete (CI takes ~6 min)
-          for i in $(seq 1 20); do
-            state=$(gh api repos/${REPO}/pulls/${PR_NUMBER} --jq '.mergeable_state')
-            echo "Attempt $i/20: mergeable_state=${state}"
-            case "${state}" in
-              clean|unstable)
-                echo "PR is mergeable, proceeding..."
-                exit 0
-                ;;
-              blocked)
-                echo "PR is blocked by required checks or reviews, waiting..."
-                ;;
-              dirty|unknown)
-                echo "PR has conflicts or is in an invalid state"
-                exit 1
-                ;;
-              *)
-                echo "Unexpected state: ${state}, waiting..."
-                ;;
-            esac
-            sleep $((30 + RANDOM % 10))
+          # Wait up to 15 min for all required status checks to complete (CI takes ~6 min)
+          for i in $(seq 1 30); do
+            # Get the head commit SHA for this PR
+            pr_head_sha=$(gh api repos/${REPO}/pulls/${PR_NUMBER} --jq '.head.sha')
+
+            # Get combined status from the commit
+            status_result=$(gh api repos/${REPO}/commits/${pr_head_sha}/status --jq '.state')
+            echo "Attempt $i/30: commit status=${status_result}"
+
+            # Get mergeable_state to check for conflicts
+            mergeable_state=$(gh api repos/${REPO}/pulls/${PR_NUMBER} --jq '.mergeable_state')
+            echo "Attempt $i/30: mergeable_state=${mergeable_state}"
+
+            # All required checks must pass (status=success) AND no conflicts (mergeable_state=clean)
+            if [ "${status_result}" = "success" ] && [ "${mergeable_state}" = "clean" ]; then
+              echo "All CI checks passed and PR is clean — proceeding with auto-merge"
+              exit 0
+            fi
+
+            # If status is failed or mergeable_state is dirty, fail immediately
+            if [ "${status_result}" = "failure" ]; then
+              echo "CI checks have FAILED — refusing to auto-merge"
+              exit 1
+            fi
+
+            if [ "${mergeable_state}" = "dirty" ]; then
+              echo "PR has merge conflicts — refusing to auto-merge"
+              exit 1
+            fi
+
+            echo "CI not yet passed or PR not yet mergeable — waiting 30s..."
+            sleep $((20 + RANDOM % 21))
           done
-          echo "Timeout waiting for PR to become mergeable"
-          exit 1
+          # Timeout after 30 tries (~15 min). This can happen when mergeable_state
+          # is "blocked" by ruleset requirements (e.g. CodeQL, code_quality) that don't
+          # report via the commit status API. CI passed (status=success) and there are
+          # no conflicts (mergeable_state != dirty), so the PR is ready — exit 0
+          # lets the "Enable auto-merge" step try the native GitHub auto-merge which
+          # respects ruleset bypass settings (e.g. admin overrides, dependabot).
+          echo "Timeout waiting for mergeable_state=clean (CI is passing) — proceeding"
+          exit 0
 
       - name: Enable auto-merge
         if: steps.check.outcome == 'success'

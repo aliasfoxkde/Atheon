@@ -1,0 +1,5 @@
+name: ubuntu-latest-unsigned
+match: runs-on:\s*ubuntu-latest
+severity: medium
+enabled: true
+description: 'Pattern: ubuntu-latest-unsigned — Detects use of ubuntu-latest runner without additional verification. ubuntu-latest is a shared runner that could have been modified. Consider using specific version or self-hosted runners.'

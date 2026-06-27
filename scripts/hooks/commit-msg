@@ -19,7 +19,7 @@ fi
 commit_msg=$(cat "$commit_msg_file")
 
 # Skip merge commits
-if echo "$commit_msg" | grep -qP '^Merge '; then
+if echo "$commit_msg" | grep -qE '^Merge '; then
     exit 0
 fi
 
@@ -31,7 +31,7 @@ fi
 # ── Rule 1: Conventional commits format ───────────────────────────────────────
 # Format: type(scope)?: description
 # Types: feat|fix|docs|test|refactor|chore|ci|build|perf|release|revert
-if ! echo "$commit_msg" | head -1 | grep -qP '^(feat|fix|docs|test|refactor|chore|ci|build|perf|release|revert)(\([a-zA-Z0-9_/-]+\))?!?: '; then
+if ! echo "$commit_msg" | head -1 | grep -qE '^(feat|fix|docs|test|refactor|chore|ci|build|perf|release|revert)(\([a-zA-Z0-9_/-]+\))?!?: '; then
     echo "ERROR: Commit message does not follow conventional commits format."
     echo ""
     echo "Required format: type(scope): description"

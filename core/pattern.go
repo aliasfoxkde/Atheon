@@ -60,6 +60,13 @@ type Pattern interface {
 	Severity() string
 	// Matches reports whether the pattern's regex matches the given line.
 	Matches(line string) bool
+	// Description returns the pattern's free-text description. Empty string
+	// if the pattern has no description.
+	Description() string
+	// Reference returns the pattern's reference URL. Empty string if none.
+	Reference() string
+	// Tags returns the pattern's taxonomy tags. Nil slice if no tags.
+	Tags() []string
 }
 
 // registry holds every registered Pattern. It is package-private; callers

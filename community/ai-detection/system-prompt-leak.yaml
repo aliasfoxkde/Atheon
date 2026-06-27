@@ -1,0 +1,5 @@
+name: system-prompt-leak
+match: (?i)(?:system\s+(?:prompt|instruction|message|role)|system:).*(?:you\s+are|you\s+must|you\s+should|never|always|do\s+not)
+severity: medium
+enabled: true
+description: 'Detects system prompt or instruction leakage in outputs — a sign that an AI is verbatim repeating privileged instructions that should not appear in user-facing content.'
