@@ -1,7 +1,7 @@
 # Task Ledger — Atheon Enhanced
 
 **Last Updated**: 2026-06-27
-**Status**: Active — Wave 11 complete (PRs #102, #109, #110, #111 merged)
+**Status**: Active — Wave 11 complete, release v1.3.1-enhanced deployed (2026-06-27)
 
 ---
 
@@ -259,6 +259,7 @@ Historical (all closed in their respective waves):
 | 9 | [x] | #99-100 | MCP protocol, SARIF ecosystem, bundle integrity |
 | 10 | [x] | #102 | Post-Wave 9 hardening: SSRF, TOCTOU, fatal hash, path sandbox |
 | 11 | [x] | #109-111 | Test fix, CHANGELOG fix, yaml.v3 → goccy/go-yaml |
+| 12 | [x] | #113-125 | SDLC: commitlint, stale cleanup, PR labeler, goreleaser fixes, release v1.3.1 |
 
-**Completed waves**: 11 / 11
-**Total merged PRs**: 31 through Wave 11
+**Completed waves**: 12 / 12
+**Total merged PRs**: 43 through Wave 12
