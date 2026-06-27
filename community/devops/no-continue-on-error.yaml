@@ -1,0 +1,5 @@
+name: no-continue-on-error
+match: (?i)continue-on-error:\s*false
+severity: low
+enabled: true
+description: 'Pattern: no-continue-on-error — Detects explicit continue-on-error: false which is the default behavior. This is redundant noise. Consider removing or using proper error handling.'

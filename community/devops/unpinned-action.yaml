@@ -1,0 +1,5 @@
+name: unpinned-action
+match: (?i)uses:\s*[a-zA-Z0-9_/-]@(?:latest|master|main)$
+severity: critical
+enabled: true
+description: 'Pattern: unpinned-action — Detects GitHub Actions used without SHA pin, using @latest, @master, or @main. This is a critical security risk as the action could be modified by an attacker to execute arbitrary code.'

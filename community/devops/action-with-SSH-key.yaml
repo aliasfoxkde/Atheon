@@ -1,0 +1,5 @@
+name: action-with-SSH-key
+match: (?i)git\s+clone.*(?:withssh|ssh-key|SSH_PRIVATE_KEY|GIT_SSH_COMMAND)
+severity: high
+enabled: true
+description: 'Pattern: action-with-SSH-key — Detects actions using SSH keys for git operations. SSH keys in CI/CD can be exfiltrated if the runner is compromised.'

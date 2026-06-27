@@ -1,0 +1,5 @@
+name: github-token-wildcard
+match: permissions:\s*\n\s*[\w-]+:\s*\*
+severity: high
+enabled: true
+description: 'Pattern: github-token-wildcard — Detects GITHUB_TOKEN with overly broad wildcard (*) permissions. Follows principle of least privilege; specify exact permissions needed.'
