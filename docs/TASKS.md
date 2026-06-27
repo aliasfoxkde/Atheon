@@ -261,16 +261,17 @@ Historical (all closed in their respective waves):
 | 11 | [x] | #109-111 | Test fix, CHANGELOG fix, yaml.v3 → goccy/go-yaml |
 | 12 | [x] | #113-125 | SDLC: commitlint, stale cleanup, PR labeler, goreleaser fixes, release v1.3.1 |
 | 13 | [x] | #129, #131, #132 | Comprehensive audit: CI/CD fixes (Go 1.21 EOL, goreleaser pin, ascend-again, MODEL env, jitter), labeler v6.1.0 fix, lint fix, SDLC docs update |
-| 14 | [x] | (pending) | Security hardening: concurrent cap, sandboxPath, error sanitization, resource limits, atomicio extraction |
+| 14 | [x] | #134 | Security hardening: concurrent cap, sandboxPath, error sanitization, resource limits, atomicio extraction |
+| 15 | [x] | #136 | Comprehensive audit fixes: error wrapping, stdin cap, Pattern interface, Finding propagation |
 
-**Completed waves**: 14 / 14
-**Total merged PRs**: 44 through Wave 13
+**Completed waves**: 15 / 15
+**Total merged PRs**: 45 through Wave 14
 
 ---
 
 ## Wave 14: MCP Structured Output + Bundle Schema v2 (2026-06-27)
 
-PRs: #134 (pending)
+PR: #134
 
 - [x] Add `structuredContent` to MCP `textResult()` — parsed `Finding` objects (pattern, file, line, column, content, severity, category, fingerprint)
 - [x] Add `structuredContent` to MCP `patternsResult()` — pattern name/category/enabled
@@ -292,6 +293,31 @@ PRs: #134 (pending)
 - [x] Add `maxPatternCount` (10000) to prevent malicious bundle exhaustion
 - [x] Add `maxIgnoreRules` (10000) to prevent malicious ignore file exhaustion
 - [x] Fix Makefile lint target (`|| true` masking failures)
+
+---
+
+## Wave 15: Comprehensive Audit Fixes (2026-06-27)
+
+Post-audit fixes raising confidence from 72% to ~85%:
+
+### Error Handling Fixes
+- [x] Fix double-wrapped error `%w: %w` → `%w: %v` in verifyBundleHash
+- [x] Replace bare `return err` with wrapped errors throughout core/bundle.go
+- [x] Replace `%v` with `%w` in error wrapping (preserves error chain for errors.Is/As)
+- [x] Add nil guard to bundleWalkErr.Error() in bundler
+- [x] Add fallback for filepath.Rel error in runner.go (prevents silent path issues)
+
+### Security Hardening
+- [x] Add maxStdinBytes (100 MiB) cap on stdin reads to prevent memory exhaustion
+- [x] Document SetBundleDownloadURL panic behavior for SSRF rejection
+
+### Interface Improvements
+- [x] Add Description(), Reference(), Tags() to Pattern interface
+- [x] Add Description, Reference, Tags fields to Finding struct
+- [x] Propagate description/reference/tags through scanLines to findings
+
+### MCP Improvements
+- [x] Return stats (files, bytes, elapsedMs, errorCount) in handleScanDir response
 
 ---
 
