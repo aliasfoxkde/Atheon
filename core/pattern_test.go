@@ -36,6 +36,10 @@ func TestPatternInterfaceCategory(t *testing.T) {
 		"web-security":       true,
 		"compliance":         true,
 		"git-hygiene":        true,
+		"git-ops":            true,
+		"kubernetes":         true,
+		"metadata":           true,
+		"terraform":          true,
 	}
 
 	for _, p := range patterns {

@@ -218,9 +218,9 @@ Three parallel Explore agents (2026-06-26) surfaced **62 findings** across MCP+D
 ## Deferred / Backlog
 
 - [x] ~~Migrate `gopkg.in/yaml.v3` to `github.com/goccy/go-yaml`~~ — DONE PR #111
-- [ ] Add per-tool MCP `isError` and `structuredContent` fields
-- [ ] Branch protection ruleset consolidation
-- [ ] Schema version for bundle format (`version: 2`)
+- [x] Add per-tool MCP `isError` and `structuredContent` fields — DONE (Wave 14, PR #134)
+- [x] Branch protection ruleset consolidation — DONE (docs/planning/BRANCH_PROTECTION_RULESET.md)
+- [x] Schema version for bundle format (`version: 2`) — DONE core side (Wave 14, PR #134)
 - [ ] `update_bundle` force confirmation parameter
 
 ---
@@ -246,7 +246,7 @@ Historical (all closed in their respective waves):
 
 ## Wave 13: DevOps & CI/CD Patterns
 
-PR: (pending)
+PRs: #129, #131, #132
 
 - [x] Add golangci-lint `lll` (line-length 88), `cyclop`, `funlen`, `nestif`
 - [x] Add per-file exclusions for intentional long lines in main.go, bundle.go, runner.go
@@ -280,7 +280,54 @@ PR: (pending)
 | 10 | [x] | #102 | Post-Wave 9 hardening: SSRF, TOCTOU, fatal hash, path sandbox |
 | 11 | [x] | #109-111 | Test fix, CHANGELOG fix, yaml.v3 → goccy/go-yaml |
 | 12 | [x] | #113-125 | SDLC: commitlint, stale cleanup, PR labeler, goreleaser fixes, release v1.3.1 |
-| 13 | [~] | (pending) | DevOps & CI/CD patterns: linting, commit guards, PR size |
+| 13 | [x] | #129, #131, #132 | DevOps & CI/CD patterns: linting, commit guards, PR size, SDLC docs update |
 
-**Completed waves**: 12 / 13
-**Total merged PRs**: 43 through Wave 12
+**Completed waves**: 13 / 13
+**Total merged PRs**: 45 through Wave 13
+
+---
+
+## Wave 14: MCP Structured Output + Bundle Schema v2 (2026-06-27)
+
+PR: #134
+
+- [x] Add `structuredContent` to MCP `textResult()` — parsed `Finding` objects (pattern, file, line, column, content, severity, category, fingerprint)
+- [x] Add `structuredContent` to MCP `patternsResult()` — pattern name/category/enabled
+- [x] Add `structuredContent` to MCP `categoriesResult()` — category list array
+- [x] Update `TestTextResultEmpty` and `TestTextResultMultiple` to verify `structuredContent`
+- [x] Add `Description`, `Reference`, `Tags` fields to `PatternDef` in `core/bundle.go`
+- [x] Add `decodeBundleDefs()` supporting both v1 (flat array) and v2 (`{"schema_version":2,"data":[...]}`) bundle formats with backwards compatibility
+- [x] Add `parseBundle()` using `decodeBundleDefs` for downloaded bundle parsing
+- [x] Document branch protection ruleset in `docs/planning/BRANCH_PROTECTION_RULESET.md`
+
+---
+
+## Future Roadmap
+
+### Phase 1: MCP Protocol (Near-term)
+
+- [ ] Per-tool `isError` boolean for MCP content blocks (per MCP spec)
+- [ ] `update_bundle` force confirmation parameter (require `--force` flag confirmation)
+- [ ] Progress notifications during bundle download
+
+### Phase 2: Bundle Ecosystem (Near-term)
+
+- [ ] Publish `checksums.txt` alongside GitHub releases (goreleaser already generates it)
+- [ ] Bundle format schema v2 YAML front-matter support (description, reference, tags in community YAMLs)
+
+### Phase 3: Observability (Medium-term)
+
+- [ ] Benchmark regression tracking with trend storage
+- [ ] Coverage trend dashboards
+- [ ] Self-scan trend tracking
+
+### Phase 4: Community (Medium-term)
+
+- [ ] Add co-maintainers for specific pattern categories in CODEOWNERS
+- [ ] Archive or remove `dev/full-feature` from documentation
+- [ ] Per-category pattern OWNERS files for community governance
+
+### Requires GitHub Admin UI Action
+
+- [ ] Enable `enforce_admins: true` on main branch protection — Settings → Branches → Edit main → Check "Include administrators"
+- [ ] Add protection rule for `stable/clean` if it becomes a merge target
