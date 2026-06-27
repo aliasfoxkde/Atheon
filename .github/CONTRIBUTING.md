@@ -126,3 +126,46 @@ Any Go code contributed to this project must be clean and idiomatic. That means:
 The engine is intentionally minimal and stable. Contributions that touch `core/` without a clear bug fix or performance reason will not be merged. If you're unsure whether a change is in scope, open an issue first.
 
 If you're unsure whether something is idiomatic, the [Effective Go](https://go.dev/doc/effective_go) guide and [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) are the references we follow. Code that is hard to read will be sent back regardless of whether it works.
+
+---
+
+## Commit Message Format
+
+All commits follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types:** `feat` | `fix` | `docs` | `test` | `refactor` | `chore` | `ci` | `build` | `perf` | `release` | `revert`
+
+**Examples:**
+```
+feat(mcp): add cancel request handler
+fix(core): guard against nil bundle panic
+docs: update CONTRIBUTING.md
+chore: bump golangci-lint to v2.1.0
+```
+
+**Breaking changes:** Add `!` before the colon: `feat!:` or add `BREAKING CHANGE:` in the footer.
+
+**PR titles** use the same format — the PR title becomes the squash-merge commit subject.
+
+Full specification: [docs/planning/COMMIT_CONVENTIONS.md](docs/planning/COMMIT_CONVENTIONS.md)
+
+---
+
+## PR & Branch Workflow
+
+1. Branch from `main` → PR to `main`
+2. Use feature branches: `feature/`, `fix/`, `docs/`, `test/`, `refactor/`
+3. Pre-commit hook must pass before pushing
+4. All CI checks must pass before merge
+5. PRs require 1 code owner approval
+6. Merges are **squash-only** with `--delete-branch`
+
+Full SDLC documentation: [docs/planning/SDLC_AUDIT_2026-06-27.md](docs/planning/SDLC_AUDIT_2026-06-27.md)
