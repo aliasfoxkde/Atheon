@@ -1,0 +1,5 @@
+name: harness-env-detection
+match: (?i)(?:is_ci|is_test|is_evaluation|is_benchmark|in_ci|in_docker|in_container|EVAL_MODE|TEST_MODE|BENCHMARK)
+severity: medium
+enabled: true
+description: 'Detects environment detection logic that allows a system to identify when it is being evaluated vs production. This enables differential behavior — correct answers for the judge, different behavior for real users.'

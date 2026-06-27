@@ -1,0 +1,5 @@
+name: benchmark-gaming
+match: (?i)(?:best|top|optimized|perfect|ideal)\s*(?:solution|answer|result|output|response).*(?:for|under|when\s+tested|on\s+benchmark)
+severity: high
+enabled: true
+description: 'Detects benchmark-specific optimizations where code is tuned to look good on specific tests rather than solving the general problem. Often indicates AI systems that have seen and overfit to evaluation data.'

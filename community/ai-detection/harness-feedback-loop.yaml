@@ -1,0 +1,5 @@
+name: harness-feedback-loop
+match: (?i)(?:save|write|append)\s+(?:result|output|score|evaluation).*(?:to|into)\s+(?:file|stdout|stderr|log)
+severity: high
+enabled: true
+description: 'Detects a system under test writing its own evaluation results — classic benchmark contamination where the "judge" and "contestant" share state, allowing a cheating AI to report inflated scores.'

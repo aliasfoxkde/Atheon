@@ -1,0 +1,5 @@
+name: output-sanitization-bypass
+match: (?i)(?:remove|strip|filter|sanitize)\s+(?:profanity|toxic|harmful|inappropriate|content).*(?:from|before|after)\s+(?:output|response|generation)|profanity.*filter.*(?:disable|bypass|skip)
+severity: high
+enabled: true
+description: 'Detects attempts to bypass output content filters — code that deliberately removes or neutralizes safety measures in evaluation harnesses to produce harmful or policy-violating content.'
