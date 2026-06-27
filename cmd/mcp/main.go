@@ -568,9 +568,9 @@ func sandboxPath(path string) (string, error) {
 	// Resolve symlinks. Catches cases like "cmd/../../etc/passwd".
 	realPath, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		// Broken or non-existent path — reject it rather than passing a
-		// raw path that may have traversal components still in it.
-		return "", os.ErrNotExist
+		// Broken or non-existent — let ScanFile/ScanDir report the real error.
+		// Still clean the path to normalize any traversal components.
+		return filepath.Clean(path), nil
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
