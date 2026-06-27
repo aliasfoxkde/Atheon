@@ -165,6 +165,9 @@ func (p *testPattern) Matches(line string) bool { return false }
 func (p *testPattern) Enabled() bool            { return true }
 func (p *testPattern) Severity() string         { return "medium" }
 func (p *testPattern) SetEnabled(bool)          {}
+func (p *testPattern) Description() string       { return "" }
+func (p *testPattern) Reference() string         { return "" }
+func (p *testPattern) Tags() []string           { return nil }
 
 func unregisterForTest(p Pattern) {
 	for i, rp := range registry {
