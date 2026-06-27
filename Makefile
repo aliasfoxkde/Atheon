@@ -22,7 +22,14 @@ test-junit:
 lint:
 	go vet ./...
 	gofmt -l . | xargs -r false
-	$(TOOLS_DIR)/golangci-lint run --timeout=5m || golangci-lint run --timeout=5m || true
+	@# golangci-lint is optional for local dev (install via: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest)
+	@if which $(TOOLS_DIR)/golangci-lint >/dev/null 2>&1; then \
+		$(TOOLS_DIR)/golangci-lint run --timeout=5m; \
+	elif which golangci-lint >/dev/null 2>&1; then \
+		golangci-lint run --timeout=5m; \
+	else \
+		echo "warning: golangci-lint not installed, skipping lint step"; \
+	fi
 
 bundle:
 	go run ./bundler
