@@ -66,11 +66,14 @@ checksum:
 # SBOM — generate SPDX-JSON for every release artifact. Downstream
 # consumers (Sigstore, in-toto, govulncheck) parse SPDX directly. The
 # file lands alongside the binaries in the GitHub release.
-sboms:
-  - id: spdx
-    artifacts: binary
-    documents:
-      - "${artifact}.spdx.json"
+# NOTE: SBOM generation requires `syft` to be installed. Disabled until
+# syft is available in CI. To re-enable: add `syft install` step or
+# install syft in the goreleaser action environment.
+# sboms:
+#   - id: spdx
+#     artifacts: binary
+#     documents:
+#       - "${artifact}.spdx.json"
 
 release:
   github:
