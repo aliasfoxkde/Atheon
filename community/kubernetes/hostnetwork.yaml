@@ -1,0 +1,5 @@
+name: hostnetwork
+match: (?i)securityContext:\s*\n\s*hostNetwork:\s*true
+severity: high
+enabled: true
+description: 'Pattern: ''host network''. Pattern in category ''kubernetes''. Detects containers using host network namespace.'

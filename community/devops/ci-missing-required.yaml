@@ -1,0 +1,5 @@
+name: ci-missing-required
+match: (?i)(required_status_checks|required_checks|status_check|mandatory.?check|blocking.?check)
+severity: medium
+enabled: true
+description: 'Pattern: ''CI missing required checks''. Pattern in category ''devops''. Detects CI configurations with missing or disabled required status checks.'

@@ -1,0 +1,5 @@
+name: os-cache-file
+match: \.(DS_Store|Thumbs\.db|desktop\.ini|\.AppleDouble|\.LSOverride)$
+severity: low
+enabled: true
+description: 'Pattern: ''OS cache file''. Pattern in category ''metadata''. Detects operating system cache and metadata files.'

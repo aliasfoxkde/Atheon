@@ -1,0 +1,5 @@
+name: env-file-committed
+match: (?i)\.env(\.\w+)?\s*$|\.env\s*\n\s*[^#]*=\s*[^#]+
+severity: high
+enabled: true
+description: 'Pattern: ''env file committed''. Pattern in category ''devops''. Detects .env files or environment variables checked into source control.'

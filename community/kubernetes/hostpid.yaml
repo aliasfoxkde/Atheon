@@ -1,0 +1,5 @@
+name: hostpid
+match: (?i)securityContext:\s*\n\s*hostPID:\s*true
+severity: high
+enabled: true
+description: 'Pattern: ''host PID namespace''. Pattern in category ''kubernetes''. Detects containers sharing host PID namespace.'
