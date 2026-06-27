@@ -1,3 +1,4 @@
+// Package errors provides shared error utilities for Atheon.
 package errors
 
 import (

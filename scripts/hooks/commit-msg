@@ -1,0 +1,75 @@
+#!/bin/bash
+# commit-msg hook — validates commit messages against conventional commits format.
+# Git calls this automatically when core.hooksPath is set to scripts/hooks.
+#
+# Rules enforced:
+#   1. Subject line matches: type(scope)?: description
+#   2. Subject line <= 72 characters
+#   3. Total commit message <= 800 characters (GitHub truncation limit)
+#   4. Body lines <= 80 characters (warning, not error)
+#
+# Skip: merge commits (git generates these), empty commit messages (--allow-empty)
+
+commit_msg_file="${1:-}"
+if [ -z "$commit_msg_file" ] || [ ! -f "$commit_msg_file" ]; then
+    echo "commit-msg: no commit message file found"
+    exit 1
+fi
+
+commit_msg=$(cat "$commit_msg_file")
+
+# Skip merge commits
+if echo "$commit_msg" | grep -qP '^Merge '; then
+    exit 0
+fi
+
+# Skip empty commits
+if [ -z "$(echo "$commit_msg" | tr -d '[:space:]')" ]; then
+    exit 0
+fi
+
+# ── Rule 1: Conventional commits format ───────────────────────────────────────
+# Format: type(scope)?: description
+# Types: feat|fix|docs|test|refactor|chore|ci|build|perf|release|revert
+if ! echo "$commit_msg" | head -1 | grep -qP '^(feat|fix|docs|test|refactor|chore|ci|build|perf|release|revert)(\([a-zA-Z0-9_/-]+\))?!?: '; then
+    echo "ERROR: Commit message does not follow conventional commits format."
+    echo ""
+    echo "Required format: type(scope): description"
+    echo "  type: feat|fix|docs|test|refactor|chore|ci|build|perf|release|revert"
+    echo "  scope: optional module name (e.g. mcp, core, bundle)"
+    echo ""
+    echo "Example: feat(mcp): add cancel request handler"
+    echo ""
+    echo "Got: $(echo "$commit_msg" | head -1)"
+    exit 1
+fi
+
+# ── Rule 2: Subject line <= 72 characters ─────────────────────────────────────
+subject_line=$(echo "$commit_msg" | head -1)
+if [ ${#subject_line} -gt 72 ]; then
+    echo "ERROR: Commit subject line exceeds 72 characters (got ${#subject_line})"
+    echo ""
+    echo "$subject_line"
+    exit 1
+fi
+
+# ── Rule 3: Total message <= 800 characters ───────────────────────────────────
+total_chars=$(wc -c < "$commit_msg_file" | tr -d ' ')
+if [ "$total_chars" -gt 800 ]; then
+    echo "ERROR: Commit message exceeds 800 characters (GitHub truncation limit)"
+    echo "Got: $total_chars chars. Please shorten."
+    exit 1
+fi
+
+# ── Rule 4: Body lines <= 80 chars (warning, not error) ──────────────────────
+# Skip the subject line (line 1) and blank separator (line 2)
+body_lines=$(echo "$commit_msg" | tail -n +3)
+if [ -n "$body_lines" ]; then
+    long_lines=$(echo "$body_lines" | awk 'length > 80 { print NR": "$0 }')
+    if [ -n "$long_lines" ]; then
+        echo "WARNING: Body lines exceed 80 characters (consider wrapping):"
+        echo "$long_lines" | sed 's/^/  /'
+    fi
+fi
+
+exit 0

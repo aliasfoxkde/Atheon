@@ -345,6 +345,7 @@ func run(ctx context.Context, r io.Reader, w io.Writer) int {
 // to reconnect. With recover() in place the bad request gets an error
 // response and the server keeps serving.
 func dispatchRequest(ctx context.Context, req *request) (result any, rerr *rpcError) {
+	//nolint:revive // intentional MCP server resilience: one tool panic must not kill the daemon
 	defer func() {
 		if r := recover(); r != nil {
 			slog.Error("mcp handler panic", "method", req.Method, "panic", fmt.Sprintf("%v", r))
