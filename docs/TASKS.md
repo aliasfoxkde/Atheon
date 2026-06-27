@@ -264,3 +264,52 @@ Historical (all closed in their respective waves):
 
 **Completed waves**: 13 / 13
 **Total merged PRs**: 44 through Wave 13
+
+---
+
+## Wave 14: MCP Structured Output + Bundle Schema v2 (2026-06-27)
+
+PRs: #134 (pending)
+
+- [x] Add `structuredContent` to MCP `textResult()` — parsed `Finding` objects (pattern, file, line, column, content, severity, category, fingerprint)
+- [x] Add `structuredContent` to MCP `patternsResult()` — pattern name/category/enabled
+- [x] Add `structuredContent` to MCP `categoriesResult()` — category list array
+- [x] Update `TestTextResultEmpty` and `TestTextResultMultiple` to verify `structuredContent`
+- [x] Add `Description`, `Reference`, `Tags` fields to `PatternDef` in `core/bundle.go`
+- [x] Add `decodeBundleDefs()` supporting both v1 (flat array) and v2 (`{"schema_version":2,"data":[...]}`) bundle formats with backwards compatibility
+- [x] `loadBundleFrom()` now uses `decodeBundleDefs` for v1/v2 detection
+- [x] Document branch protection ruleset in `docs/planning/BRANCH_PROTECTION_RULESET.md`
+
+---
+
+## Future Roadmap
+
+### Phase 1: MCP Protocol (Near-term)
+
+- [ ] Per-tool `isError` boolean for MCP content blocks (per MCP spec)
+- [ ] `update_bundle` force confirmation parameter (require `--force` flag confirmation)
+- [ ] Progress notifications during bundle download
+- [ ] MCP `scan_env` with environment variable filtering
+
+### Phase 2: Bundle Ecosystem (Near-term)
+
+- [ ] Publish `checksums.txt` alongside GitHub releases (goreleaser already generates it)
+- [ ] Bundle format schema v2 YAML front-matter support (description, reference, tags in community YAMLs)
+- [ ] Pattern validation: reject patterns without description field
+
+### Phase 3: Observability (Medium-term)
+
+- [ ] Benchmark regression tracking with trend storage
+- [ ] Coverage trend dashboards
+- [ ] Self-scan trend tracking
+
+### Phase 4: Community (Medium-term)
+
+- [ ] Add co-maintainers for specific pattern categories in CODEOWNERS
+- [ ] Archive or remove `dev/full-feature` from documentation
+- [ ] Per-category pattern OWNERS files for community governance
+
+### Requires GitHub Admin UI Action
+
+- [ ] Enable `enforce_admins: true` on main branch protection — Settings → Branches → Edit main → Check "Include administrators"
+- [ ] Add protection rule for `stable/clean` if it becomes a merge target
