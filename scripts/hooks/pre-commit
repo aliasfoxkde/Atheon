@@ -27,7 +27,7 @@ fi
 
 if [ -n "$STAGED_GO" ]; then
     # --- Format (auto-fix and re-stage) ---
-    gofmt -w . 2>/dev/null || true
+    gofmt -w .
     if [ -n "$(git diff --name-only -- '*.go')" ]; then
         git add -u -- '*.go'
         echo "  ✓ gofmt auto-fixed"
