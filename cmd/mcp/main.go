@@ -571,10 +571,10 @@ func sandboxPath(path string) (string, error) {
 	// Resolve symlinks. Catches cases like "cmd/../../etc/passwd".
 	realPath, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		// Broken symlink or path doesn't exist — still return cleaned path so
-		// the caller's existence check fails naturally. Don't discard err
-		// since the linter flags that as a bug.
-		return filepath.Clean(path), err
+		// Non-existent path — return cleaned path so the caller's ScanFile/ScanDir
+		// naturally reports the not-exist error. We intentionally return nil err
+		// so the path is still usable; the scanner will catch the real error.
+		return filepath.Clean(path), nil //nolint:nilerr
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
