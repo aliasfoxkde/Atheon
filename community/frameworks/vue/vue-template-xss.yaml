@@ -1,0 +1,6 @@
+name: vue-template-injection
+category: frameworks
+match: :[a-z]+=["']{{[^}]*request|:[a-z]+=["']{{[^}]*input|:[a-z]+=["']{{[^}]*params
+severity: high
+enabled: true
+description: 'Vue.js template injection detected. User input may be directly interpolated into templates without sanitization.'

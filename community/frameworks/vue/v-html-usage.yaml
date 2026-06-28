@@ -1,0 +1,6 @@
+name: vue-v-html-xss
+category: frameworks
+match: v-html=["'][^"']{10,}["']
+severity: high
+enabled: true
+description: 'Vue.js v-html directive detected. This can introduce XSS vulnerabilities if the HTML content is not properly sanitized.'
