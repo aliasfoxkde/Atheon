@@ -294,10 +294,10 @@ func detectUnhandledError(fset *token.FileSet, file *ast.File) []ASTFinding {
 
 // Dangerous names for getattr() sink detection (AST9)
 var dangerousGetattrNames = map[string]bool{
-	"exec":      true,
-	"eval":      true,
-	"system":    true,
-	"popen":     true,
+	"exec":       true,
+	"eval":       true,
+	"system":     true,
+	"popen":      true,
 	"__import__": true,
 }
 
