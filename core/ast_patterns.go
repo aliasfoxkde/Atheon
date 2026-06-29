@@ -26,12 +26,12 @@ type ASTFinding struct {
 func (f ASTFinding) ToFinding() Finding {
 	return Finding{
 		Pattern:     "ast:" + f.Rule,
-		File:       f.File,
-		Line:       f.Line,
-		Column:     f.Column,
-		Content:    f.Message,
-		Severity:   f.Severity,
-		Category:   "ast-security",
+		File:        f.File,
+		Line:        f.Line,
+		Column:      f.Column,
+		Content:     f.Message,
+		Severity:    f.Severity,
+		Category:    "ast-security",
 		Description: f.Message,
 	}
 }
