@@ -9,6 +9,7 @@ Pattern files for Atheon-Enhanced, organized by category. Each `.yaml` file defi
 | [accessibility](accessibility/) | 19 | WCAG compliance, ARIA, screen reader issues |
 | [ai-detection](ai-detection/) | 21 | AI-generated code markers, anti-cheating patterns |
 | [api-integration](api-integration/) | 9 | API keys, webhook secrets, integration tokens |
+| [ast-security](ast-security/) | 28* | AST-based Go security patterns (built-in) |
 | [cloud-native](cloud-native/) | 14 | Kubernetes, Docker, cloud deployment patterns |
 | [code-quality](code-quality/) | 53 | Debug artifacts, hardcoded values, dead code |
 | [compliance](compliance/) | 4 | GDPR, HIPAA, PCI compliance patterns |
@@ -30,7 +31,9 @@ Pattern files for Atheon-Enhanced, organized by category. Each `.yaml` file defi
 | [web-development](web-development/) | 12 | Frontend anti-patterns |
 | [web-security](web-security/) | 15 | XSS, SQLi, CORS, injection risks |
 
-**Total: 335 patterns across 23 active categories**
+**Total: 335+ patterns across 24 active categories**
+
+*Note: ast-security patterns are built into `core/ast_patterns.go` and enabled with `--ast` flag
 
 ## Pattern File Format
 

@@ -182,6 +182,16 @@ type ScanOpts struct {
 	// populated with the ErrFileTooLarge sentinel). Zero means use the
 	// package-level maxFileSize.
 	MaxFileSize int64
+
+	// EnableAST, when true, enables AST-based pattern scanning for Go files.
+	// AST scanning runs after regex scanning and detects structural patterns
+	// that regex cannot (e.g., command injection, SQL injection via AST
+	// analysis, path traversal, dangerous function calls).
+	EnableAST bool
+
+	// ASTOnly, when true, skips regex scanning and only runs AST scanning.
+	// Requires EnableAST to be true.
+	ASTOnly bool
 }
 
 // ScanDir walks root and scans every non-binary, non-ignored file in
@@ -377,6 +387,69 @@ func ScanDir(ctx context.Context, root string, opts ScanOpts) ([]Finding, *Stats
 // early if canceled.
 func ScanEnv(ctx context.Context) []Finding {
 	return scanEnv(ctx, os.Environ())
+}
+
+// ScanFileWithAST combines regex-based scanning and AST-based scanning for a single file.
+// It respects the same ignore patterns as ScanFile.
+func ScanFileWithAST(ctx context.Context, path string, opts ScanOpts) ([]Finding, *Stats, error) {
+	// First do regular scan
+	findings, stats, err := ScanFile(ctx, path)
+	if err != nil {
+		return findings, stats, err
+	}
+
+	// If AST is not enabled, return regex findings only
+	if !opts.EnableAST {
+		return findings, stats, nil
+	}
+
+	// Run AST scanning for Go files
+	astFindings, err := ScanFileAST(path, builtinASTPatterns)
+	if err != nil {
+		// Log but don't fail - AST scanning is best-effort
+		slog.Warn("AST scan failed", "path", path, "error", err)
+		return findings, stats, nil
+	}
+
+	// Convert AST findings to regular findings
+	for _, af := range astFindings {
+		findings = append(findings, af.ToFinding())
+	}
+
+	return findings, stats, nil
+}
+
+// ScanDirWithAST combines regex-based scanning and AST-based scanning for a directory.
+// AST scanning is performed after regex scanning for Go files.
+func ScanDirWithAST(ctx context.Context, root string, opts ScanOpts) ([]Finding, *Stats, error) {
+	findings, stats, err := ScanDir(ctx, root, opts)
+	if err != nil {
+		return findings, stats, err
+	}
+
+	// If AST is not enabled, return regex findings only
+	if !opts.EnableAST {
+		return findings, stats, nil
+	}
+
+	// Run AST scanning on the directory
+	astFindings, err := ScanDirAST(root, builtinASTPatterns)
+	if err != nil {
+		slog.Warn("AST directory scan failed", "root", root, "error", err)
+		return findings, stats, nil
+	}
+
+	// Convert and deduplicate AST findings
+	seen := make(map[string]bool)
+	for _, af := range astFindings {
+		key := fmt.Sprintf("%s:%d:%s", af.File, af.Line, af.Rule)
+		if !seen[key] {
+			seen[key] = true
+			findings = append(findings, af.ToFinding())
+		}
+	}
+
+	return findings, stats, nil
 }
 
 // scanEnv is the inner implementation that accepts an explicit env list.

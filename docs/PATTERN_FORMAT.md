@@ -223,3 +223,87 @@ Maintainers review patterns for:
 - Performance impact
 - Security considerations
 - Test coverage
+
+## AST-Based Patterns
+
+Atheon supports AST (Abstract Syntax Tree) based pattern detection for Go files. AST patterns analyze the structure of Go code rather than just matching text, enabling detection of complex vulnerabilities that regex cannot find.
+
+### Built-in AST Patterns
+
+The following AST patterns are built into `core/ast_patterns.go`:
+
+| Pattern Name | Severity | Description |
+|------------|----------|-------------|
+| `go-command-injection` | CRITICAL | exec.Command with string concat or user input |
+| `go-shell-command` | CRITICAL | Shell invocation with user input |
+| `go-sql-injection` | CRITICAL | String concatenation in SQL query |
+| `go-sql-template-query` | HIGH | Database query method with user input |
+| `go-path-traversal` | HIGH | File operation with user-controlled path |
+| `go-symlink-attack` | MEDIUM | File open without O_NOFOLLOW |
+| `go-unsafe-deserialization` | HIGH | Binary unmarshal with user input |
+| `go-gob-deserialization` | HIGH | gob decoder with untrusted data |
+| `go-ssrf` | HIGH | HTTP request with user-controlled URL |
+| `go-http-unvalidated-url` | MEDIUM | http.Get/Post with user URL |
+| `go-template-injection` | HIGH | Template execution with user input |
+| `go-template-raw-html` | HIGH | template.HTML bypasses auto-escaping |
+| `go-redos` | MEDIUM | Regex with nested quantifiers |
+| `go-regex-dynamic` | HIGH | regexp.Compile with user pattern |
+| `go-hardcoded-secret` | HIGH | Credential variable with string literal |
+| `go-private-key` | CRITICAL | Private key embedded as string |
+| `go-weak-crypto-md5` | MEDIUM | Use of MD5 hash |
+| `go-weak-crypto-sha1` | MEDIUM | Use of SHA-1 hash |
+| `go-insecure-random` | MEDIUM | math/rand for security purposes |
+| `go-weak-cipher` | HIGH | Weak cipher (DES, RC4, ECB) |
+| `go-unchecked-error` | MEDIUM | Error return not checked |
+| `go-silent-panic` | MEDIUM | panic in production code |
+| `go-ldap-injection` | HIGH | LDAP query with string concat |
+| `go-xxe` | HIGH | XML parsing without entity protection |
+| `go-yaml-unsafe` | HIGH | yaml.Unmarshal with untrusted data |
+| `go-trust-boundary` | MEDIUM | User input to internal state |
+| `go-tls-skip-verify` | CRITICAL | TLS verification disabled |
+| `go-insecure-tls` | HIGH | Weak TLS configuration |
+
+### CLI Usage
+
+```bash
+# Enable AST scanning for a Go project
+atheon ./my-go-project --ast
+
+# AST-only scanning (skip regex patterns)
+atheon ./my-go-project --ast-only
+
+# AST scanning for a single file
+atheon --file main.go --ast
+```
+
+### AST Pattern Output
+
+AST findings are prefixed with `ast:` in the pattern field:
+
+```
+ast:go-command-injection  /path/to/file.go:15
+ast:go-sql-injection     /path/to/file.go:42
+```
+
+### Technical Details
+
+- AST scanning uses Go's `go/ast` and `go/parser` packages
+- Only `.go` files are scanned with AST patterns
+- AST scanning runs after regex scanning
+- AST findings are converted to the standard `Finding` type for unified output
+- SARIF output includes AST findings with the same structure as regex findings
+
+### Future: YAML-Based AST Patterns
+
+Future versions will support YAML-defined AST patterns with:
+
+```yaml
+name: custom-command-injection
+type: ast
+language: go
+severity: critical
+description: "Custom command injection pattern"
+detection:
+  callPattern: exec.Command
+  argContains: [stringConcat, userInput]
+```

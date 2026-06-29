@@ -182,7 +182,15 @@ func run(ctx context.Context, args []string) int {
 			fmt.Fprintln(os.Stderr, "error: --file requires a path")
 			return 1
 		}
-		findings, stats, err := core.ScanFile(ctx, args[1])
+		opts := scanOpts(args[2:])
+		var findings []core.Finding
+		var stats *core.Stats
+		var err error
+		if opts.EnableAST {
+			findings, stats, err = core.ScanFileWithAST(ctx, args[1], opts)
+		} else {
+			findings, stats, err = core.ScanFile(ctx, args[1])
+		}
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error:", errors.SafeError(err))
 			return 1
@@ -202,10 +210,19 @@ func run(ctx context.Context, args []string) int {
 		}
 		var findings []core.Finding
 		var stats *core.Stats
+		opts := scanOpts(args[1:])
 		if info.IsDir() {
-			findings, stats, err = core.ScanDir(ctx, path, scanOpts(args[1:]))
+			if opts.EnableAST {
+				findings, stats, err = core.ScanDirWithAST(ctx, path, opts)
+			} else {
+				findings, stats, err = core.ScanDir(ctx, path, opts)
+			}
 		} else {
-			findings, stats, err = core.ScanFile(ctx, path)
+			if opts.EnableAST {
+				findings, stats, err = core.ScanFileWithAST(ctx, path, opts)
+			} else {
+				findings, stats, err = core.ScanFile(ctx, path)
+			}
 		}
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error:", errors.SafeError(err))
@@ -247,8 +264,14 @@ func parseCategories(args []string) (cats, rest []string, enableAll bool) {
 func scanOpts(rest []string) core.ScanOpts {
 	var opts core.ScanOpts
 	for _, a := range rest {
-		if a == "--no-follow-symlinks" {
+		switch a {
+		case "--no-follow-symlinks":
 			opts.NoFollowSymlinks = true
+		case "--ast":
+			opts.EnableAST = true
+		case "--ast-only":
+			opts.EnableAST = true
+			opts.ASTOnly = true
 		}
 	}
 	return opts
@@ -652,7 +675,10 @@ func printHelp() {
 usage:
   atheon <path>                       scan a directory or file
   atheon <path> --no-follow-symlinks  scan a directory without following symlinks
+  atheon <path> --ast                 enable AST-based Go pattern scanning
+  atheon <path> --ast-only            enable AST-only scanning (skip regex patterns)
   atheon --file <path>                scan a single file explicitly
+  atheon --file <path> --ast         scan file with AST patterns enabled
   atheon --env                        scan environment variables
   atheon - / --stdin                  scan from stdin
   atheon --json <path>                print findings as JSON (must be first flag)
